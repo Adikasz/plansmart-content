@@ -1,0 +1,22 @@
+# Workshop témák (workshop_promo content_type).
+# A generator a legrelevánsabb közelgő workshopot választja, voice_fit szerint.
+# voice_fit: david | adam | plansmart | all (vagy lista).
+
+workshop_topics:
+  - topic: "AI automatizáció alapok KKV-knak"
+    audience: "Cégvezetők akik most ismerkednek az AI-val"
+    format: "Ingyenes, 90 perces online"
+    date_window: "havonta első csütörtök"
+    voice_fit: [all]
+
+  - topic: "n8n workflow workshop"
+    audience: "Akik már próbálkoztak automatizációval"
+    format: "Előfizetéses, hetente"
+    date_window: "minden csütörtök"
+    voice_fit: [david]
+
+  - topic: "AI stratégia workshop"
+    audience: "Cégvezetők akiknek már van AI tool de nincs stratégia"
+    format: "4 alkalmas csomag"
+    date_window: "negyedévente induló kurzus"
+    voice_fit: [adam, plansmart]

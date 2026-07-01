@@ -1,0 +1,153 @@
+{
+  "source": "C:\\Users\\nagya\\OneDrive\\PlanSmart\\LinkedIn - Ádám\\plansmart-content\\data\\visual_eval_results_latest.json",
+  "analysis": {
+    "variant_avg": {
+      "A": 5.38,
+      "B": 5.1,
+      "C": 5.43,
+      "D": 5.15
+    },
+    "voice_avg": {
+      "david": 5.14,
+      "adam": 5.19,
+      "plansmart": 5.65
+    },
+    "weakest_voice": "david",
+    "top_flags": [
+      [
+        "background is dark grey not the specified near-black #04060a",
+        2
+      ],
+      [
+        "garbled Hungarian subtitle text ('alazlk', 'épilkéttunk', 'helyzett' — nonsense/misspelled words)",
+        1
+      ],
+      [
+        "background HUD/code elements are generic AI-art UI overlay",
+        1
+      ],
+      [
+        "multiple competing focal points (headline stat + '3 hét' + subtitle + background clutter)",
+        1
+      ],
+      [
+        "background text panels are hallucinated/unreadable pseudo-code",
+        1
+      ],
+      [
+        "garbled subtitle text ('sssjat', 'renslszert', 'épjíktünk', 'helyzett' — nonsense/hallucinated words in bottom caption)",
+        1
+      ],
+      [
+        "placeholder watermark '[BRAND_LOGO]' instead of real PlanSmart mark",
+        1
+      ],
+      [
+        "generic AI-art HUD/UI element competing with focal text",
+        1
+      ]
+    ],
+    "recurring_feedback_terms": [
+      [
+        "brand",
+        27
+      ],
+      [
+        "kell",
+        27
+      ],
+      [
+        "erős",
+        24
+      ],
+      [
+        "copy",
+        16
+      ],
+      [
+        "főcím",
+        16
+      ],
+      [
+        "háttér",
+        15
+      ],
+      [
+        "cinematic",
+        15
+      ],
+      [
+        "vagy",
+        15
+      ],
+      [
+        "azonnal",
+        14
+      ],
+      [
+        "subtitle",
+        13
+      ],
+      [
+        "hungarian",
+        13
+      ],
+      [
+        "magyar",
+        13
+      ]
+    ],
+    "sample_feedback": [
+      "A headline ('80% IRRELEVÁNS, 20% HIÁNYZIK') és a '3 hét' focal elem erős és brand-conform, de a subtitle szöveg súlyosan hibás magyarsággal van írva ('alazlk', 'épilkéttunk', 'helyzett') — ez azonnal hiteltelenné teszi a posztot; a háttéri HUD-panelek olvashatatlan, AI-generált pseudo-szövege szintén anti-pattern. A subtitle szöveget kézzel kell beírni (pl. 'Saját PPC monitorrendszert építettünk 3 hét alatt a kész eszközök helyett'), és a háttér zajt csökkenteni kell a cinematic fókusz érdekében.",
+      "The headline '80% IRRELEVÁNS, 20% HIÁNYZIK' is bold and concept-correct, but the bottom caption is completely garbled AI-hallucinated Hungarian — fix or remove it before publishing. Replace the placeholder [BRAND_LOGO] with the actual PlanSmart watermark and swap the typeface to the brand-specified Bebas Neue / Neue Machina to bring brand alignment up significantly.",
+      "A headline ('80% IRRELEVÁNS, 20% HIÁNYZIK') is punchy and on-brand, but the subtitle copy is visibly garbled AI-hallucinated Hungarian ('altakt', 'vezépzleinzk', 'helyztt') which would destroy credibility with any Hungarian B2B audience — this must be fixed with real, typeset text. Strip or heavily blur the background pseudo-UI noise to achieve the 'one clear focal element' rule and push the cinematic grain/lighting further to compensate.",
+      "A hero stat ('3 hét') és a dark háttér iránya jó, de a body copy teljesen olvashatatlan — az AI garbled, nem létező magyar szavakat generált ('allazt', 'renizzert', 'épíźktünk'), ami súlyos brand-hitelességi probléma; a szöveget minden esetben kézzel kell megírni és utólag rá kell helyezni. A duplikált alcím és a zsúfolt háttér-UI eltávolítandó, egyetlen tiszta fókuszelemre van szükség.",
+      "A focal stat ($40M ARR) lands well and the dark background with spotlight lighting is on-brand, but the body copy contains a hallucinated word ('maziét') and a typo ('hiánszó' → 'hiányzó') that immediately undermine credibility — fix the Hungarian before publishing. Also correct the diacritic on 'FEJLESZTŐ' in the headline to meet brand typography standards.",
+      "A legkritikusabb probléma a két garbled fine-print sor alján — olvasható szöveg helyett értelmetlen betűsort generált az AI, ami azonnal hiteltelenné teszi a képet; ezeket valódi szerkesztett szövegre kell cserélni. Az egyetlen fókuszelemként a '$40M ARR' felirat duplán jelenik meg, ami megtöri a hierarchiát — csak a nagy heading maradjon, a metrika-accent pedig egyszer, felette.",
+      "A headline és a $40M ARR focal stat erős és brand-konform, a cinematic spotlight háttér és a PlanSmart watermark jól illeszkedik — de az alcím szövege súlyosan sérült (gépi szöveghallucinációk: 'mdizt', 'iagÿgyr thál'), ami professzionális kontextusban diszkvalifikáló hiba; az alcímet manuálisan kell újragenerálni tiszta, ellenőrzött magyar szöveggel.",
+      "A hero stat ($40M ARR) and cinematic glow treatment are strong scroll-stoppers, but the body copy contains a critically garbled word ('mäjzt') that makes the brand look unprofessional to any Hungarian reader; fix the text rendering and replace the placeholder 'PRAN_LOGO' watermark with the actual PlanSmart mark before publishing.",
+      "A főcím ('NAPI 2 ÓRA → 0 PERC ADMINISZTRÁCIÓ') erős és jól olvasható, de a felirat-blokk tele van AI által generált, értelmetlen magyar szavakkal (fogláćyester, önszogr, vezzaigazikolás), ami teljesen tönkreteszi a prémium megbízhatóságot — ezt a sort el kell távolítani vagy valódi szöveggel kell helyettesíteni; emellett a teal 'napi 2 óra' ismétlés felesleges second focal point, egyetlen erős fókuszra kell szűkíteni.",
+      "A főcím ('NAPI 2 ÓRA → 0 PERC ADMINISZTRÁCIÓ') erős és scroll-stopping, de az alcím szövege súlyosan hibás magyar szavakat tartalmaz ('pestver', 'önszolguódő', 'veszaigazolás'), ami teljesen hiteltelenné teszi a vizuált egy B2B közönség előtt — ezt azonnal javítani kell. A design lapos és filmszerű mélység nélküli; adj hozzá enyhe film grain textúrát, igazi #04060a hátteret és egy accentszínt (pl. halvány arany vagy kék vonal) a hierarchia erősítéséhez.",
+      "A főcím ('NAPI 2 ÓRA → 0 PERC ADMINISZTRÁCIÓ') erős, olvasható és scroll-stopping, a cinematic spotlight háttér és a PlanSmart watermark jól illeszkedik a brand DNA-hoz — azonban az alcím súlyos AI-hallucináció-hibákat tartalmaz ('automatizákt', 'roe:zuzer', 'veszaigazolás'), amelyek tönkreteszik a professzionális megjelenést; ezeket az alcím szövegét újra kell generálni vagy manuálisan kell felülírni helyes magyar szöveggel.",
+      "A fő headline ('napi 2 óra') jól működik vizuálisan és illeszkedik a brand DNA-hoz, de a body copy súlyos helyesírási/generálási hibákat tartalmaz ('restzer', 'önszologúló', 'veszaigazolás'), amelyek teljesen hiteltelenné teszik a prémium SaaS megjelenést — ezeket kötelező javítani; emellett az alcím szövegmennyisége megbontja az egyetlen fókális elem elvét.",
+      "The focal stat '16 perc → 3,5 másodperc' lands well and the neon-on-dark cinematic aesthetic is on-brand, but the corners are filled with AI-hallucinated gibberish text (a critical credibility killer for a tech B2B brand), the subtitle contains a grammatical error ('inhem' → 'hanem'), and the '[BRAND_LOGO]' placeholder was left unresolved — all three must be fixed before publishing.",
+      "A főcím '16 PERC → 3,5 MÁSODPERC' erős és azonnal megragadó, a sötét háttér és a teal akcentus illeszkedik a brand DNA-hoz — de az alsó copy-ban az 'inehram' szó egyértelműen AI-szöveg-hallucináció, ami tönkreteszi a szakmai hitelességet; javítani kell 'hanem'-re. A két lebegő ghost '16 perc' felirat redundáns zajt visz a kompozícióba, érdemes eltávolítani vagy integrálni a strip-be.",
+      "A cinematic dark background, spotlight dramatics és a bold stat-kontrast (16 PERC → 3,5 MÁSODPERC) erős scroll-stopping erő — de a body copy tele van AI-generálta typo/garble hibával ('helyettt', 'megközelétgs', 'ihhem'), ami tönkreteszi a prémium benyomást és hiteltelenné teszi a brand üzenetet; ezeket manuálisan kell korrigálni minden generálás után.",
+      "A legerősebb probléma a hallucináció: a subtitle sorban 'zwenhan' értelmetlen szó, a watermark 'BLANSMOR'-t ír PlanSmart helyett — ezek brandkárosítók és azonnal diszkvalifikálják a posztot. A kettős fókusz (fejléc stat + óriás '16 perc') és a generikus teal-grid sci-fi look csökkenti a prémium érzetet; egyetlen, erős focal elemre és helyes márkaszövegre van szükség.",
+      "A főcím és a 800.000 Ft focal stat vizuálisan erős és brand-konform, de a felirat sor teljesen olvashatatlan, értelmetlen szöveget tartalmaz — ez egy B2B kontextusban azonnal hitelességet rombol; a subtitle-t vagy el kell hagyni, vagy valós, korrekt magyar szöveggel kell helyettesíteni.",
+      "A headline hierachy and color contrast are on-brand and scroll-stopping, but the two subtitle lines contain severely garbled, AI-hallucinated Hungarian text ('rézjesktés helyzzt', 'sásatok') which is a critical brand credibility failure — remove or regenerate them entirely; also add subtle film grain and a light accent element to lift the flat aesthetic toward the Soul Cinema benchmark.",
+      "A cinematic spotlight, dark background, and bold stat hierarchy are solid — but the subtitle body copy is heavily garbled AI hallucination ('éejésktés helyzett / most kísérletezhetken a kis saytatok'), which kills credibility instantly for any Hungarian-speaking viewer; the subtitle must be regenerated with correct, meaningful Hungarian text pulled directly from the post copy.",
+      "The hero stat (800.000 Ft) and dark background nail the core aesthetic, but the subtitle body copy is completely garbled Hungarian — words like 'véjjesktés', 'kíssérletezhetken', 'skápatok' are AI hallucinations that would destroy brand credibility instantly if published; this text must be replaced with the actual post copy. Also remove the duplicated headline and clean up the nonsense corner labels.",
+      "A focal hierarchy (34% → 0) is strong and scroll-stopping, and the dark background + cyan accent aligns well with brand DNA; however, the small-print subtitle block contains at least three Hungarian spelling/accent errors ('ersó', 'fogalhatóság', 'kívulei') which undermine credibility in a premium B2B context — fix these and replace the 'BRAND LOGO' placeholder before publishing.",
+      "A főcím ('NAPI 2 ÓRA ADMINISZTRÁCIÓ → 0') erős és scroll-stopping, de az apró felirat két ékezeti hibát tartalmaz ('érsó hőnappen', 'kivulsi'), ami rontja a prémium megbízhatóság érzetét — ezeket kötelező javítani. A vizuál nyerne egy réteg cinematic grain-nel és mélyebb fekete háttérrel, hogy jobban illeszkedjen a Soul Cinema brand DNA-hoz.",
+      "A cinematic spotlight + neon 34% kombináció erős scroll-stopping potenciált ad, de a kisebb alcím szövegben súlyos helyesírási/generálási hibák vannak ('ersé hőnappen', 'kivui'), amelyek egy prémium B2B brandnél azonnal hitelességvesztést okoznak — ezeket manuálisan kell javítani vagy újragenerálni. A vizuális hierarchia is tisztítható: a headline és a 34% neon egymással verseng, érdemes lenne az egyik elemet egyértelműen domináns főfókusszá emelni.",
+      "The glowing 34% focal stat and dark cinematic background are strong brand-aligned choices, but the body copy contains clearly AI-hallucinated, unreadable Hungarian ('érsé hönagben') and a misspelling ('foggalhatósággal') that would destroy credibility in a professional B2B feed — fix the body text with the exact post copy before publishing. Also remove the 'BRAND LOGO' placeholder; the PlanSmart wordmark alone is sufficient."
+    ]
+  },
+  "proposal": {
+    "diagnosis": [
+      "Hungarian overlay text is consistently garbled by the model (hallucinated syllables, nonsense words), destroying B2B credibility — the single most disqualifying failure across all variants",
+      "Background is rendered as dark grey instead of true near-black #04060a, and filled with generic AI-art HUD/pseudo-code overlays that create multiple competing focal points instead of one clean hero element",
+      "David voice severely underperforms (5.14) due to flat, non-cinematic framing; prompts lack explicit lighting direction, Soul Cinema grain instruction, and strict single-focal-point enforcement"
+    ],
+    "top_3_improvements": [
+      "Hard-code all Hungarian overlay text verbatim inside the prompt and explicitly instruct the model to render it letter-perfect — never auto-generate subtitle copy; flag any deviation as a disqualifying error",
+      "Specify background as pure #04060a near-black with a single cinematic spotlight or gradient vignette only — explicitly ban HUD panels, pseudo-code, UI chrome, and all secondary text clusters",
+      "For the David voice, add explicit film-noir lighting direction (single hard key light, deep shadow fill, 35mm Soul Cinema grain overlay) and enforce the one-focal-element rule by naming and isolating the hero stat in the prompt"
+    ],
+    "new_variants": [
+      {
+        "key": "E",
+        "name": "Noir Lockdown — Single Stat, Zero Clutter",
+        "rationale": "Directly combats the #04060a background failure, multi-focal-point clutter, and garbled subtitle by stripping the composition to one lit hero element on pure near-black, with all Hungarian text supplied verbatim and no background decoration.",
+        "prompt_template": "Cinematic B2B social still, pure #04060a background, zero HUD or UI overlays. Single hard key light illuminates ONE hero element center-frame: massive Bebas Neue numeral '{stat}' in cold white. Below it, Neue Machina bold: '{main_text}'. One line of Hungarian caption — render verbatim, letter-perfect: '{sub_text}'. Tiny PlanSmart wordmark bottom-right, 8% opacity. Heavy 35mm Soul Cinema grain. No secondary focal points. Voice: {voice_style} — terse, authoritative."
+      },
+      {
+        "key": "F",
+        "name": "Spotlight Credibility — Verified Hungarian Copy",
+        "rationale": "Targets the David-voice weakness with explicit film-noir lighting language, enforces Soul Cinema grain, and anchors credibility by instructing verbatim Hungarian subtitle rendering while banning pseudo-code backgrounds.",
+        "prompt_template": "Film-noir B2B poster, background strictly #04060a near-black, single overhead elliptical spotlight on hero text only. Bebas Neue headline: '{main_text}' — pure white, 80% frame width. Accent line: Neue Machina '{stat}' in muted gold. Hungarian subtitle — typeset verbatim, no hallucination: '{sub_text}'. No code panels, no HUD, no extra text. Soul Cinema 35mm grain, subtle lens vignette. PlanSmart watermark bottom-right, 6% opacity. Voice: {voice_style} — cinematic, direct, zero filler."
+      }
+    ]
+  }
+}

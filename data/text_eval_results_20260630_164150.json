@@ -1,0 +1,165 @@
+{
+  "generated_at": "2026-06-30T16:41:50",
+  "scenarios": [
+    {
+      "id": "news_9709a51c",
+      "voice": "adam",
+      "content_type": "ai_news",
+      "label": "ai_news",
+      "variants": [
+        {
+          "variant": "C",
+          "strategy": "data",
+          "post": "1,5 milliárd token. Naponta. Ingyen.\n\nA Google most ezt adja el fejlesztőknek azzal, hogy \"90 másodperc alatt buildelhetsz AI appot\".\n\nÉs igaz is. Technikailag.\n\nDe a 38 fős KKV tulajdonosának ez pontosan annyira releváns, mint hogy egy Forma-1-es autót 3 csavarral össze lehet rakni — ha tudod, melyik 3.\n\nAmi engem foglalkoztat: ezek a hírek minden héten jönnek. Olcsóbb API, gyorsabb modell, ingyenes tier. A technológia akadálya már régen nem az ár.\n\nMégis a cégek 90%-a pontosan ugyanúgy működik, mint 2 évvel ezelőtt.\n\nAzért, mert a \"free API key\" és a \"bevétel\" között van egy lépés, amit senki nem nevez meg hangosan: ki gondolja végig, hogy ez a mi folyamatunkra mit jelent?\n\nNem a fejlesztő. Nem a technológia. A tulajdonos.\n\nÉs a tulajdonosnak erre általában nincs 90 másodperce — mert bent van az operatív munkában.\n\nSzóval az igazi kérdés nem az, hogy ingyenes-e a Gemini API.\nAz igazi kérdés: melyik folyamatodra nézne rá ma 2 óra alatt egy ember, aki ezt a technológiai dömpinget le tudja fordítani a te iparágadra, a te csapatod méretére, a te aktuális fájdalompontodra?\n\nMert aki ezt megcsinálja, az nyer. Nem aki legelőbb hallja a hírt.\n\n#KKV #AIstratégia #üzletifókusz",
+          "scores": {
+            "hook_strength": 9,
+            "human_feel": 8,
+            "hungarian_quality": 8,
+            "concrete_value": 7,
+            "voice_consistency": 9,
+            "engagement_potential": 8,
+            "anti_patterns": [
+              "'a cégek 90%-a' — forrás nélküli stat, bár retorikusan működik",
+              "'technológiai dömping' — határán van a buzzword-nek",
+              "'Mert aki ezt megcsinálja, az nyer.' — enyhén közhely-szagú zárás, bár a kontextus menti",
+              "Hiányzó konkrét időpont/eset: nincs 'tegnap', 'múlt héten egy ügyfelünknél' típusú emberi horgony",
+              "A záró kérdés ('melyik folyamatodra nézne rá...') implicit CTA-ba hajlik, de még nem direkt engagement-bait"
+            ],
+            "overall_score": 7.8,
+            "rewrite_suggestion": "",
+            "feedback": "Erős poszt, Ádám hangjához kiválóan illeszkedik. A Forma-1-es hasonlat az első 140 karakteren túl is megmarad az olvasóban — ez a poszt legjobb momentuma, konkrét és meglepő. A hook (1,5 milliárd token, naponta, ingyen) adat+kontrast kombináció, megállítja a görgetést. A '90%-a ugyanúgy működik' állítás forrás nélkül lebeg — egy konkrét saját megfigyelés ('három ügyfelünkkel beszéltem idén, mind ugyanott akadt el') emberibbé és hitelesebbé tenné. A zárlat logikus, de a 'aki ezt megcsinálja, az nyer' formula kicsit kopott — egy fél mondattal tovább lehetne vinni, hogy miért most és miért más ez, mint az előző hullám. Összességében közel van a legjobb formájához, apró konkretizálással 8+ feletti poszt lenne."
+          }
+        },
+        {
+          "variant": "D",
+          "strategy": "narrative",
+          "post": "Tegnap egy ügyfelem azt kérdezte: \"Mennyibe kerül ez nekünk élesben?\"\n\nJó kérdés. Általában ez az, ahol az AI projektek elakadnak — nem a technológián, hanem a számlán.\n\nEzért érdemes tudni, hogy a Google most napi 1,5 milliárd tokent ad ingyen a Gemini API-jából. Nem próbaverzió, nem 30 napos trial. Minden nap.\n\nMit jelent ez egy KKV-nak?\n\nEgy 20 fős cég szinte az összes belső automatizálási igényét — ügyfélkommunikáció, riport-összefoglalók, ajánlatkészítés-segítés — elfér ebben az ingyenes keretben. Hónapokig, mielőtt egyáltalán felmerülne a fizetős csomag.\n\nAmi miatt mégis kevés cég indítja el: nem az ár az akadály.\n\nAz akadály az, hogy valakinek le kell ülnie és meghatározni, hogy melyik folyamatra érdemes először rákötni ezt. Ez az a 2 óra, ami mindig \"nem fér bele\".\n\nA technológia olcsóbb mint valaha. Az idő ugyanannyiba kerül mint mindig.\n\nTe melyik folyamatod az, ahol most is azt gondolod: \"ezt egyszer meg kellene oldani\"?\n\n#KKV #AIstratégia #automatizálás",
+          "scores": {
+            "hook_strength": 8,
+            "human_feel": 9,
+            "hungarian_quality": 8,
+            "concrete_value": 8,
+            "voice_consistency": 9,
+            "engagement_potential": 7,
+            "anti_patterns": [
+              "'számos' típusú általánosítás nem szerepel, de 'szinte az összes' kissé puha — konkrét %-os becslés erősítené",
+              "A záró CTA ('Te melyik folyamatod...') borderline engagement-bait, de épp megmenekül mert valódi döntési szituációra irányít",
+              "'elfér ebben az ingyenes keretben' — kissé esetlen szórend, természetesebb: 'belefér ebbe az ingyenes keretbe'"
+            ],
+            "overall_score": 7.8,
+            "rewrite_suggestion": "",
+            "feedback": "Erős poszt, jól nyit egy valódi ügyfélszituációval (tegnap, konkrét párbeszéd). A Google/1,5 milliárd token adat hiteles és releváns horgony. A '20 fős cég' konkretizálás jó döntéshozói nézőpont. A posztot az emeli meg, hogy a technológiai korlát helyett az időkorlátot azonosítja valódi akadályként — ez igazi stratégiai insight, nem tech-hype. A CTA gyenge pontja: 'Te melyik folyamatod...' már-már reflektív kérdés, de az engagement-bait határán táncol. Erősítené, ha a kérdés előtt lenne egy konkrétabb üzleti következmény (pl. egy elvesztett hét vagy hónap ára)."
+          }
+        },
+        {
+          "variant": "E",
+          "strategy": "pain",
+          "post": "Valahányszor azt hallom, hogy \"mi még nem tartunk ott\", eszembe jut egy konkrét szám.\n\nNapi 1,5 milliárd token. Ingyen. Ez az, amit a Google most ad bármelyik fejlesztőnek, aki elindít egy projektet a Gemini API-val.\n\nNem a szám a lényeg.\n\nA lényeg az, hogy a belépési korlát — ami egy évvel ezelőtt még komoly tárgyalási pont volt egy KKV-val — most gyakorlatilag nulla.\n\nÉs mégis. Amikor leülök egy 30-50 fős céggel, a vezető ugyanazokat a mondatokat mondja mint tavaly: \"Megvárjuk míg letisztul\", \"Nálunk ehhez nincs kapacitás\", \"Majd jövőre megnézzük.\"\n\nA technológia oldalán nincs már mit megvárni. Az letisztult.\n\nAmire valójában várnak, az nem technológia. Valaki kellene aki lefordítja az üzleti problémájukat erre a nyelvre — és megmutatja hol kezdjék el.\n\nMert a \"90 másodperc alatt elindítható AI app\" üzenet fejlesztőknek szól. Ami valóban nehéz, az nem a technikai indulás. Az a kérdés: melyik folyamatra? Mi az az egy dolog amit ha kiveszünk a csapatból, azonnal érezhető?\n\nEz a 2 órás gondolkodás — ez az amit a legtöbb KKV tulajdonos nem csinál meg.\n\nNem azért mert drága. Azért mert nincs aki felteszi a kérdést.\n\nTe már tudod melyik az a folyamat nálatok?\n\n#KKV #AI #üzletistratégia",
+          "scores": {
+            "hook_strength": 8,
+            "human_feel": 8,
+            "hungarian_quality": 7,
+            "concrete_value": 8,
+            "voice_consistency": 9,
+            "engagement_potential": 7,
+            "anti_patterns": [
+              "Hiányzó emberi jel: nincs konkrét időpont vagy helyszín a '30-50 fős céggel' leülős szituációhoz (pl. 'tegnap', 'múlt héten')",
+              "Gyenge CTA irányba mutat: 'Te már tudod melyik az a folyamat nálatok?' — nem teljesen engagement-bait, de kicsit általános lezárás a poszt erejéhez képest",
+              "'Valahányszor' — kissé irodalmi/esetlen nyitás, nem természetes beszélt magyar"
+            ],
+            "overall_score": 7.4,
+            "rewrite_suggestion": "",
+            "feedback": "Erős poszt, Ádám hangjához jól illeszkedik: döntéshozói nézőpont, ROI-szemlélet, nincs technikai jargon, nincs fentről-lefelé tónus. A hook működik: a 'nem tartunk ott' idézet + az 1,5 milliárd token adat kontrasztja megállítja a görgetést. A szerkezet tiszta, az érvelés logikusan épül. Két gyengébb pont: (1) a konkrét ügyféljelenet ('leülök egy 30-50 fős céggel') időbeli horgony nélkül lebeg — egy 'múlt héten' vagy 'tegnap' megszilárdítaná; (2) a záró kérdés elmarad a poszt csúcsteljesítményétől, lehetne élesebb vagy konkrétabb (pl. 'Melyik folyamatotokat futtatja még mindig valaki manuálisan, aki jobb helyen lenne?'). Összességében publikálható, kis csiszolással 8+ lenne."
+          }
+        },
+        {
+          "variant": "A",
+          "strategy": "produkciós",
+          "post": "",
+          "scores": null,
+          "error": "voice skip / üres"
+        },
+        {
+          "variant": "B",
+          "strategy": "contrarian",
+          "post": "",
+          "scores": null,
+          "error": "voice skip / üres"
+        }
+      ],
+      "baseline_score": 0.0,
+      "improved": null,
+      "winner": {
+        "source": "variant-C",
+        "post": "1,5 milliárd token. Naponta. Ingyen.\n\nA Google most ezt adja el fejlesztőknek azzal, hogy \"90 másodperc alatt buildelhetsz AI appot\".\n\nÉs igaz is. Technikailag.\n\nDe a 38 fős KKV tulajdonosának ez pontosan annyira releváns, mint hogy egy Forma-1-es autót 3 csavarral össze lehet rakni — ha tudod, melyik 3.\n\nAmi engem foglalkoztat: ezek a hírek minden héten jönnek. Olcsóbb API, gyorsabb modell, ingyenes tier. A technológia akadálya már régen nem az ár.\n\nMégis a cégek 90%-a pontosan ugyanúgy működik, mint 2 évvel ezelőtt.\n\nAzért, mert a \"free API key\" és a \"bevétel\" között van egy lépés, amit senki nem nevez meg hangosan: ki gondolja végig, hogy ez a mi folyamatunkra mit jelent?\n\nNem a fejlesztő. Nem a technológia. A tulajdonos.\n\nÉs a tulajdonosnak erre általában nincs 90 másodperce — mert bent van az operatív munkában.\n\nSzóval az igazi kérdés nem az, hogy ingyenes-e a Gemini API.\nAz igazi kérdés: melyik folyamatodra nézne rá ma 2 óra alatt egy ember, aki ezt a technológiai dömpinget le tudja fordítani a te iparágadra, a te csapatod méretére, a te aktuális fájdalompontodra?\n\nMert aki ezt megcsinálja, az nyer. Nem aki legelőbb hallja a hírt.\n\n#KKV #AIstratégia #üzletifókusz",
+        "score": 7.8,
+        "variant": "C"
+      }
+    }
+  ],
+  "aggregate": {
+    "avg_baseline": null,
+    "avg_improved": null,
+    "avg_winner": 7.8,
+    "hook_winners_by_voice": {
+      "adam": {
+        "data": 1
+      }
+    },
+    "top_anti_patterns": [
+      [
+        "'a cégek 90%-a' — forrás nélküli stat, bár retorikusan működik",
+        1
+      ],
+      [
+        "'technológiai dömping' — határán van a buzzword-nek",
+        1
+      ],
+      [
+        "'Mert aki ezt megcsinálja, az nyer.' — enyhén közhely-szagú zárás, bár a kontextus menti",
+        1
+      ],
+      [
+        "Hiányzó konkrét időpont/eset: nincs 'tegnap', 'múlt héten egy ügyfelünknél' típusú emberi horgony",
+        1
+      ],
+      [
+        "A záró kérdés ('melyik folyamatodra nézne rá...') implicit CTA-ba hajlik, de még nem direkt engagement-bait",
+        1
+      ],
+      [
+        "'számos' típusú általánosítás nem szerepel, de 'szinte az összes' kissé puha — konkrét %-os becslés erősítené",
+        1
+      ],
+      [
+        "A záró CTA ('Te melyik folyamatod...') borderline engagement-bait, de épp megmenekül mert valódi döntési szituációra irányít",
+        1
+      ],
+      [
+        "'elfér ebben az ingyenes keretben' — kissé esetlen szórend, természetesebb: 'belefér ebbe az ingyenes keretbe'",
+        1
+      ],
+      [
+        "Hiányzó emberi jel: nincs konkrét időpont vagy helyszín a '30-50 fős céggel' leülős szituációhoz (pl. 'tegnap', 'múlt héten')",
+        1
+      ],
+      [
+        "Gyenge CTA irányba mutat: 'Te már tudod melyik az a folyamat nálatok?' — nem teljesen engagement-bait, de kicsit általános lezárás a poszt erejéhez képest",
+        1
+      ],
+      [
+        "'Valahányszor' — kissé irodalmi/esetlen nyitás, nem természetes beszélt magyar",
+        1
+      ]
+    ],
+    "top_posts": [
+      {
+        "id": "news_9709a51c",
+        "voice": "adam",
+        "score": 7.8,
+        "source": "variant-C",
+        "post": "1,5 milliárd token. Naponta. Ingyen.\n\nA Google most ezt adja el fejlesztőknek azzal, hogy \"90 másodperc alatt buildelhetsz AI appot\".\n\nÉs igaz is. Technikailag.\n\nDe a 38 fős KKV tulajdonosának ez pontosan annyira releváns, mint hogy egy Forma-1-es autót 3 csavarral össze lehet rakni — ha tudod, melyik 3.\n\nAmi engem foglalkoztat: ezek a hírek minden héten jönnek. Olcsóbb API, gyorsabb modell, ingyenes tier. A technológia akadálya már régen nem az ár.\n\nMégis a cégek 90%-a pontosan ugyanúgy működik, mint 2 évvel ezelőtt.\n\nAzért, mert a \"free API key\" és a \"bevétel\" között van egy lépés, amit senki nem nevez meg hangosan: ki gondolja végig, hogy ez a mi folyamatunkra mit jelent?\n\nNem a fejlesztő. Nem a technológia. A tulajdonos.\n\nÉs a tulajdonosnak erre általában nincs 90 másodperce — mert bent van az operatív munkában.\n\nSzóval az igazi kérdés nem az, hogy ingyenes-e a Gemini API.\nAz igazi kérdés: melyik folyamatodra nézne rá ma 2 óra alatt egy ember, aki ezt a technológiai dömpinget le tudja fordítani a te iparágadra, a te csapatod méretére, a te aktuális fájdalompontodra?\n\nMert aki ezt megcsinálja, az nyer. Nem aki legelőbb hallja a hírt.\n\n#KKV #AIstratégia #üzletifókusz"
+      }
+    ]
+  }
+}

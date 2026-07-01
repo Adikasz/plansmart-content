@@ -1,0 +1,28 @@
+# Esettanulmányok (case_study content_type) — anonimizált ügyfelek.
+# A generator még nem használt esettanulmányt választ, voice_fit szerint.
+# voice_fit: david | adam | plansmart | all (vagy lista).
+
+case_studies:
+  - client: "Mozgató Központ"
+    problem: "Manuális időpontfoglalás napi 2 órát vitt el"
+    solution: "Automatizált foglalás + email értesítés + Notion sync"
+    result: "0 kézi munka, 24/7 elérhetőség"
+    voice_fit: [plansmart, david]
+
+  - client: "PR ügynökség"
+    problem: "10 különálló AI tool használata szinkronizálatlanul"
+    solution: "10 modulos AI komplexum egyetlen rendszerben"
+    result: "5 fázisra bontott bevezetés, működő rendszer"
+    voice_fit: [plansmart, adam]
+
+  - client: "Könyvelőiroda"
+    problem: "Beérkező számlák kézi rögzítése havi 40 órát vitt el"
+    solution: "OCR + AI kategorizálás + könyvelő szoftver API integráció"
+    result: "40 óra → 4 óra havonta, kevesebb hibázás"
+    voice_fit: [plansmart, david]
+
+  - client: "Webshop"
+    problem: "Ügyfélszolgálati emailek 24 órás válaszideje"
+    solution: "AI első körös válasz + eszkalációs szabályok + ember a hurokban"
+    result: "Átlag válaszidő 24 óra → 8 perc, 70% AI-val zárva"
+    voice_fit: [plansmart, adam]

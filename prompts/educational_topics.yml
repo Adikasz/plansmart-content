@@ -1,0 +1,64 @@
+# Oktató poszt témák (educational content_type).
+# A generator 30 napon belül nem használt topicot választ, voice_fit szerint.
+# voice_fit: david | adam | plansmart | all (vagy lista).
+
+educational_topics:
+  - topic: "5 jel hogy automatizálni kellene egy folyamatot"
+    voice_fit: [david, adam]
+    category: process_audit
+
+  - topic: "Mi az n8n és mikor érdemes választani"
+    voice_fit: [david]
+    category: tool_intro
+
+  - topic: "AI agent vs egyszerű workflow - mi a különbség"
+    voice_fit: [david, adam]
+    category: concept_explanation
+
+  - topic: "Mit jelent az MCP és miért fontos KKV-knak"
+    voice_fit: [david]
+    category: technical_concept
+
+  - topic: "ROI számítás egy automatizálási projektnél"
+    voice_fit: [adam]
+    category: business_calc
+
+  - topic: "Hogyan tervezz workflow-t a nulláról: a 4 lépéses módszer"
+    voice_fit: [david, adam]
+    category: workflow_design
+
+  - topic: "Prompt engineering alapok cégvezetőknek 5 percben"
+    voice_fit: [david, adam]
+    category: prompt_engineering
+
+  - topic: "Adatvédelem AI használatnál: mit adj át és mit ne"
+    voice_fit: [adam, plansmart]
+    category: data_privacy
+
+  - topic: "GDPR és AI: amit egy KKV-nak tudnia kell 2026-ban"
+    voice_fit: [adam, plansmart]
+    category: gdpr
+
+  - topic: "Self-hosting vs felhő: mikor érdemes saját szerveren futtatni az AI-t"
+    voice_fit: [david]
+    category: self_hosting
+
+  - topic: "n8n vs Make: melyiket válaszd és miért"
+    voice_fit: [david]
+    category: tool_comparison
+
+  - topic: "Claude vs ChatGPT üzleti használatra: a valódi különbségek"
+    voice_fit: [david, adam]
+    category: tool_comparison
+
+  - topic: "AI költségkezelés: hogyan ne fusson el a havi API számla"
+    voice_fit: [david, adam]
+    category: cost_management
+
+  - topic: "Az első automatizálásod: melyik folyamattal kezdj"
+    voice_fit: [adam, plansmart]
+    category: getting_started
+
+  - topic: "Mikor ne automatizálj: 3 eset amikor a kézi munka jobb"
+    voice_fit: [david, adam]
+    category: process_audit

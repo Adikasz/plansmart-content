@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Env / secrets
+.env
+.env.local
+.env.production
+*.pem
+*.key
+
+# Adatbázis
+data/*.db
+data/*.db-journal
+data/*.sqlite
+
+# Logs
+logs/
+*.log
+
+# Tesztelés
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Railway
+.railway/

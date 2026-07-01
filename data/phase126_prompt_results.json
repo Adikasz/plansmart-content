@@ -1,0 +1,86 @@
+{
+  "new_avg": 7.5,
+  "old_avg": 7.6,
+  "total_cost": 0.096,
+  "results": [
+    {
+      "voice": "david",
+      "base_url": "https://cdn.muapi.ai/outputs/generated/de85c80a8f2141dfa2dcfbafd0f51636.png",
+      "final": "https://uhuiicezrgxjewoiokum.supabase.co/storage/v1/object/public/visuals/p126_david.png?",
+      "scores": {
+        "brand_alignment_score": 8,
+        "hungarian_text_quality": 9,
+        "scroll_stopping_score": 9,
+        "professional_score": 8,
+        "anti_pattern_flags": [],
+        "overall_score": 8.5,
+        "feedback": "Erős kompozíció: a teal monospace 'header stat' + bold display body text hierarchia tiszta és olvasható, a PCB háttér hiteles technikai kontextust ad anélkül, hogy stock-photo hatást keltene. Javítani érdemes: a 'PlanSmart' watermark túl kicsi és alacsony kontrasztú a jobb alsó sarokban — növelni kellene a láthatóságát, illetve a fekete #04060a brand-background helyett a fotó kissé kékes-szürke, ami enyhe eltérést okoz a brand DNA-tól."
+      },
+      "prompt": "A single abstract object suggesting 'building/creating' — e.g. an out-of-focus mechanical keyboard under dramatic side light, OR a single glowing cable/wire forming a subtle curve in darkness, OR an extreme macro of a circuit-board edge with shallow focus. ONE object only. Moody, intimate, workshop-at-night feeling. Cool teal-tinged key light.\nShot on Kodak Portra 800 film, visible organic grain structure. Single dramatic key light from upper-left, deep falloff crushing to pure black. TRUE near-black #04060a background, NOT dark grey — verify the shadows crush to black. Shallow depth of field, f/1.4, soft bokeh in the background only. Photographic, not illustrated. Not digital art. Not concept art. Not 3D render. ABSOLUTELY NO text, NO letters, NO words, NO numbers, NO typography, NO UI elements, NO HUD, NO code overlays, NO screens, NO floating panels, NO holographic interfaces, NO charts, NO logos, NO people. Reserve negative space: keep the BOTTOM-LEFT 30% and TOP-RIGHT 20% simple and dark (for text overlay added later)."
+    },
+    {
+      "voice": "adam",
+      "base_url": "https://cdn.muapi.ai/outputs/generated/d0e876f0a9754984801229f199d47140.png",
+      "final": "https://uhuiicezrgxjewoiokum.supabase.co/storage/v1/object/public/visuals/p126_adam.png?",
+      "scores": {
+        "brand_alignment_score": 7,
+        "hungarian_text_quality": 9,
+        "scroll_stopping_score": 8,
+        "professional_score": 7,
+        "anti_pattern_flags": [
+          "stock-photo feel — close-up fountain pen on leather has a generic premium-stock aesthetic",
+          "background lacks the brand's near-black #04060a darkness; warm amber bokeh drifts toward lifestyle territory",
+          "typography appears to be a heavy system/web bold rather than Bebas Neue or Neue Machina, weakening brand character",
+          "PlanSmart watermark is present but very small and low-contrast — barely visible"
+        ],
+        "overall_score": 6.8,
+        "feedback": "A fókusz (73% + a három soros headline) jól működik és a magyar szöveg helyesírása korrekt, de a tollat ábrázoló stock-fotó háttér és a meleg boké élesen szembe megy a Soul Cinema / financial-dashboard DNA-val — cseréld le sötét #04060a alapra finom szemcsézettséggel és egy metrika-accent (arany vagy lágy zöld) színhangsúllyal a számon, hogy Adam hangja is megjelenjen vizuálisan."
+      },
+      "prompt": "A single abstract object suggesting 'business decision/growth' — e.g. an out-of-focus desk lamp creating a warm pool of light in darkness, OR a single sheet of paper with a subtle fold catching light, OR an extreme macro of a pen tip or coffee-cup rim. ONE object only. Calm, confident, late-night strategy-session feeling. Warm amber/gold key light.\nShot on Kodak Portra 800 film, visible organic grain structure. Single dramatic key light from upper-left, deep falloff crushing to pure black. TRUE near-black #04060a background, NOT dark grey — verify the shadows crush to black. Shallow depth of field, f/1.4, soft bokeh in the background only. Photographic, not illustrated. Not digital art. Not concept art. Not 3D render. ABSOLUTELY NO text, NO letters, NO words, NO numbers, NO typography, NO UI elements, NO HUD, NO code overlays, NO screens, NO floating panels, NO holographic interfaces, NO charts, NO logos, NO people. Reserve negative space: keep the BOTTOM-LEFT 30% and TOP-RIGHT 20% simple and dark (for text overlay added later)."
+    },
+    {
+      "voice": "plansmart",
+      "base_url": "https://cdn.muapi.ai/outputs/generated/137dbf371ca342c3aa53e2b76ab35114.png",
+      "final": "https://uhuiicezrgxjewoiokum.supabase.co/storage/v1/object/public/visuals/p126_plansmart.png?",
+      "scores": {
+        "brand_alignment_score": 7,
+        "hungarian_text_quality": 9,
+        "scroll_stopping_score": 8,
+        "professional_score": 7,
+        "anti_pattern_flags": [
+          "background element (robotic hand/arm) leans toward generic AI-art aesthetic",
+          "PlanSmart wordmark lacks visual hierarchy — too small and plain relative to the headline mass",
+          "subtitle text weight and size feel inconsistent with bold display typography system"
+        ],
+        "overall_score": 7.2,
+        "feedback": "A headline kontrasztja és az üzenet tömörsége erős scroll-stopper, de a háttérben látható robotkar generikus AI-art érzetet kelt — cseréld le semlegesebb cinematic textúrára vagy absztrakt fényre. A PlanSmart wordmark méretét és betűsúlyát növeld, hogy valódi brand-ankerként működjön, ne csak aláírásként."
+      },
+      "prompt": "Pure atmospheric darkness with a single soft light source — e.g. a subtle gradient suggesting dawn light entering a dark room, OR an out-of-focus plant leaf catching rim light, OR a pure abstract gradient with film grain and no objects at all. Premium, calm, 'quiet confidence' feeling. The most minimal of the three. Refined neutral light.\nShot on Kodak Portra 800 film, visible organic grain structure. Single dramatic key light from upper-left, deep falloff crushing to pure black. TRUE near-black #04060a background, NOT dark grey — verify the shadows crush to black. Shallow depth of field, f/1.4, soft bokeh in the background only. Photographic, not illustrated. Not digital art. Not concept art. Not 3D render. ABSOLUTELY NO text, NO letters, NO words, NO numbers, NO typography, NO UI elements, NO HUD, NO code overlays, NO screens, NO floating panels, NO holographic interfaces, NO charts, NO logos, NO people. Reserve negative space: keep the BOTTOM-LEFT 30% and TOP-RIGHT 20% simple and dark (for text overlay added later)."
+    }
+  ],
+  "old": {
+    "david": {
+      "base_url": "https://cdn.muapi.ai/outputs/generated/e3f4c066f4994b3fbce4c58e95aae6d9.png",
+      "composed": "C:\\Users\\nagya\\OneDrive\\PlanSmart\\LinkedIn - Ádám\\plansmart-content\\assets\\generated\\cmp_flux_david.png",
+      "overall": 8.2,
+      "bg_flags": [
+        "background UI elements feel slightly generic/AI-rendered tech aesthetic"
+      ]
+    },
+    "adam": {
+      "base_url": "https://cdn.muapi.ai/outputs/generated/9e741bb3321e41249e22107a6a45e360.png",
+      "composed": "C:\\Users\\nagya\\OneDrive\\PlanSmart\\LinkedIn - Ádám\\plansmart-content\\assets\\generated\\cmp_flux_adam.png",
+      "overall": 6.8,
+      "bg_flags": [
+        "duplicate 73% stat rendered twice with overlapping layers creating visual glitch",
+        "background chart graphic edges toward generic stock-photo financial imagery"
+      ]
+    },
+    "plansmart": {
+      "base_url": "https://cdn.muapi.ai/outputs/generated/c38c56c12da049f5b688c0fb603cc212.png",
+      "composed": "C:\\Users\\nagya\\OneDrive\\PlanSmart\\LinkedIn - Ádám\\plansmart-content\\assets\\generated\\cmp_flux_plansmart.png",
+      "overall": 7.8,
+      "bg_flags": []
+    }
+  }
+}

@@ -1,0 +1,183 @@
+{
+  "summary": {
+    "flux": {
+      "overall": 7.6,
+      "hu": 8.67,
+      "cost": 0.096
+    },
+    "mj": {
+      "overall": 6.07,
+      "hu": 7.67,
+      "cost": 0.3
+    }
+  },
+  "delta": -1.53,
+  "voices": [
+    {
+      "voice": "david",
+      "prompt": "TRUE near-black #04060a cinematic background (not grey). abstract terminal/code aesthetic: faint out-of-focus monospace glyph texture, thin teal circuit lines, dark dashboard panels deep in the blur, volumetric teal rim light. Soul Cinema aesthetic: volumetric lighting, slight 35mm film grain, high contrast, shallow depth of field, atmospheric mood.\nABSOLUTELY NO TEXT, NO LETTERS, NO WORDS, NO NUMBERS, NO TYPOGRAPHY, NO UI labels, NO captions, NO logos anywhere in the image. Composition only — keep the BOTTOM-LEFT and TOP-RIGHT areas relatively empty and clean for text overlay added later. ONE atmospheric focal element. No people, no stock-photo clichés.\nEval-winner direction: Cinematic noir (eval-győztes C): egy erős key-light, mély árnyékok, markáns 35mm film grain, atmoszférikus mélység.",
+      "visual_text": {
+        "main_text": "POLL LOOP 16 PERCRŐL 3,5 MÁSODPERCRE",
+        "sub_text": "Event-driven architektúra, 0 új alkalmazott",
+        "stat": "3,5 másodperc"
+      },
+      "by_model": {
+        "flux": {
+          "voice": "david",
+          "model_key": "flux",
+          "model": "flux-2-pro",
+          "base_url": "https://cdn.muapi.ai/outputs/generated/e3f4c066f4994b3fbce4c58e95aae6d9.png",
+          "cost": 0.032,
+          "composed_local": "C:\\Users\\nagya\\OneDrive\\PlanSmart\\LinkedIn - Ádám\\plansmart-content\\assets\\generated\\cmp_flux_david.png",
+          "composed_url": "C:\\Users\\nagya\\OneDrive\\PlanSmart\\LinkedIn - Ádám\\plansmart-content\\assets\\generated\\cmp_flux_david.png",
+          "scores": {
+            "brand_alignment_score": 8,
+            "hungarian_text_quality": 9,
+            "scroll_stopping_score": 9,
+            "professional_score": 8,
+            "anti_pattern_flags": [
+              "background UI elements feel slightly generic/AI-rendered tech aesthetic",
+              "focal hierarchy split between top stat and bottom headline creates mild competition"
+            ],
+            "overall_score": 8.2,
+            "feedback": "Strong cinematic dark execution with correct, well-set Hungarian text and a compelling stat-driven headline — bump impact further by making the '3,5 másodperc' top label smaller/subordinate so the bottom display type owns the single focal moment exclusively; the background monitor render edges toward generic AI-tech visuals, consider replacing with a real terminal diff screenshot for the developer-authenticity the Dávid voice demands."
+          }
+        },
+        "mj": {
+          "voice": "david",
+          "model_key": "mj",
+          "model": "midjourney-v8",
+          "base_url": "https://cdn.muapi.ai/outputs/generated/c506e38f9ad54934bbc735a281f980bb.png",
+          "cost": 0.1,
+          "composed_local": "C:\\Users\\nagya\\OneDrive\\PlanSmart\\LinkedIn - Ádám\\plansmart-content\\assets\\generated\\cmp_mj_david.png",
+          "composed_url": "https://uhuiicezrgxjewoiokum.supabase.co/storage/v1/object/public/visuals/cmp_mj_david.png?",
+          "scores": {
+            "brand_alignment_score": 5,
+            "hungarian_text_quality": 7,
+            "scroll_stopping_score": 7,
+            "professional_score": 5,
+            "anti_pattern_flags": [
+              "generic AI-art look — teal matrix/code bokeh background is a cliché tech stock aesthetic",
+              "background is not #04060a dark near-black, it is a busy teal mid-tone photo",
+              "multiple competing focal elements — top stat label + two-line headline + subtitle all fight for attention",
+              "no subtle watermark, PlanSmart appears as plain serif footer text without brand treatment",
+              "background code panels create clutter and reduce text contrast"
+            ],
+            "overall_score": 4.8,
+            "feedback": "The teal glowing-code-matrix background is a textbook generic-AI-art cliché that undermines the 'Soul Cinema' brand DNA — replace it with a near-black #04060a base and use a single cinematic light source or minimal terminal artifact as texture. The headline is strong and the Hungarian is grammatically correct, but contrast and hierarchy suffer badly on the busy background; lock the stat '3,5 másodperc' as the single hero element in Bebas Neue at 80%+ of the frame and let everything else recede."
+          }
+        }
+      }
+    },
+    {
+      "voice": "adam",
+      "prompt": "TRUE near-black #04060a cinematic background (not grey). abstract financial-dashboard aesthetic: soft out-of-focus bar/line chart bokeh, warm gold/amber rim light, clean dark gradient planes, restrained depth. Soul Cinema aesthetic: volumetric lighting, slight 35mm film grain, high contrast, shallow depth of field, atmospheric mood.\nABSOLUTELY NO TEXT, NO LETTERS, NO WORDS, NO NUMBERS, NO TYPOGRAPHY, NO UI labels, NO captions, NO logos anywhere in the image. Composition only — keep the BOTTOM-LEFT and TOP-RIGHT areas relatively empty and clean for text overlay added later. ONE atmospheric focal element. No people, no stock-photo clichés.\nEval-winner direction: Letisztult produkciós keret (eval-győztes A): financial-dashboard visszafogottság, egy metrika-hős, lágy accent-glow.",
+      "visual_text": {
+        "main_text": "73% ISMÉTLŐDŐ MANUÁLIS MUNKA",
+        "sub_text": "heti 4+ óra, amit hétvége alatt automatizálni lehetne",
+        "stat": "73%"
+      },
+      "by_model": {
+        "flux": {
+          "voice": "adam",
+          "model_key": "flux",
+          "model": "flux-2-pro",
+          "base_url": "https://cdn.muapi.ai/outputs/generated/9e741bb3321e41249e22107a6a45e360.png",
+          "cost": 0.032,
+          "composed_local": "C:\\Users\\nagya\\OneDrive\\PlanSmart\\LinkedIn - Ádám\\plansmart-content\\assets\\generated\\cmp_flux_adam.png",
+          "composed_url": "C:\\Users\\nagya\\OneDrive\\PlanSmart\\LinkedIn - Ádám\\plansmart-content\\assets\\generated\\cmp_flux_adam.png",
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 8,
+            "scroll_stopping_score": 8,
+            "professional_score": 7,
+            "anti_pattern_flags": [
+              "duplicate 73% stat rendered twice with overlapping layers creating visual glitch",
+              "subtitle copy contains minor grammatical imprecision: 'hétvége alatt' should be 'egy hétvége alatt' to match post text",
+              "background chart graphic edges toward generic stock-photo financial imagery",
+              "watermark font weight too light — barely visible at small sizes"
+            ],
+            "overall_score": 6.8,
+            "feedback": "A kettős '73%' réteg (arany + fehér egymáson) komoly kompozíciós hibát okoz — válassz egyetlen, erős tipográfiai kezelést; az arany szín maradjon az akcent-elemnek. Az aljegyzetsor ('heti 4+ óra...') szövege csonkított és nem egyezik pontosan a poszt szövegével, ami hitelvesztést okoz; javítsd 'egy hétvége alatt automatizálni lehetne'-re és növeld a PlanSmart watermark opacitását legalább 40%-ra."
+          }
+        },
+        "mj": {
+          "voice": "adam",
+          "model_key": "mj",
+          "model": "midjourney-v8",
+          "base_url": "https://cdn.muapi.ai/outputs/generated/135ef20ef8ae4477b476807421ce8d2f.png",
+          "cost": 0.1,
+          "composed_local": "C:\\Users\\nagya\\OneDrive\\PlanSmart\\LinkedIn - Ádám\\plansmart-content\\assets\\generated\\cmp_mj_adam.png",
+          "composed_url": "https://uhuiicezrgxjewoiokum.supabase.co/storage/v1/object/public/visuals/cmp_mj_adam.png?",
+          "scores": {
+            "brand_alignment_score": 6,
+            "hungarian_text_quality": 8,
+            "scroll_stopping_score": 8,
+            "professional_score": 6,
+            "anti_pattern_flags": [
+              "duplicate focal element — '73%' appears twice in different colors/styles creating visual clutter",
+              "background has bokeh/stock-chart feel leaning toward generic AI-art aesthetic",
+              "typography is not Bebas Neue / Neue Machina — appears to be a generic bold sans",
+              "watermark 'PlanSmart' is undersized and low-contrast, barely visible"
+            ],
+            "overall_score": 6.2,
+            "feedback": "A duplikált '73%' (arany + fehér) szétrombolja az egyetlen fókuszelemre vonatkozó szabályt — válassz egyet, legyen az arany szám dominánsa, a fehér változat törlendő. A háttér bokeh-hatás és a vörös tőzsdegraf stock-photo energiát ad; cseréld sötét, texturált #04060a alapra filmszemes overlay-jel, és emeld meg a PlanSmart watermark olvashatóságát."
+          }
+        }
+      }
+    },
+    {
+      "voice": "plansmart",
+      "prompt": "TRUE near-black #04060a cinematic background (not grey). abstract premium-SaaS aesthetic: soft geometric planes, refined neutral light, subtle cinematic haze, calm depth. Soul Cinema aesthetic: volumetric lighting, slight 35mm film grain, high contrast, shallow depth of field, atmospheric mood.\nABSOLUTELY NO TEXT, NO LETTERS, NO WORDS, NO NUMBERS, NO TYPOGRAPHY, NO UI labels, NO captions, NO logos anywhere in the image. Composition only — keep the BOTTOM-LEFT and TOP-RIGHT areas relatively empty and clean for text overlay added later. ONE atmospheric focal element. No people, no stock-photo clichés.\nEval-winner direction: Filmes prémium (eval-győztes C): volumetrikus fény, finom köd, film grain, movie-poster polish.",
+      "visual_text": {
+        "main_text": "NAPI 2 ÓRA ADMINISZTRÁCIÓ 0 PERCRE",
+        "sub_text": "8 fős mozgásterápiás stúdió automatizált foglalási rendszere",
+        "stat": "2 óra"
+      },
+      "by_model": {
+        "flux": {
+          "voice": "plansmart",
+          "model_key": "flux",
+          "model": "flux-2-pro",
+          "base_url": "https://cdn.muapi.ai/outputs/generated/c38c56c12da049f5b688c0fb603cc212.png",
+          "cost": 0.032,
+          "composed_local": "C:\\Users\\nagya\\OneDrive\\PlanSmart\\LinkedIn - Ádám\\plansmart-content\\assets\\generated\\cmp_flux_plansmart.png",
+          "composed_url": "C:\\Users\\nagya\\OneDrive\\PlanSmart\\LinkedIn - Ádám\\plansmart-content\\assets\\generated\\cmp_flux_plansmart.png",
+          "scores": {
+            "brand_alignment_score": 8,
+            "hungarian_text_quality": 9,
+            "scroll_stopping_score": 8,
+            "professional_score": 8,
+            "anti_pattern_flags": [
+              "ADMINISZTRÁCIÓ text clipped on right edge — word not fully visible"
+            ],
+            "overall_score": 7.8,
+            "feedback": "A szöveg jobb oldala levágódik ('ADMINISZTRÁCIÓ' utolsó betűje hiányzik), ami rontja a professzionális megjelenést — a tipográfiát kisebb méretre kell hozni vagy a tördelést újragondolni; a háromszög-geometria cinematic és brand-konform, de a PlanSmart wordmark nagyobb kontraszttal vagy finom accent színnel (pl. halvány kék) még inkább kiemelhetné a márkaidentitást."
+          }
+        },
+        "mj": {
+          "voice": "plansmart",
+          "model_key": "mj",
+          "model": "midjourney-v8",
+          "base_url": "https://cdn.muapi.ai/outputs/generated/b3885feab13e48c28c24fde2bacf1961.png",
+          "cost": 0.1,
+          "composed_local": "C:\\Users\\nagya\\OneDrive\\PlanSmart\\LinkedIn - Ádám\\plansmart-content\\assets\\generated\\cmp_mj_plansmart.png",
+          "composed_url": "https://uhuiicezrgxjewoiokum.supabase.co/storage/v1/object/public/visuals/cmp_mj_plansmart.png?",
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 8,
+            "scroll_stopping_score": 8,
+            "professional_score": 7,
+            "anti_pattern_flags": [
+              "word 'ADMINISZTRÁCIÓ' is clipped/cut off on the right edge — full word not visible",
+              "PlanSmart wordmark uses mixed-case serif-style font rather than the expected bold display typeface — feels slightly off-brand",
+              "background tunnel feels mildly generic/stock-adjacent"
+            ],
+            "overall_score": 7.2,
+            "feedback": "A szöveg le van vágva a jobb oldalon ('ADMINISZTRÁCIÓ' utolsó betűje hiányzik), ami komoly layout-hiba és csökkenti a professzionalizmust — a betűméretet vagy sortörést kell igazítani. A dark cinematic alap jó irány, de a PlanSmart wordmark tipográfiája nem illeszkedik elég erősen a brand display-karakteréhez, és a háttér tunnel-motívum közelít a stock-foto esztétikához."
+          }
+        }
+      }
+    }
+  ]
+}

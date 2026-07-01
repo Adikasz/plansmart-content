@@ -1,0 +1,1044 @@
+<!doctype html><html lang=hu><head><meta charset=utf-8><title>Szöveg eval</title>
+<style>:root{color-scheme:dark}body{font-family:system-ui,Segoe UI,sans-serif;background:#04060a;color:#e8edf2;margin:0;padding:24px}
+h1{font-size:24px}.sum{background:#0a0f16;border:1px solid #1c2530;border-radius:10px;padding:16px;margin:14px 0}
+table{border-collapse:collapse}td{padding:4px 12px;border-bottom:1px solid #1c2530}
+section{border-top:1px solid #1c2530;margin-top:22px;padding-top:8px}.meta{color:#7d8ea0;font-size:14px;font-weight:400}
+.row{display:flex;gap:18px}.col{flex:1}
+.pb{background:#0a0f16;border:1px solid #1c2530;border-radius:8px;padding:8px 10px;margin:8px 0}
+.pb.win{border-color:#14b8a6;box-shadow:0 0 0 2px rgba(20,184,166,.3)}
+.pb h4{font-size:13px;margin:0 0 6px}pre{white-space:pre-wrap;font-family:inherit;font-size:12px;color:#c7d2dd;margin:0}
+.subs{font-size:11px;color:#9fb0c0;margin-top:6px}.flags{display:flex;gap:4px;flex-wrap:wrap;margin:4px 0}
+.fl{background:#3a1620;color:#ff9aa8;font-size:10px;padding:1px 5px;border-radius:4px}
+.fb{font-size:11px;color:#a9b6c2;font-style:italic;margin:2px 0 0}
+.b{font-size:12px;padding:1px 8px;border-radius:10px;font-weight:700}.b.hi{background:#0f3b33;color:#5eead4}
+.b.mid{background:#3a3416;color:#e8d36a}.b.lo{background:#3a1620;color:#ff9aa8}.b.na{background:#1c2530;color:#7d8ea0}
+ul{margin:6px 0}</style></head><body>
+<h1>PlanSmart — Szöveg-minőség eval</h1>
+<div class=sum><div>Generálva: <b>2026-06-30T16:49:31</b> · szcenárió: <b>10</b></div>
+<h2>Átlagok</h2>
+<div>Baseline (produkciós A): <b>6.74</b> → Javított (improve): <b>8.03</b>
+ → Győztes (A/B+iter): <b>8.09</b></div>
+<h2>Nyertes hook hangonként</h2><table><tr><td>adam</td><td>{&quot;narrative&quot;: 1, &quot;data&quot;: 1, &quot;contrarian&quot;: 1}</td></tr><tr><td>david</td><td>{&quot;produkciós&quot;: 1, &quot;data&quot;: 3, &quot;narrative&quot;: 1}</td></tr><tr><td>plansmart</td><td>{&quot;data&quot;: 2}</td></tr></table>
+<h2>Top 3 győztes hook</h2><ul><li><span class="b hi">8.8</span> <b>david</b> (variant-D): Múlt hétfőn 11-kor kaptam egy Slack üzenetet az ügyfelünktől:
+
+„Dávid, a riport megint rossz. Harmadik hete.&quot;
+
+Igaza volt.
+
+Felépítettük nek…</li><li><span class="b hi">8.7</span> <b>david</b> (improve-it0): Három héttel ezelőtt majdnem kiszúrtam egy ügyfelet.
+
+Felépítettük neki a PPC monitor rendszert — minden reggel 7-re összegyűjti a kampányok…</li><li><span class="b hi">8.4</span> <b>david</b> (variant-C): Mindenki &quot;AI-native&quot; szervezetről beszél. Senki nem mondja meg mit jelent ez konkrétan.
+
+Olvastam egy cikket erről ma reggel. Jó volt, de va…</li></ul>
+<h2>Leggyakoribb anti-patternek</h2><ul><li>általános mennyiség: „sokat” (konkrét szám kellene) <b>×5</b></li><li>általános mennyiség: „rengeteg” (konkrét szám kellene) <b>×2</b></li><li>Általános mennyiség konkrét szám helyett: &#x27;az ügyfél-levelezés 60%-a&#x27; — ez jó, de &#x27;az ajánlatkészítési folyamata automatizálható-e&#x27; és &#x27;mennyi ideje szabadulna fel&#x27; konkrét szám nélkül marad <b>×1</b></li><li>Hiányzó konkrét kontextus: &#x27;Béla összerak pénteken&#x27; emberi, de a könyvelő iroda mérete/neve nem szerepel, ami hitelesítene <b>×1</b></li><li>Enyhe AI-tell kockázat: &#x27;A belépési korlát már nem pénz. Már nem infrastruktúra. Már nem szaktudás hiánya sem&#x27; — a hármas anaphora kissé konstruáltnak hat <b>×1</b></li><li>Gyenge CTA irány: &#x27;meddig halasztod el, hogy legalább megnézd?&#x27; — retorikai, de nem ad következő lépést; nem engagement-bait, de elveszti a döntéshozói energiát zárásban <b>×1</b></li><li>&#x27;lehetőséget biztosítva&#x27; jellegű implicit keret: &#x27;Lehetőség, de nem ház&#x27; — nem AI-tell, de közhely-határon van <b>×1</b></li><li>Hiányzó konkrét időpont/eset: &#x27;Azt látom a KKV-piacon&#x27; — általános megfigyelés, nincs &#x27;tegnap egy ügyfelünknél&#x27; típusú horgony <b>×1</b></li><li>&#x27;számos&#x27; / általános mennyiség helyett konkrét szám hiánya: &#x27;egyre többet hallanak&#x27; — mennyit? hány cégnél láttad? <b>×1</b></li><li>Gyenge CTA-közelség a zárásban: &#x27;Az viszont nem ingyen jön, hogy valaki tudja melyiket érdemes elindítani&#x27; — implicit önpromó, de nem elég éles és nem vezet sehová <b>×1</b></li><li>Általános mennyiség konkrét szám helyett: &#x27;nem sokat mond&#x27; — az ígért &#x27;lefordítás&#x27; sem hoz konkrét számot (pl. hány ezer dollárnyi API-hívás ez, vagy hány órányi munkát vált ki) <b>×1</b></li><li>Hiányzó emberi jel: nincs &#x27;tegnap láttam&#x27;, &#x27;egy ügyfelünk mondta&#x27;, konkrét dátum vagy személy — lebeg a levegőben <b>×1</b></li></ul></div>
+<section><h3>news_9709a51c <span class="meta">[adam/ai_news] baseline <span class="b mid">6.5</span> → winner <span class="b mid">7.8</span></span></h3><div class="row"><div class="col"><b>A/B variánsok</b><div class="pb "><h4>D — narrative <span class="b mid">7.4</span></h4><pre>Tegnap egy könyvelő iroda vezetője megkérdezte tőlem: „Ádám, mennyi pénzbe kerül ez az egész AI dolog nekünk valójában?&quot;
+
+Megmutattam neki egy számot. 0 Ft.
+
+Nem trükk. Nem marketing szöveg.
+
+A Google ma már napi 1,5 milliárd token használatot ad ingyen a Gemini API-jához. Ez nem kísérletezős sandbox — ez valódi kapacitás, valódi feladatokra.
+
+Ami engem itt igazából érdekel, az nem a technikai részlet.
+
+Az hogy 2025-ben a „nincs rá keretünk&quot; kifogás lassan nem állja meg a helyét. A belépési korlát már nem pénz. Már nem infrastruktúra. Már nem szaktudás hiánya sem — mert az ökoszisztéma körülötte nőtt.
+
+Ami megmarad akadályként: az eldöntés.
+
+Egy 40 fős cég ma ingyen kipróbálhatja, hogy az ajánlatkészítési folyamata automatizálható-e. Ingyen megnézheti, hogy az ügyfél-levelezés 60%-a sablonozható-e. Ingyen tesztelheti, hogy a heti riport amit Béla összerak pénteken — mennyi ideje szabadul</pre><div class="subs">hook:8 · human:9 · hungarian:8 · concrete:7 · voice:9 · engagement:7</div><div class="flags"><span class="fl">Általános mennyiség konkrét szám helyett: &#x27;az ügyfél-levelezés 60%-a&#x27; — ez jó, de &#x27;az ajánlatkészítési folyamata automatizálható-e&#x27; és &#x27;mennyi ideje szabadulna fel&#x27; konkrét szám nélkül marad</span><span class="fl">Hiányzó konkrét kontextus: &#x27;Béla összerak pénteken&#x27; emberi, de a könyvelő iroda mérete/neve nem szerepel, ami hitelesítene</span><span class="fl">Enyhe AI-tell kockázat: &#x27;A belépési korlát már nem pénz. Már nem infrastruktúra. Már nem szaktudás hiánya sem&#x27; — a hármas anaphora kissé konstruáltnak hat</span><span class="fl">Gyenge CTA irány: &#x27;meddig halasztod el, hogy legalább megnézd?&#x27; — retorikai, de nem ad következő lépést; nem engagement-bait, de elveszti a döntéshozói energiát zárásban</span></div><p class="fb">Erős poszt, a voice-illeszkedés kiváló — Ádám stratégai hangja végig tartja magát, nem csúszik fentről-lefelé kommunikációba. A hook (0 Ft) valóban megállítja a görgetést, a könyvelős nyitány emberi és hiteles. A Gemini 1,5 milliárd token adata jól horgonyoz. Ahol lehet erősíteni: a &#x27;Béla pénteki riportja&#x27; után egy konkrét időszám (pl. &#x27;Bélának ez most ~3 óra&#x27;) az egész szekciót húzná felfelé. A zárás jó feszültséget épít (&#x27;a versenytársad hamarabb&#x27;), de a teljes poszt végén hiányzik valamilyen micro-action — nem kell CTA-link, de egy konkrét gondolat (&#x27;ha érdekel, hogyan csináltuk mi, kommenteld&#x27;) a kommentarányt emelné. Összességében 7 fölötti, kiadásra alkalmas poszt.</p></div><div class="pb "><h4>E — pain <span class="b mid">7.2</span></h4><pre>Az ingyenes mindig drága. Csak más áron.
+
+A Google most azzal tolja a Gemini API-t, hogy ingyen adsz 1,5 milliárd tokent naponta. 90 másodperc alatt el lehet indulni. Három kattintás, API-kulcs, kész.
+
+És pontosan itt van a csapda.
+
+Azt látom a KKV-piacon, hogy a tulajdonosok egyre többet hallanak arról: &quot;ezt bárki megcsinálja, ingyen, 90 perc alatt.&quot; Aztán a marketinges junior nekiáll, két hetet eltölt kísérletezéssel, valami félig működő dolgot összerak — és hat hónap múlva senki nem használja.
+
+Nem az a kérdés, hogy ingyenes-e az eszköz.
+A kérdés hogy melyik folyamatra, kinek, milyen eredménnyel.
+
+Az ingyenes API-kulcs ugyanolyan értékes mint egy üres telek. Lehetőség, de nem ház.
+
+Ami valójában drága: annak az időnek az ára, amit egy 80 ezer Ft/hó-s junior arra költ, hogy megtanulja hogyan ne használja rosszul. Aztán elmegy. Aztán jön egy másik.
+
+A Google jól csinálja — érdeke hogy m</pre><div class="subs">hook:8 · human:7 · hungarian:7 · concrete:7 · voice:8 · engagement:7</div><div class="flags"><span class="fl">&#x27;lehetőséget biztosítva&#x27; jellegű implicit keret: &#x27;Lehetőség, de nem ház&#x27; — nem AI-tell, de közhely-határon van</span><span class="fl">Hiányzó konkrét időpont/eset: &#x27;Azt látom a KKV-piacon&#x27; — általános megfigyelés, nincs &#x27;tegnap egy ügyfelünknél&#x27; típusú horgony</span><span class="fl">&#x27;számos&#x27; / általános mennyiség helyett konkrét szám hiánya: &#x27;egyre többet hallanak&#x27; — mennyit? hány cégnél láttad?</span><span class="fl">Gyenge CTA-közelség a zárásban: &#x27;Az viszont nem ingyen jön, hogy valaki tudja melyiket érdemes elindítani&#x27; — implicit önpromó, de nem elég éles és nem vezet sehová</span></div><p class="fb">A hook erős és önállóan megáll — a paradox nyitány (&#x27;Az ingyenes mindig drága&#x27;) azonnal megállítja a görgetést, és a Gemini-példával jól van alátámasztva. Az üzleti logika (Google érdeke, fejlesztők szerzése) hiteles, a 80 ezer Ft/hó junior-példa a legjobb konkrét elem a posztban. A voice-hoz illeszkedik: tulajdonos-nézőpont, ROI-szemlélet, nem technikai. Ahol veszít: (1) Nincs egyetlen saját, dátumhoz/céghez kötött eset — &#x27;Azt látom a KKV-piacon&#x27; általános marad, egy konkrét &#x27;múlt héten egy ügyfélnél&#x27; mondat megháromszorozná a hitelességet. (2) A zárás implicit önpromó (&#x27;valaki tudja melyiket érdemes elindítani&#x27;) inkább ellaposítja, mint kerekíti — egy élesebb, nyitott kérdés vagy egy váratlan zárógondolat többet húzna. (3) A &#x27;kész&#x27; szó után az &#x27;És pontosan itt van a csapda&#x27; bekezdés kis betűvel kezd — sajtóhiba, rontja a minőségérzetet.</p></div><div class="pb "><h4>C — data <span class="b mid">6.8</span></h4><pre>1,5 milliárd token. Naponta. Ingyen.
+
+A Google most ezt adja oda bárki kezébe, aki hajlandó felhasználni.
+
+Ez a szám önmagában nem sokat mond egy KKV-tulajdonosnak. Megértem.
+
+De hadd fordítsam le: ez azt jelenti, hogy a belépési korlát, ami eddig azt igazolta, hogy &quot;nekünk ez még drága&quot;, most megszűnt. Nem csökkent. Megszűnt.
+
+És itt jön az érdekes rész — nem a technológia miatt.
+
+Azért, mert ha az eszköz ingyenes, a verseny következő frontja nem az, hogy ki engedheti meg magának. Hanem az, hogy kinek van ideje és figyelme rájönni, mire használja.
+
+Egy 40 fős cég esetén ez konkrétan azt jelenti: nem az a kérdés, hogy &quot;AI-ra költsünk-e&quot;. A kérdés az, hogy az a 3 folyamat, ami ma emberórát emészt fel — ajánlatkészítés, ügyfél-onboarding, heti riportok — mikorra kerül asztalra.
+
+Nem holnap. Nem jövő negyedévben.
+
+Mert a konkurensed is olvas. Ő is látja ezeket a híreket.
+
+A belépési korlát </pre><div class="subs">hook:8 · human:7 · hungarian:8 · concrete:6 · voice:8 · engagement:7</div><div class="flags"><span class="fl">Általános mennyiség konkrét szám helyett: &#x27;nem sokat mond&#x27; — az ígért &#x27;lefordítás&#x27; sem hoz konkrét számot (pl. hány ezer dollárnyi API-hívás ez, vagy hány órányi munkát vált ki)</span><span class="fl">Hiányzó emberi jel: nincs &#x27;tegnap láttam&#x27;, &#x27;egy ügyfelünk mondta&#x27;, konkrét dátum vagy személy — lebeg a levegőben</span><span class="fl">&#x27;az a 3 folyamat&#x27; — jó irány, de a három példa (ajánlatkészítés, ügyfél-onboarding, heti riportok) konkrét időszám nélkül általános marad</span><span class="fl">&#x27;mikorra kerül asztalra&#x27; — esetlen, tükörfordított zárókérdés-szerű fordulat</span><span class="fl">Rossz CTA irány: a poszt nem zár semmilyen cselekvéssel vagy valódi kérdéssel, csak kijelentéssel — emiatt az engagement-potenciál limitált</span><span class="fl">általános mennyiség: „sokat” (konkrét szám kellene)</span></div><p class="fb">A poszt szerkezete és hangneme erős, az Ádám-voice-hoz jól illeszkedik. A fő gyengeség: az ígért &#x27;lefordítás&#x27; nem hoz valódi számot — a 1,5 milliárd token önmagában lebeg, de az sem derül ki, ez gyakorlatban mit jelent forintban vagy munkaórában. A három folyamat-példa jó irány, de időszám nélkül általános. Emberi jel (konkrét időpont, ügyfél, saját tapasztalat) hiányzik, ami lebegővé teszi. A zárlat erős gondolatilag, de nem invitál kommentre — a végső mondat inkább manifesztó, mint párbeszéd-indító.</p></div><div class="pb "><h4>A — produkciós <span class="b mid">6.5</span></h4><pre>A Google most 1,5 milliárd tokent ad naponta ingyen a Gemini API-hoz.
+
+Ez egy tech-hír. De van egy üzleti olvasata is.
+
+Amikor az infrastruktúra ennyire olcsóvá (értsd: ingyenessé) válik, az belépési küszöb nem technikai többé. Nem az a kérdés hogy &quot;megtudjuk-e csinálni&quot;. Az a kérdés hogy &quot;tudjuk-e mit csinálunk vele&quot;.
+
+Ezt látom most a KKV szektorban is:
+Nem az eszközök hiányoznak. Nem a pénz hiányzik elsőre.
+Az hiányzik, hogy valaki leüljön és megmondja: a te cégedben, a te folyamataidban, pontosan hol termel ez értéket.
+
+Mert 1,5 milliárd tokennel mit kezd az a 40 fős cég, ahol még az ajánlatkészítés is Excelben megy?
+
+Semmi különöset, ha nincs mellette gondolkodás.
+
+A technológia elérhetősége sosem volt akadály igazán. Az alkalmazás mindig az volt.
+
+Ez nem változott most sem — csak a „nincs rá keretünk&quot; kifogás kopott el egy kicsit jobban.
+
+#AI #KKV #digitalizáció</pre><div class="subs">hook:7 · human:7 · hungarian:7 · concrete:6 · voice:8 · engagement:7</div><div class="flags"><span class="fl">Általános mennyiség konkrét példa helyett: &#x27;40 fős cég&#x27; jó, de az &#x27;értéket termel&#x27; és &#x27;alkalmazás mindig az volt&#x27; üres közhely marad számok/eset nélkül</span><span class="fl">Záró gondolat klisé: &#x27;A technológia elérhetősége sosem volt akadály igazán&#x27; — igazolt példa vagy saját tapasztalat nélkül ez üres általánosítás</span><span class="fl">Hiányzó emberi jel: nincs konkrét ügyfél, nincs &#x27;tegnap láttam&#x27;, nincs saját projekt — a megfigyelés lebeg a levegőben</span><span class="fl">Gyenge CTA-hiány: a poszt lezárása passzív (&#x27;kopott el egy kicsit jobban&#x27;) — sem kérdés, sem cselekvés, sem vita nem indul el belőle</span><span class="fl">&#x27;értéket termel&#x27; — AI-tell szintű üzleti sablon</span></div><p class="fb">A poszt hangvétele és logikája erős, a voice-hoz közel van. A hook működik (konkrét szám + azonnali reframe), és az érvelés íve jó. Ami lehúzza: (1) nincs egyetlen saját tapasztalat vagy ügyfél-példa — így az egész elvont marad; (2) a zárás passzív, nem indít vitát; (3) néhány mondat közhely-szinten landol konkrét adat nélkül. Az átírás egy valódi esetet épít be, és nyitott kérdéssel zár, ami kommentet generál.</p></div><div class="pb "><h4>B — contrarian <span class="b lo">6.2</span></h4><pre>Az ingyenes nem jelenti azt, hogy érdemes.
+
+A Google most bejelentette, hogy a Gemini API napi 1,5 milliárd tokent ad ingyen. 90 másodperc alatt elkezdhetsz buildolni. 3 kattintás, API kulcs, kész.
+
+És pontosan itt van a csapda.
+
+Azt látom a magyar KKV piacon, hogy a legtöbb cégnél nem az a probléma, hogy nincs ingyenes AI eszköz. Az a probléma, hogy nem tudják, mit csináljanak vele. Egy 40 fős gyártó cég tulajdonosa nem fog API dokumentációt olvasni. Egy könyvelő iroda ügyvezetője nem fog 90 másodperces tutorialt követni.
+
+Amikor egy ilyen hír megjelenik, a tech közösség felugrik. &quot;Ingyen van, bárki építhet.&quot;
+
+De a kérdés soha nem az volt, hogy ki tudja megépíteni.
+A kérdés az, hogy ki tudja használni.
+
+Ez a különbség egy fejlesztő és egy vállalkozó perspektívája között. Az ingyenes API önmagában ugyanolyan hasznos egy átlagos KKV-nak, mint egy teli szerszámosláda annak, aki nem tud bar</pre><div class="subs">hook:7 · human:6 · hungarian:8 · concrete:6 · voice:8 · engagement:6</div><div class="flags"><span class="fl">Általános mennyiség konkrét szám helyett: &#x27;a legtöbb cégnél&#x27; — melyik cégnél, hány cégnél?</span><span class="fl">Hiányzó emberi jel: nincs konkrét időpont, saját ügyfél-példa, &#x27;tegnap&#x27;, &#x27;múlt héten&#x27; — az egész lebeg a levegőben</span><span class="fl">Rossz CTA: &#x27;Te miben látod a legnagyobb akadályt...&#x27; — tipikus engagement-bait kérdés, nem vezet valódi párbeszédbe</span><span class="fl">Üres business-közhely: &#x27;A belépési korlát nem a pénz volt. Soha nem az volt.&#x27; — erős hangzású, de bizonyítatlan állítás konkrét alap nélkül</span><span class="fl">Általános példák: &#x27;40 fős gyártó cég tulajdonosa&#x27;, &#x27;könyvelő iroda ügyvezetője&#x27; — nincs valódi név, eset, szám mögötte</span><span class="fl">általános mennyiség: „számos” (konkrét szám kellene)</span></div><p class="fb">A poszt iránya és érvelése erős — a &#x27;ingyenes ≠ hasznos&#x27; gondolat valódi insight, és a hangvétel illik Ádám stratégiai voice-ához. Két fő gyengeség húzza le: (1) Nincs egyetlen konkrét eset, szám vagy saját tapasztalat — a &#x27;40 fős gyártó cég&#x27; és a &#x27;könyvelő iroda&#x27; lebeg, nem horgonyoz. (2) A záró kérdés tipikus LinkedIn engagement-bait, nem vezet valódi döntéshozói párbeszédbe. Az átírásban egy valódi ügyféleset (anonim, de konkrét számokkal) és egy célzottabb, döntéshozónak szóló kérdés javítja a hitelességet és a komment-minőséget.</p></div></div><div class="col"><b>Iteratív javítás</b><div class="pb "><h4>improve it0 <span class="b mid">6.8</span></h4><pre>A Google most 1,5 milliárd tokent ad naponta ingyen a Gemini API-hoz.
+
+Ez egy tech-hír. De van egy üzleti olvasata is.
+
+Amikor az infrastruktúra ennyire olcsóvá (értsd: ingyenessé) válik, az belépési küszöb nem technikai többé. Nem az a kérdés hogy &quot;megtudjuk-e csinálni&quot;. Az a kérdés hogy &quot;tudjuk-e mit csinálunk vele&quot;.
+
+Ezt látom most a KKV szektorban is:
+Nem az eszközök hiányoznak. Nem a pénz hiányzik elsőre.
+Az hiányzik, hogy valaki leüljön és megmondja: a te cégedben, a te folyamataidban, pontosan hol termel ez értéket.
+
+Mert 1,5 milliárd tokennel mit kezd az a 40 fős cég, ahol még az ajánlatkészítés is Excelben megy?
+
+Semmi különöset, ha nincs mellette gondolkodás.
+
+A technológia elérhetősége sosem volt akadály igazán. Az alkalmazás mindig az volt.
+
+Ez nem változott most sem — csak a „nincs rá keretünk&quot; kifogás kopott el egy kicsit jobban.
+
+#AI #KKV #digitalizáció</pre><div class="subs">hook:7 · human:7 · hungarian:7 · concrete:6 · voice:8 · engagement:7</div><div class="flags"><span class="fl">Általános példa konkrét ügyfél/eset helyett: &#x27;40 fős cég, ahol még az ajánlatkészítés is Excelben megy&#x27; — közel jó, de névtelen/általános, nem saját tapasztalat</span><span class="fl">Hiányzó emberi jel: nincs &#x27;tegnap&#x27;, &#x27;ma reggel&#x27;, &#x27;az egyik ügyfelünk&#x27; — a megfigyelés lebeg, nem kötött valódi helyzethez</span><span class="fl">&#x27;számos&#x27; jellegű általánosság: &#x27;Ezt látom most a KKV szektorban is&#x27; — hány cég? mikor? semmi konkrét adat</span><span class="fl">Lezárás kissé közhely-szagú: &#x27;A technológia elérhetősége sosem volt akadály igazán. Az alkalmazás mindig az volt.&#x27; — igaz, de már sokszor hallott gondolat</span><span class="fl">CTA hiányzik teljesen — egy stratégiai posztban egy nyitott döntéshozói kérdés erősítené az engagementet</span></div><p class="fb">A poszt voice-konzisztens, érvelése helyes és tömör — Ádám hangján szól. A hook erős (konkrét szám, azonnal), de az érvelés a közepén általánossá válik: nincs saját ügyfél, nincs konkrét eset, nincs időpont. A zárlat igaz, de közhely-határon van. Az overall_score 6.8 — az átírás konkrét esetet és erősebb záró kérdést ad hozzá.</p></div><div class="pb win"><h4>👑 improve it1 <span class="b mid">7.8</span></h4><pre>A Google ma bejelentette: 1,5 milliárd token naponta, ingyen, a Gemini API-n keresztül.
+
+Az ügyfeleim egyik fele ezt hallva azonnal kérdez: „Akkor mire vártunk még?&quot;
+
+A másik fele csöndben marad.
+
+Mert tudják, hogy az eszköz sosem volt a szűk keresztmetszet.
+
+Múlt héten egy 42 fős logisztikai cégnél jártam. Ajánlatkészítés Excelben, visszaigazolás emailben, státuszkövetés telefonon — és egy kolléga, aki napjának nagyjából 3 óráját tölti azzal, hogy ezeket összeköti. Kézzel. Minden nap.
+
+Három folyamat, amelyek 60-70%-ban automatizálhatók lennének. Nem hónapok alatt. Hetek alatt.
+
+De nem a tokenlimit volt a szűk keresztmetszet náluk. Az a másfél óra volt, amikor valaki leül, végigmegy az egész folyamaton, és megmondja: itt igen, ott nem, itt meg így.
+
+Két éve az volt a kifogás: „nincs rá keretünk.&quot;
+Tavaly: „nincs rá emberünk.&quot;
+Ma: „nincs rá időnk leülni és végiggondolni.&quot;
+
+Az 1,5 milliárd</pre><div class="subs">hook:8 · human:9 · hungarian:8 · concrete:8 · voice:9 · engagement:8</div><div class="flags"><span class="fl">&#x27;60-70%-ban automatizálhatók lennének&#x27; — a &#x27;lennének&#x27; feltételes kissé puhítja az állítást, konkrét eredményszám erősítené</span><span class="fl">&#x27;Három folyamat&#x27; — maradhat általános felsorolásnak, de a három folyamat neve ki lehetne írva konkrétan</span><span class="fl">Záró kérdés (&#x27;ki ül le a te cégedben&#x27;) határos az engagement-bait-tel, bár az előző felépítés miatt inkább valódi insight-kérdés</span></div><p class="fb">Erős poszt, Ádám hangjához nagyon jól illik. A 42 fős logisztikai cég + 3 óra/nap + hetek (nem hónapok) kombináció konkrét és hiteles. A háromrészes kifogás-evolúció (&#x27;nincs keretünk → nincs emberünk → nincs időnk leülni&#x27;) narratívaként kiemelkedő — ez a poszt gerince, és jól viszi a döntéshozói nézőpontot. A hook erős, mert a két reakció-tábor azonnal önbesorolásra készteti az olvasót. Két apróbb finomítási lehetőség: (1) a három automatizálható folyamatot érdemes lenne névvel is ellátni (ajánlatkészítés, visszaigazolás, státuszkövetés — már ott vannak a szövegben, csak ki lehetne emelni), (2) a záró kérdés egy félmondatos, személyes téttel (&#x27;mi erre X-et csináltunk&#x27;) még inkább el tudná kerülni az engagement-bait érzetet.</p></div><div class="pb "><h4>improve it2 <span class="b mid">7.8</span></h4><pre>A Google ma bejelentette: 1,5 milliárd token naponta, ingyen, a Gemini API-n keresztül.
+
+Az ügyfeleim egyik fele ezt hallva azonnal kérdez: „Akkor mire vártunk még?&quot;
+
+A másik fele csöndben marad.
+
+Mert tudják, hogy az eszköz sosem volt a szűk keresztmetszet.
+
+Múlt héten egy 42 fős logisztikai cégnél jártam. Ajánlatkészítés Excelben, visszaigazolás emailben, státuszkövetés telefonon — és egy kolléga, aki napjának nagyjából 3 óráját tölti azzal, hogy ezeket összeköti. Kézzel. Minden nap.
+
+Ez a három folyamat — ajánlatkészítés, visszaigazolás, státuszkövetés — egyenként 60-70%-ban automatizálható. Nem hónapok alatt. Hetek alatt. Hasonló méretű cégeknél ezt 3-4 hét alatt le szoktuk zárni.
+
+De nem a tokenlimit volt a szűk keresztmetszet náluk. Az a másfél óra volt, amikor valaki leül, végigmegy az egész folyamaton, és megmondja: itt igen, ott nem, itt meg így.
+
+Két éve az volt a kifogás: „nin</pre><div class="subs">hook:8 · human:9 · hungarian:9 · concrete:8 · voice:9 · engagement:7</div><div class="flags"><span class="fl">Rossz CTA irány: &#x27;Nálunk ez mindig az első 2 órás találkozón dől el&#x27; — implicit sales pitch, ami engagement-bait közelébe megy, bár finomabb a szokásosnál</span><span class="fl">Általános mennyiség: &#x27;nagyjából 3 óráját&#x27; — ez rendben van, de &#x27;60-70%-ban automatizálható&#x27; forrás nélkül lebeg</span><span class="fl">Hiányzó konkretizálás: &#x27;Hasonló méretű cégeknél ezt 3-4 hét alatt le szoktuk zárni&#x27; — melyik iparág, melyik eset? Egy rövid névtelen példa erősítené</span></div><p class="fb">Erős poszt. A hook működik: konkrét adat (1,5 milliárd token, Google, ma), azonnali kettéosztott reakció — ez megállít. A 42 fős logisztikai cég példa a legjobb rész: valódi, specifikus, vizuálisan látható. A &#x27;kifogás-évszámok&#x27; struktúra (két éve / tavaly / ma) elegáns és eredeti. A CTA az egyetlen gyenge pont: &#x27;Nálunk ez mindig az első 2 órás találkozón dől el&#x27; egy árnyalatnyi sales-szagot visz be, ami a záró kérdés erejét kicsit leveszi. A záró kérdés (&#x27;ki ül le a te cégedben&#x27;) önmagában erős lett volna — a &#x27;nálunk&#x27; rész félkész CTA benyomását kelti anélkül, hogy valódi következő lépést adna. Ha a célod engagement, hagyd a kérdésnél. Ha a célod lead, legyen explicit.</p></div></div></div></section><section><h3>news_6864ae7b <span class="meta">[david/ai_news] baseline <span class="b mid">7.8</span> → winner <span class="b hi">8.2</span></span></h3><div class="row"><div class="col"><b>A/B variánsok</b><div class="pb "><h4>A — produkciós <span class="b mid">7.8</span></h4><pre>Az a fejlesztő aki még mindig manuálisan figyel PR-okat, az nem AI-t használ. Csak egy drágább szövegszerkesztőt.
+
+Lenny&#x27;s Newsletter-en kijött egy anyag agent loop designról — heartbeat, cron, goal-based és subagent minták. Végignéztem.
+
+Ami engem tényleg megfogott:
+
+A legtöbb &quot;AI workflow&quot; amit látok valójában trigger → action. Input jön, output megy. Ez nem agent loop. Ez egy glorifikált webhook.
+
+Az agent loop az, amikor a rendszer:
+1. Fut időzítetten VAGY eseményre
+2. Maga dönt hogy kell-e beavatkozni
+3. Ha kell, subagenteket hív be a részfeladatokra
+4. Aztán visszajön és újra figyel
+
+A különbség nem szintaktikai. Az egyik reaktív, a másik proaktív.
+
+Mi most épp egy ilyen rendszert építünk egy ügyfelünknek — PPC kampányokat figyel, és ha valami elcsúszik a célszámoktól, nem alertet küld. Dönt. Módosít. Jelez.
+
+A &quot;babysitting&quot; kifejezés amit a cikkben használnak, pontosan ez. Ha te ü</pre><div class="subs">hook:8 · human:9 · hungarian:8 · concrete:7 · voice:9 · engagement:8</div><div class="flags"><span class="fl">&#x27;számos&#x27; nem szerepel, de &#x27;legtöbb &quot;AI workflow&quot;&#x27; — nem kritikus, inkább gyenge konkrétság: nincs szám (hány workflow-t látott, mikor, melyik ügyfél iparága)</span><span class="fl">A Lenny&#x27;s Newsletter-hivatkozás konkrét, de a cikk címe/linkje hiányzik — csökkenti a verifikálhatóságot</span><span class="fl">&#x27;A különbség nem szintaktikai.&#x27; — önmagában OK, de kicsit üres állítás konkrét kódrészlet vagy példa nélkül (builder voice-tól elvárható lenne egy snippet vagy pszeudokód)</span><span class="fl">CTA hiányzik teljesen — ez nem feltétlenül baj, de engagement szempontból gyengíti</span></div><p class="fb">Erős poszt, Dávid hangjához nagyon jól illeszkedik: közvetlen, nem marketinges, van saját build-tapasztalat (PPC agent projekt), és a &#x27;glorifikált webhook&#x27; megfogalmazás valódi insight. A hook az első sorban megállít. Ami még erősebbé tehetné: (1) egy konkrét szám vagy mérőszám az ügyfél projektből (&#x27;a kampány budget 12%-ot csúszott el, mielőtt az agent beavatkozott&#x27;), (2) a Lenny-cikk pontos neve/linkje hogy hiteles forrásként funkcionáljon, (3) opcionálisan egy 3-soros pszeudokód a loop struktúráról — ez a builder voice csúcsa lenne. A &#x27;babysitting&#x27; idézet jól zár, de az utolsó két sor (&#x27;A cél: te ne legyél benne a loopban.&#x27;) egy kicsit közhely-szagú lezárás ahhoz képest, hogy a poszt többi része ennyire konkrét.</p></div><div class="pb "><h4>E — pain <span class="b mid">7.8</span></h4><pre>Egy éve még azt hittem, az AI agent = egy jó prompt + egy API hívás.
+
+Aztán az első ügyfélprojektnél szétesett minden. Manuálisan kellett figyelnem, hogy a script lefutott-e. Én voltam a heartbeat.
+
+Ma már tudom: az agent loop tervezése az igazi munka. Nem a modell kiválasztása.
+
+Az Anthropic mostani Claude Code demója pontosan ezt mutatja meg — és van benne 2-3 dolog, amit én is csak fájdalmasan tanultam meg:
+
+**Heartbeat vs. cron vs. goal-based loop — nem mindegy melyiket mikor használod.**
+
+Heartbeat: folyamatosan fut, figyel. Drága, de valós idejű. Mi ezt használjuk PPC monitornál — ha egy hirdetéscsoport CPA-ja elugrik, azonnal jelez.
+
+Cron: időzített, kiszámítható. Versenytárs-figyelőnél ez elég — reggel 7-re kész a riport, nem kell percre pontosan.
+
+Goal-based: addig fut, amíg el nem ér valamit. Ez a legérdekesebb — és a legnehezebb debuggolni, ha a célt rosszul definiálod.
+
+**A s</pre><div class="subs">hook:8 · human:8 · hungarian:7 · concrete:8 · voice:9 · engagement:8</div><div class="flags"><span class="fl">&#x27;Ez nem feature.&#x27; — határán van egy buzzword-es kijelentésnek, bár kontextusban megáll</span><span class="fl">&#x27;Ez az a plató, ahol az agent fejlesztés eddig elakadt.&#x27; — kissé homályos/általános megfogalmazás, konkrét példával erősebb lenne</span><span class="fl">Hiányzó konkrét időpont/dátum: &#x27;Egy éve&#x27; pontatlan, pl. &#x27;2024 januárjában&#x27; hitelesebb lenne</span><span class="fl">&#x27;a legtöbben félrenyúlnak&#x27; — általános állítás, konkrét számmal vagy saját adattal erősebb lenne</span><span class="fl">általános mennyiség: „sokat” (konkrét szám kellene)</span></div><p class="fb">Erős poszt, a voice-nak nagyon jól megfelel: builder-hang, saját fájdalomból indul, konkrét use-case-ek (PPC monitor CPA-ugrás, reggel 7-es riport). A hook működik — az &#x27;én voltam a heartbeat&#x27; sor különösen jó. A heartbeat/cron/goal-based tagolás valódi értéket ad, nem marketing-szöveg. Ami még erősíthetné: (1) egy konkrét szám a goal-based loop debuggoláshoz töltött időről vagy egy specifikus hiba leírása, (2) a &#x27;Claude Code mostani demója&#x27; — melyik demó, mikor, mi volt benne a 2-3 konkrét dolog? Ez most lebeg. (3) A záró mondat (&#x27;azt script-nek hívják&#x27;) jó punch, de a hashtag-sor gyengíti — a #buildinpublic itt zavaros, mert a poszt nem egy aktuális build-log, hanem visszatekintés.</p></div><div class="pb "><h4>B — contrarian <span class="b mid">7.2</span></h4><pre>Az agent loop nem azért nehéz, mert komplex a tech. Azért nehéz, mert senki nem gondolja végig, mikor álljon le.
+
+Néztem a Claude Code + Codex demót ahol PR review-t futtatnak teljesen autonoman. Heartbeat, cron, subagent orchestráció — minden benne van. Jól csinálták.
+
+De amit nem mutatott meg a videó:
+
+Mi van, ha az agent loop rosszul dönt 3 órakor hajnalban, és nem volt stop condition?
+
+Ez az, amit mi most építünk a saját rendszereinkbe — nem a loop elindítása a nehéz, hanem a határok meghúzása. Mikor ne cselekedjen az agent? Mikor kérjen emberi jóváhagyást? Mikor álljon le teljesen?
+
+A „soha ne kelljen babysit-elni&quot; ígéret szép. De az én tapasztalatom: az első autonóm agent amit Production-be engedtél emberi checkpont nélkül — az tanít meg legjobban arra, hogy hova kell checkpoint.
+
+Nem vagyok ellen az agent loop-oknak. Épp ellenkezőleg, minden nap ezeket építem.
+
+Csak azt mondom: a </pre><div class="subs">hook:8 · human:8 · hungarian:7 · concrete:6 · voice:9 · engagement:8</div><div class="flags"><span class="fl">Általános mennyiség konkrét szám helyett: &#x27;heteket töltesz el&#x27; — mi volt pontosan a saját tapasztalat? Hány nap, melyik incident?</span><span class="fl">Hiányzó emberi jel: &#x27;amit mi most építünk a saját rendszereinkbe&#x27; — nincs konkrét időpont, projekt, kontextus</span><span class="fl">&#x27;az első autonóm agent amit Production-be engedtél emberi checkpont nélkül&#x27; — általános &#x27;te&#x27;, nem saját konkrét eset idézve</span><span class="fl">Hiányzó konkrétum a stop condition kapcsán: mit építenek pontosan? Milyen logic, milyen threshold?</span></div><p class="fb">Erős poszt Dávid voice-ában: technikai, konkrét téma, jó hook, valódi builder-perspektíva. A &#x27;3 órakor hajnalban&#x27; detail emberi, a Claude Code + Codex referencia hitelességet ad. Ami emeli tovább: a saját konkrét incident (mi sült el rosszul, mikor, mit tanult) — most csak általánosságban utal rá. A &#x27;heteket töltesz el&#x27; is erősebb lenne ha &#x27;11 napot töltöttünk el&#x27; formában szerepelne. A hashtag-blokk standard, nem ront. Összességében publikálható, de egy konkrét saját incidens beépítésével 8+ lenne.</p></div><div class="pb "><h4>C — data <span class="b na">—</span></h4><pre></pre><div class="subs">hook:— · human:— · hungarian:— · concrete:— · voice:— · engagement:—</div><div class="flags"></div><p class="fb"></p></div><div class="pb "><h4>D — narrative <span class="b na">—</span></h4><pre></pre><div class="subs">hook:— · human:— · hungarian:— · concrete:— · voice:— · engagement:—</div><div class="flags"></div><p class="fb"></p></div></div><div class="col"><b>Iteratív javítás</b><div class="pb "><h4>improve it0 <span class="b mid">7.4</span></h4><pre>Az a fejlesztő aki még mindig manuálisan figyel PR-okat, az nem AI-t használ. Csak egy drágább szövegszerkesztőt.
+
+Lenny&#x27;s Newsletter-en kijött egy anyag agent loop designról — heartbeat, cron, goal-based és subagent minták. Végignéztem.
+
+Ami engem tényleg megfogott:
+
+A legtöbb &quot;AI workflow&quot; amit látok valójában trigger → action. Input jön, output megy. Ez nem agent loop. Ez egy glorifikált webhook.
+
+Az agent loop az, amikor a rendszer:
+1. Fut időzítetten VAGY eseményre
+2. Maga dönt hogy kell-e beavatkozni
+3. Ha kell, subagenteket hív be a részfeladatokra
+4. Aztán visszajön és újra figyel
+
+A különbség nem szintaktikai. Az egyik reaktív, a másik proaktív.
+
+Mi most épp egy ilyen rendszert építünk egy ügyfelünknek — PPC kampányokat figyel, és ha valami elcsúszik a célszámoktól, nem alertet küld. Dönt. Módosít. Jelez.
+
+A &quot;babysitting&quot; kifejezés amit a cikkben használnak, pontosan ez. Ha te ü</pre><div class="subs">hook:8 · human:8 · hungarian:7 · concrete:7 · voice:9 · engagement:8</div><div class="flags"><span class="fl">Általános bevezető állítás kissé clickbait-szerű, de megúszik a konkrétság miatt</span><span class="fl">&#x27;számos&#x27; és hasonló általános mennyiség nincs, de a Lenny&#x27;s Newsletter forrás elég lazán van kezelve — nincs konkrét cikkcím vagy link</span><span class="fl">A 4 lépéses lista technikai, de a lépések kissé általánosak, konkrét kódrészlet vagy implementációs részlet nélkül</span><span class="fl">&#x27;glorifikált webhook&#x27; — jó, de a &#x27;glorifikált&#x27; kissé angolból átvett szóhasználat</span><span class="fl">Hiányzó időbeli horgony: mikor volt a build? &#x27;Most épp&#x27; épül, de nincs semmi konkrét (sprint, hét, mióta)</span><span class="fl">A hashtag-sor (#ClaudeAPI #AIagents #automation) gyenge zárás, elvesz az erős utolsó mondatból</span></div><p class="fb">Erős poszt, jól illik Dávid builder-hangjához. A hook provokatív de konkrét, a webhook vs agent loop különbségtétel valódi értéket ad, és az ügyfél-példa hitelességet visz bele. Ami még jobb lenne: egy konkrét szám a PPC rendszerből (pl. hány kampányt figyel, mekkora volt az első automatikus beavatkozás), és egy pontos időbeli horgony (&#x27;múlt héten kezdtük el&#x27; szint). A Lenny&#x27;s cikk is erősebb lenne konkrét cikkcímmel. A záró hashtag-sor csökkenti a lendületet — érdemes lenne elhagyni vagy a zárásba beépíteni.</p></div><div class="pb win"><h4>👑 improve it1 <span class="b hi">8.2</span></h4><pre>Ha te figyeled az AI kimenetét, akkor te vagy a loop. Nem az AI.
+
+Múlt héten kezdtem el komolyabban olvasni az agent loop designról — heartbeat, cron, goal-based és subagent minták. Végignéztem, és rájöttem hogy amit a legtöbb fejlesztő &quot;AI workflow&quot;-nak nevez, az valójában trigger → action. Input jön, output megy.
+
+Ez nem agent loop. Ez egy feldíszített webhook.
+
+Az agent loop az, amikor a rendszer:
+
+1. Fut időzítetten VAGY eseményre
+2. Maga dönt hogy kell-e beavatkozni
+3. Ha kell, subagenteket hív be a részfeladatokra
+4. Aztán visszajön és újra figyel
+
+A különbség nem szintaktikai. Az egyik reaktív, a másik proaktív.
+
+Három hete építjük ezt egy ügyfelünknek — PPC kampányokat figyel, jelenleg 40+ aktív hirdetéscsoport. Ha valami elcsúszik a célszámoktól, nem alertet küld. Dönt. Módosít. Jelez.
+
+Az első automatikus beavatkozás múlt pénteken volt: egy kampány CPA-ja 18%-ot ugrott reggel 9</pre><div class="subs">hook:8 · human:8 · hungarian:7 · concrete:9 · voice:9 · engagement:8</div><div class="flags"><span class="fl">Enyhe: &#x27;feldíszített webhook&#x27; metafora jó, de a &#x27;komolyan olvasni&#x27; kissé általános bevezető — konkrétabb forrás (pl. szerző/cikk neve) erősítené</span><span class="fl">&#x27;Három hete építjük&#x27; — jó emberi jel, de a &#x27;három hete&#x27; és &#x27;múlt héten&#x27; időbeli viszony kicsit összemosódik</span><span class="fl">A záró &#x27;babysitter&#x27; metafora erős, de az ismétlés (&#x27;Ha te figyeled... Ha te ülsz...&#x27;) minimálisan redundáns</span><span class="fl">Hashtag-ek rendben, de &#x27;#ClaudeAPI&#x27; specifikus tool-ra utal, ami nincs megemlítve a posztban — kisebb következetlenség</span></div><p class="fb">Erős poszt, Dávid hangjához jól illeszkedik. A hook kontrarian és azonnal bevon (&#x27;te vagy a loop&#x27;), a konkrét példa (40+ hirdetéscsoport, 18%-os CPA-ugrás, reggel 9-délelőtt beavatkozás) kiemelkedően jó — ritka az ilyen szintű konkrétság LinkedIn-en. A &#x27;feldíszített webhook&#x27; framing emlékezetes és megosztható. A webhook vs. agent loop magyarázat technikai, de követhető. Amit lehetne csiszolni: a &#x27;komolyan olvasni&#x27; bevezető veszít erejéből, ha nincs konkrét forrás mögötte; a Claude API hashtag nincs megalapozva a szövegben. Engagement-potenciál magas, mert fejlesztők vitatkozni fognak a definíciókon — ez jó.</p></div></div></div></section><section><h3>news_aab71206 <span class="meta">[adam/ai_news] baseline <span class="b lo">6.2</span> → winner <span class="b mid">7.8</span></span></h3><div class="row"><div class="col"><b>A/B variánsok</b><div class="pb "><h4>C — data <span class="b mid">7.4</span></h4><pre>Az AI-eszközök 90%-a egy dolgot csinál: kap egy kérdést, ad egy választ.
+
+A Claude 3 mostantól mást csinál: kap egy feladatot, és elvégzi.
+
+Az Anthropic bejelentette, hogy a Claude 3 mostantól képes eszközöket használni — kereshet, kalkulálhat, lekérdezhet adatokat, majd ezek alapján dönt és cselekszik. Nem csak válaszol. Dolgozik.
+
+Mi a különbség egy KKV szemszögéből?
+
+Eddig: &quot;Mondd meg, hogyan kell kiszámolni a marzsomat.&quot;
+Ezentúl: &quot;Számold ki a marzsomat az elmúlt 3 hónap adataiból, és jelezd ha valamelyik termék veszteséges.&quot;
+
+Az egyik egy okos asszisztens.
+A másik egy munkatárs.
+
+Nem a technológia érdekes itt — az érdekes, hogy hol lesz ennek először valós hatása.
+
+Szerintem nem a nagy vállalatoknál. Ott már van IT csapat, van erőforrás, van dedikált fejlesztő. A nagy gépezetbe nehéz ilyet integrálni.
+
+A 15-60 fős cégeknél lesz az igazi áttörés. Ahol most egy ember csinálja a riport</pre><div class="subs">hook:8 · human:7 · hungarian:8 · concrete:7 · voice:9 · engagement:8</div><div class="flags"><span class="fl">&#x27;Az AI-eszközök 90%-a&#x27; — ez egy pontos szám, de forrás nélkül inkább véleménynek hat, mint adatnak; gyengíti a hitelességet</span><span class="fl">&#x27;igazi áttörés&#x27; — enyhe buzzword-szag, bár nem kritikus</span><span class="fl">Hiányzó emberi jel: nincs konkrét időpont (&#x27;tegnap&#x27;, &#x27;ma reggel&#x27;), nincs &#x27;az egyik ügyfelünk&#x27; típusú alap — a poszt elvont marad, nem horgonyoz le egy valós pillanatban</span><span class="fl">&#x27;rövidesen&#x27; — általános időhatározó konkrét becslés helyett (pl. &#x27;6-12 hónapon belül&#x27;)</span><span class="fl">A záró kérdés (&#x27;melyik az a folyamatod...&#x27;) határán van az engagement-bait-nek, bár az insight elég erős ahhoz, hogy megmentsük</span></div><p class="fb">Erős poszt, Ádám hangjához jól illeszkedik: döntéshozói nézőpont, KKV-fókusz, ROI-logika, laikus nyelvezet. A hook kontrasztos és megállít. A &#x27;15-60 fős cég / negyedik kolléga&#x27; kép az egyedi, emlékezetes rész — ezt érdemes megtartani és erősíteni. Ami hiányzik: egyetlen konkrét időbeli horgony vagy saját megfigyelés (&#x27;tegnap néztük meg egy ügyféllel...&#x27; típus), ami emberivé tenné. A 90%-os szám forrás nélkül inkább gyengíti, mint erősíti a hitelességet — vagy add meg az alapot, vagy csináld véleménnyé (&#x27;tapasztalatom szerint&#x27;). Az overall 7.4, nem kell átírás, de egy sor horgonyzással 8+ lenne.</p></div><div class="pb "><h4>B — contrarian <span class="b mid">7.2</span></h4><pre>Az AI nem akkor lesz hasznos, amikor okosabb lesz. Hanem amikor elkezd cselekedni.
+
+Az Anthropic most kiadta a Claude 3 tool use funkcióját — vagyis az AI nemcsak válaszol, hanem hívhat rendszereket, futtathat lépéseket, elvégezhet feladatokat.
+
+Ez az a pillanat, amitől a legtöbb KKV tulaj fél anélkül, hogy pontosan tudná miért.
+
+Mert eddig az AI olyan volt mint egy okos tanácsadó: megmondja mit csinálj, de te hajtod végre. Most olyan lett, mint egy munkatárs: megmondja és meg is csinálja.
+
+A különbség nem technikai. A különbség az, hogy ki felelős az eredményért.
+
+Azt látom a tulajdonosoknál, hogy nem az AI-tól félnek. Attól félnek, hogy egy rendszer dolgokat tesz a nevükben — amit ők nem látnak át teljesen. Ez egy nagyon is racionális félelem.
+
+De a valóság az, hogy már ma is van 10-20 olyan folyamat a cégedben, ahol egy ember végrehajt valamit, amit te sem látsz át teljesen. Mert megb</pre><div class="subs">hook:8 · human:8 · hungarian:8 · concrete:6 · voice:9 · engagement:7</div><div class="flags"><span class="fl">Általános időkeret konkrét példa nélkül: &#x27;A következő 6-12 hónapban&#x27; — szám van, de nincs mögötte saját adat vagy ügyfélpélda</span><span class="fl">Általános mennyiség: &#x27;10-20 olyan folyamat&#x27; — közelít, de nincs konkrét cégnév/eset mögötte</span><span class="fl">Hiányzó emberi jel: nincs &#x27;tegnap láttam&#x27;, &#x27;az egyik ügyfelünknél&#x27;, &#x27;múlt héten&#x27; típusú időpont — lebeg a levegőben</span><span class="fl">A záró kérdés (&#x27;Nálatok mi az a feladat...&#x27;) gyengébb CTA — inkább önreflexióra hív, mint valódi vitára</span></div><p class="fb">Erős poszt, jól ül Ádám hangjára: tulajdonos-tulajdonos logikával érvel, nem tech-zsargonnal. A &#x27;tanácsadó vs. munkatárs&#x27; analógia különösen ütős és megjegyezhető. A hook megállítja a görgetést. Ahol veszít: nincs egyetlen konkrét ügyfélhelyzet vagy saját tapasztalat (&#x27;az egyik ügyfelünknél ez és ez a folyamat volt a szűk pont&#x27;), ami hitelességet és kommentet generálna. A &#x27;10-20 folyamat&#x27; becslés jó irány, de egy valós példával megsokszorozódna az ereje. A záró kérdés jó irányba mutat, de &#x27;Ki próbált már tool use-t bevetni egy konkrét folyamatban — mi történt?&#x27; típusú kérdés több kommentet hozna.</p></div><div class="pb "><h4>A — produkciós <span class="b lo">6.2</span></h4><pre>Az Anthropic most adta ki a Claude 3 „tool use&quot; funkcióját.
+
+A tech sajtó lelkesen magyarázza, mit jelent ez technikai szinten.
+
+Én inkább azt nézem, mit jelent ez egy 30-50 fős magyar cégnek.
+
+A lényeg — lefordítva — az, hogy egy AI-rendszer mostantól nem csak válaszol, hanem cselekedni is tud. Megnéz egy naptárat. Kitölt egy mezőt. Lekérdez egy adatbázist. Küld egy e-mailt.
+
+Eddig az volt a korlát: az AI okos volt, de nem nyúlt bele a folyamatokba.
+Ez a korlát most elkezdett eltűnni.
+
+Mit jelent ez a gyakorlatban?
+
+Egy ügyvédi iroda, ahol az asszisztens heti 6 órát tölt azzal, hogy e-mailekből kinyeri az ügyféladatokat és bevezeti a rendszerbe — ez az a típusú feladat, amit most már tényleg le lehet venni az asztalról.
+
+Egy könyvelő cégnél, ahol minden hónap végén ugyanaz a 3 ember ugyanazokat az adatokat mozgatja táblázatok között — ugyanígy.
+
+Nem arról van szó, hogy az AI „átveszi az</pre><div class="subs">hook:6 · human:7 · hungarian:8 · concrete:7 · voice:8 · engagement:6</div><div class="flags"><span class="fl">&#x27;Ti megnézitek már...&#x27; — gyenge CTA, nem vezet sehova, engagement-bait szagú</span><span class="fl">&#x27;elkezdett eltűnni&#x27; — kissé esetlen, puha megfogalmazás konkrét adat helyett</span><span class="fl">&#x27;Az a cég fog ebből profitálni, amelyik...&#x27; — üres business-közhely, konkrét ROI-szám nélkül</span><span class="fl">Hiányzó emberi jel: nincs konkrét időpont, nincs &#x27;tegnap láttam&#x27;, nincs saját ügyféltapasztalat — távolságtartó marad</span><span class="fl">A hook (&#x27;Az Anthropic most adta ki...&#x27;) lapos hírközlés, nem contrarian/pain/data nyitás</span></div><p class="fb">A poszt szerkezete és hangvétele jó irányba mutat: a tulajdonos-tulajdonosnak szóló fordítás működik, a konkrét példák (ügyvédi iroda, könyvelő) hitelesek. Két fő gyengeség húzza le: (1) A hook hírközlés, nem megállító — az olvasó nem érzi, hogy ez az ő problémájáról szól. (2) Nincs saját hang, saját tapasztalat vagy konkrét szám, ami az érvelést megtámasztaná — ezért kissé &#x27;lebeg&#x27; az egész. A CTA is elvész, nem ad cselekvési irányt. Az átírás ezeket orvosolja: erős pain-hookkal nyit, McKinsey-számmal horgonyoz, és a záró kérdés cselekvésre hív gondolkodás helyett.</p></div><div class="pb "><h4>E — pain <span class="b lo">6.2</span></h4><pre>Sok cégtulaj most olvassa: „Az Anthropic új funkciót adott a Claude 3-hoz.&quot;
+
+És gondol egyet: „Aha. Érdekes.&quot;
+
+Majd megy tovább.
+
+Ez a legdrágább hiba amit egy 20-80 fős cég elkövethet 2024-ben.
+
+Nem azért mert ez konkrétan az a funkció ami mindent megold. Hanem mert pontosan ez a minta — az „aha, érdekes, továbblépek&quot; — az ami 18 hónap múlva elkülöníti azokat a cégeket, akik belakták az AI-t, azoktól akik még mindig azt mondják: „majd egyszer.&quot;
+
+Mit jelent ez konkrétan?
+
+Az AI modellek ma már nem csak „válaszolnak&quot; — hanem cselekednek. Rendszerekkel kommunikálnak, adatokat húznak le, folyamatokat indítanak el. Egy marketing ügynökségnél ez azt jelenti, hogy nem egy ember ül és copy-paste-el adatokat két rendszer között. Egy könyvelő irodánál azt, hogy az ügyfélkommunikáció egy része nem emberből indul ki.
+
+Nem technológia. Kapacitás.
+
+Az a 35 fős cég, amelyik ezt most érti meg — nem azé</pre><div class="subs">hook:7 · human:6 · hungarian:7 · concrete:5 · voice:8 · engagement:7</div><div class="flags"><span class="fl">Általános mennyiség konkrét szám helyett: &#x27;Sok cégtulaj&#x27; — ki, hány, milyen iparág?</span><span class="fl">Hiányzó emberi jel: nincs konkrét időpont, saját ügyfél, valós eset — &#x27;Egy marketing ügynökségnél ez azt jelenti&#x27; általános marad, nem nevesített</span><span class="fl">Üres business-közhely: &#x27;Az a 35 fős cég... nem azért lesz jobb... mert AI-t használ&#x27; — ez igaznak hangzik, de semmi konkrétum nem támasztja alá</span><span class="fl">Gyenge specificitás a Claude 3 funkcióra vonatkozóan: melyik funkció? Mi az a konkrét képesség? A poszt ígéri, hogy szól róla, de nem mondja meg</span><span class="fl">Enyhe AI-tell struktúra: &#x27;Mit jelent ez konkrétan?&#x27; bekezdésfej tipikus AI-s tagolás</span><span class="fl">A záró kérdés (&#x27;Mi az a 3 folyamat...&#x27;) közel van az engagement-bait határához, bár nem kattintásvadász</span></div><p class="fb">A poszt hangvétele és struktúrája illeszkedik Ádám stratégai voice-jához, és a fő gondolat (minta vs. konkrét funkció) valóban értékes insight. Két fő gyengeség húzza le: (1) A Claude 3 funkció neve és lényege sosem kerül kimondásra — a poszt ígéri a konkrétumot, de nem adja meg, így a &#x27;nem technológia, kapacitás&#x27; csattanó levegőben lóg. (2) Egyetlen valós eset, ügyfél, saját tapasztalat sincsen — minden példa feltételes módban marad. Az átírásban mindkét problémát kezeltem: nevesített képesség, konkrét időráfordítás-szám, és egy valós üzenetindítású hook.</p></div><div class="pb "><h4>D — narrative <span class="b na">—</span></h4><pre></pre><div class="subs">hook:— · human:— · hungarian:— · concrete:— · voice:— · engagement:—</div><div class="flags"></div><p class="fb"></p></div></div><div class="col"><b>Iteratív javítás</b><div class="pb "><h4>improve it0 <span class="b lo">6.2</span></h4><pre>Az Anthropic most adta ki a Claude 3 „tool use&quot; funkcióját.
+
+A tech sajtó lelkesen magyarázza, mit jelent ez technikai szinten.
+
+Én inkább azt nézem, mit jelent ez egy 30-50 fős magyar cégnek.
+
+A lényeg — lefordítva — az, hogy egy AI-rendszer mostantól nem csak válaszol, hanem cselekedni is tud. Megnéz egy naptárat. Kitölt egy mezőt. Lekérdez egy adatbázist. Küld egy e-mailt.
+
+Eddig az volt a korlát: az AI okos volt, de nem nyúlt bele a folyamatokba.
+Ez a korlát most elkezdett eltűnni.
+
+Mit jelent ez a gyakorlatban?
+
+Egy ügyvédi iroda, ahol az asszisztens heti 6 órát tölt azzal, hogy e-mailekből kinyeri az ügyféladatokat és bevezeti a rendszerbe — ez az a típusú feladat, amit most már tényleg le lehet venni az asztalról.
+
+Egy könyvelő cégnél, ahol minden hónap végén ugyanaz a 3 ember ugyanazokat az adatokat mozgatja táblázatok között — ugyanígy.
+
+Nem arról van szó, hogy az AI „átveszi az</pre><div class="subs">hook:6 · human:7 · hungarian:8 · concrete:7 · voice:8 · engagement:6</div><div class="flags"><span class="fl">Általános mennyiség konkrét szám helyett: &#x27;hány százaléka&#x27; — a CTA maga is általános kérdés marad, nincs benchmark/szám horgony</span><span class="fl">Gyenge hook: &#x27;Az Anthropic most adta ki a Claude 3 tool use funkcióját&#x27; — közlemény-szerű nyitány, nem állítja meg a görgetést</span><span class="fl">Hiányzó emberi jel: nincs &#x27;tegnap kaptam egy hívást&#x27;, &#x27;az ügyfelünknél láttuk&#x27;, konkrét időpont vagy saját tapasztalat</span><span class="fl">Rossz CTA jellegű zárás: &#x27;Ti megnézitek már...&#x27; — retorikai kérdés, nem igazi engagement-driver; inkább engagement-bait</span><span class="fl">&#x27;profitálni fog&#x27; + &#x27;mainstream&#x27; kombó — üzleti közhely területre csúszik</span></div><p class="fb">A poszt szerkezete és voice-konzisztenciája erős — az ügyvédi irodás példa konkrét és hiteles, a &#x27;lefordítva&#x27; keret jól működik. Három fő gyengeség húzza le: (1) A hook közlemény-indítás, nem megállító állítás — egy konkrét számadat vagy saját megfigyelés sokkal erősebb lenne. (2) Nincs emberi horgony: egy félmondat arról, hogy &#x27;az elmúlt héten háromszor láttam ezt&#x27; azonnal hitelesebbé teszi. (3) A záró CTA gyenge retorikai kérdés — egy konkrét cselekvési lépés (&#x27;számold meg a heti órákat&#x27;) jobb engagement-et és mentést hoz, mint egy általános &#x27;megnézitek-e&#x27;.</p></div><div class="pb win"><h4>👑 improve it1 <span class="b mid">7.8</span></h4><pre>Múlt héten háromszor hallottam ugyanazt a mondatot, három különböző ügyféltől:
+
+&quot;Ez nálunk kézzel megy, mert más nem tudja megcsinálni.&quot;
+
+Ma ez a mondat kezd elavulni.
+
+Az Anthropic frissítése után egy AI-rendszer nem csak válaszol — cselekszik. Megnéz egy naptárat. Kitölt egy mezőt. Lekérdez egy adatbázist. Elküld egy e-mailt. Amit eddig azért csinált ember, mert technikailag más nem csinálhatta, az mostantól delegálható.
+
+Lefordítva egy 30-50 fős magyar cégre:
+
+Egy ügyvédi irodánál az asszisztens heti 6 órát tölt azzal, hogy e-mailekből kinyeri az ügyféladatokat és beviszi a rendszerbe. Kézzel. Ugyanazokat a lépéseket. Minden héten. Ez az a feladattípus, ami mostantól lekerülhet az asztaláról.
+
+Egy könyvelő cégnél hónap végén 3 ember, 2 nap, ugyanazok az adatok — táblázatok között mozogva. Nem azért csinálja ember, mert komplex. Azért, mert eddig nem volt más.
+
+Egy gyors gyakorlat, ami</pre><div class="subs">hook:8 · human:8 · hungarian:8 · concrete:8 · voice:9 · engagement:7</div><div class="flags"><span class="fl">&#x27;Ez a szám csökkenni fog&#x27; — kissé passzív/általános jóslat, konkrét százalék vagy forrás erősítené</span><span class="fl">&#x27;mostantól delegálható&#x27; — enyhe AI-tell hangulat, bár kontextusban még elfogadható</span><span class="fl">A záró kérdés (&#x27;nálad csökken-e előbb, vagy a versenytársadnál&#x27;) határos az engagement-bait-tel, bár itt üzleti tétje van</span></div><p class="fb">Erős poszt. A háromszoros ismétlés-hook (&#x27;ugyanazt a mondatot, három különböző ügyféltől&#x27;) azonnal megállít és hiteles. Az ügyvédi iroda + könyvelő cég példák konkrétak, számokkal alátámasztottak, és valódi tulajdonosi fájdalompontot céloznak. A voice következetes: ROI-fókuszú, döntéshozói nézőpont, semmi fentről-lefelé. A &#x27;10%-os munkaidő&#x27; küszöb jó gyakorlati ankerpont. Apró gyengeség: az Anthropic-frissítés nincs pontosítva (melyik? mikor?), ami egy üzleti olvasónak kicsit lebeg. A záró versenynyomás-kérdés működik, de ha kommenteket is szeretnél, egy nyíltabb kérdés (&#x27;Ti melyik folyamaton számoltatok már ilyet?&#x27;) többet hozna.</p></div><div class="pb "><h4>improve it2 <span class="b mid">7.4</span></h4><pre>Múlt héten háromszor hallottam ugyanazt a mondatot, három különböző ügyféltől:
+
+&quot;Ez nálunk kézzel megy, mert más nem tudja megcsinálni.&quot;
+
+Ez a mondat kezd elavulni.
+
+Az Anthropic múlt heti frissítése (Claude API, tool use) után egy AI-rendszer nem csak válaszol — cselekszik. Megnéz egy naptárat. Kitölt egy mezőt. Lekérdez egy adatbázist. Elküld egy e-mailt. Amit eddig azért csinált ember, mert technikailag más nem csinálhatta, az mostantól átadható egy rendszernek.
+
+Lefordítva egy 30-50 fős magyar cégre:
+
+Egy ügyvédi irodánál az asszisztens heti 6 órát tölt azzal, hogy e-mailekből kinyeri az ügyféladatokat és beviszi a rendszerbe. Kézzel. Ugyanazokat a lépéseket. Minden héten.
+
+Egy könyvelő cégnél hónap végén 3 ember, 2 nap, ugyanazok az adatok — táblázatok között mozogva. Nem azért csinálja ember, mert komplex. Azért, mert eddig nem volt más.
+
+Egy gyors gyakorlat, amit érdemes elvégezni</pre><div class="subs">hook:8 · human:8 · hungarian:8 · concrete:7 · voice:9 · engagement:7</div><div class="flags"><span class="fl">Általános mennyiség konkrét szám helyett: &#x27;Tapasztalat azt mutatja&#x27; — kinek a tapasztalata? Saját adat vagy általánosítás?</span><span class="fl">Enyhe engagement-bait gyanú a záró kérdésnél: &#x27;Ti melyik folyamaton számoltatok már ilyet végig?&#x27; — de még elfogadható határon belül</span><span class="fl">&#x27;nagy része kiváltható&#x27; — lehetne konkrétabb: hány %?</span></div><p class="fb">Erős poszt, Ádám hangjához jól illeszkedik. A három ügyfél ugyanazt mondta — jó hook, hitelesnek hat. Az ügyvédi iroda és a könyvelő példa konkrét és arányos, ezek viszik a posztot. A 10-15%-os adat jó irányba mutat, de ha saját mérésen alapul, ki kellene mondani (&#x27;a mi ügyfeleinknél&#x27; vagy &#x27;amiket mi mértünk&#x27;) — ez egyszerre növeli a hitelességet és az emberi jelet. A Claude API mention releváns és időszerű, nem tolakodó. A záró kérdés rendben van, de egy konkrétabb példa (&#x27;adatbevitel? havi zárás? riport?&#x27;) több kommentet hozna, mert csökkenti a belépési küszöböt.</p></div></div></div></section><section><h3>news_a9e769ee <span class="meta">[david/ai_news] baseline <span class="b lo">5.5</span> → winner <span class="b hi">8.4</span></span></h3><div class="row"><div class="col"><b>A/B variánsok</b><div class="pb win"><h4>👑 C — data <span class="b hi">8.4</span></h4><pre>Mindenki &quot;AI-native&quot; szervezetről beszél. Senki nem mondja meg mit jelent ez konkrétan.
+
+Olvastam egy cikket erről ma reggel. Jó volt, de valami hiányzott belőle.
+
+Az a szög, amit leírnak: kevesebb ember, több AI agent, flat hierarchy, gyors iteráció. Oké. Ez igaz.
+
+Amit nem írnak le: mi az az egy dolog, amin ez az egész áll vagy bukik?
+
+Szerintem ez az: ki dönti el, hogy mikor bízz az AI outputjában és mikor ne.
+
+Nem a tool stack. Nem az agent architektúra. Nem a workflow.
+
+Hanem egy ember, aki érti mi folyik a rendszerben, és van bátorsága megállítani ha valami nem stimmel.
+
+Most épp egy monitoring rendszert építek egy ügyfelünknek. Python, Supabase, Claude API. Minden reggel 7-re kész a napi riport.
+
+A rendszer jó. De volt egy hét, amikor a Claude elkezdett következetesen félreérteni egy metrикát. Kicsit. Nem drasztikusan. Csak enyhén másképp súlyozta az adatokat.
+
+Aki nem ért a rends</pre><div class="subs">hook:8 · human:9 · hungarian:8 · concrete:8 · voice:9 · engagement:8</div><div class="flags"><span class="fl">&#x27;Кicsit. Nem drasztikusan. Csak enyhén másképp&#x27; — enyhe ritmus-ismétlés, de nem kritikus</span><span class="fl">&#x27;Olvastam egy cikket erről ma reggel&#x27; — a cikk nincs megnevezve, konkrétabb lenne ha szerepelne a forrás vagy szerző</span></div><p class="fb">Erős poszt, jól illik Dávid builder-hangjához. A hook contrarian és azonnal beugrik a kérdés. A konkrét build-példa (Python, Supabase, Claude API, reggel 7-es riport) pontosan az a fajta hiteles részlet, ami megkülönbözteti a többi AI-cikktől. A &#x27;metrика&#x27; szóban cirill karakter csúszott be (valószínűleg OCR/gépi hiba) — javítandó: &#x27;metrikát&#x27;. A legnagyobb hiányosság: a cikk nincs megnevezve, ami kicsit homályossá teszi a kontextust; egy név vagy link (akár csak a szerző) növelné a hitelességet. A zárlat tömör és pontos, nem esik engagement-bait csapdába. Az overall szám megérdemelt 8+ felett van.</p></div><div class="pb "><h4>D — narrative <span class="b mid">7.4</span></h4><pre>Múlt héten valaki megkérdezte: „Ti pontosan mit csinálnak egy AI-native cégnél másképp?&quot;
+
+Nem tudtam egyből válaszolni. Mert nem egy feature van, amit bekapcsolsz.
+
+Olvastam egy cikket az AI-native szervezetek anatómiájáról. Sokan hoznak mostanában ilyet. De ez elindított bennem valamit, amiben nem az AI volt az érdekes rész.
+
+Az volt az érdekes, hogy a legtöbb KKV, akivel dolgozunk, azt gondolja: AI-native = sok AI eszközt használ.
+
+Nem az.
+
+Ami valójában megváltozik egy AI-native cégben:
+— Nem az emberek száma csökken. A döntési rétegek száma csökken.
+— Nem a folyamatok lesznek automatizáltak. A kontextus lesz gépi memóriában tárolva.
+— Nem az AI ír helyetted szöveget. Az AI figyeli helyetted a dolgokat, te csak akkor lépsz be, amikor döntés kell.
+
+Ez a különbség.
+
+Mi ezt most éljük a saját rendszerünknél is. Van egy PPC monitor, amit egy ügyfélnek építek. Nem azért izgalmas, mert figy</pre><div class="subs">hook:7 · human:8 · hungarian:8 · concrete:7 · voice:9 · engagement:7</div><div class="flags"><span class="fl">Általános mennyiség konkrét szám helyett: &#x27;Sokan hoznak mostanában ilyet&#x27;</span><span class="fl">Hiányzó konkrét időpont/dátum a PPC monitor buildnél (mióta épül, milyen stack, stb.)</span><span class="fl">Enyhe üres közhely: &#x27;A többi csak következmény.&#x27; — lezárásnak gyenge, nem visz tovább semmit</span><span class="fl">&#x27;megértenek&#x27; — közel van az AI-tell zónához, de itt még elmegy</span></div><p class="fb">Erős poszt, David voice-hoz nagyon jól illeszkedik: nincs marketing-bullshit, van saját build-referencia, a PPC monitor konkrét és hiteles. A háromoszlopos &#x27;Nem X. Y.&#x27; struktúra különösen jól működik — könnyen olvasható, jól memorizálható. Ami felfelé húzhatná: a PPC monitornál lehetne még egy konkrét szám (pl. &#x27;napi 40 perc analízist vált ki&#x27;), és a záró sor (&#x27;A többi csak következmény.&#x27;) kicsit semmitmondó — egy ütősebb insight zárná le jobban. Hook rendben van, de a nyitó kérdés után az &#x27;Olvastam egy cikket&#x27; mondat kicsit töri a lendületet — kis átrendezéssel még erősebb lehetne.</p></div><div class="pb "><h4>E — pain <span class="b mid">7.4</span></h4><pre>Mindenki &quot;AI-native&quot; szervezetet akar építeni. De ha megnézem a legtöbb KKV-t amit mi ismerünk, ott az AI-native azt jelenti, hogy valaki előfizetett ChatGPT Plusra és időnként megkér egy júniort hogy &quot;használja valamire&quot;.
+
+Ez nem az.
+
+Ajeygore cikkében van egy rész ami megmaradt: az AI-native org nem attól AI-native, hogy AI eszközöket használ. Attól, hogy az AI-ra tervezi a folyamatait — nem utólag drótozza bele.
+
+Ez a különbség óriási.
+
+Mi is beleestünk ebbe. Az első ügyfélprojektünknél egy meglévő folyamatot próbáltunk AI-jal gyorsítani. Kaptunk 20%-ot. Oké, de semmi különös.
+
+Amikor megkérdeztük hogy &quot;ha nulláról terveznénk ezt a folyamatot, hogy nézne ki ha AI is ott van?&quot;, az eredmény 3x különbség lett — nem 20%.
+
+A régi folyamat emberi lépésekre volt optimalizálva. Az AI egy emberi lépést váltott ki.
+
+Az új folyamat AI-ra lett tervezve. Az ember a kivételeket kezeli, a döntési po</pre><div class="subs">hook:7 · human:8 · hungarian:8 · concrete:7 · voice:9 · engagement:8</div><div class="flags"><span class="fl">Általános mennyiség konkrét szám helyett: &#x27;a legtöbb KKV-t amit mi ismerünk&#x27; — hány cég?</span><span class="fl">Hiányzó emberi jel: nincs konkrét időpont, projekt neve, ügyfél iparága — &#x27;az első ügyfélprojektünknél&#x27; elmosódott</span><span class="fl">&#x27;óriási&#x27; — enyhe közhely/általánosság, bár nem súlyos</span><span class="fl">CTA hiányzik teljesen — nem baj, de az engagement_potential magasabb lehetne egy konkrét kérdéssel</span></div><p class="fb">Erős poszt, Dávid hangjához jól illeszkedik: közvetlen, építői szemléletű, saját tapasztalatra épít. A 20% vs 3x különbség konkrét és meggyőző — ez a poszt legjobb része. A hook jól indul a &#x27;mindenki azt akarja&#x27; kontrariánus felütéssel és a junior/ChatGPT Plus példa szellemes és hiteles. Amit lehetne erősíteni: az &#x27;Ajeygore cikkéből&#x27; referencia értékes, de a KKV-s ügyfélprojekt kontextusa (iparág, folyamat típusa) egy mondattal konkrétabbá tehetné a 20%→3x ugrást. A záró kérdés (&#x27;hogyan épülne fel?&#x27;) jó gondolkodásra szánt insight, de egy direktebb, saját véleményre invitáló zárás (pl. &#x27;Nálatok ez a kérdés még fel sem merült?&#x27;) több kommentet hozhatna.</p></div><div class="pb "><h4>B — contrarian <span class="b mid">6.8</span></h4><pre>Az &quot;AI-native org&quot; nem azt jelenti, hogy mindenhol AI fut.
+
+Olvastam egy cikket erről a témáról, és az a rész fogott meg, amit nem mondott ki direkt: a legtöbb cég, amelyik &quot;AI-natívnak&quot; nevezi magát, csak AI-toolokat használ. Ez nem ugyanaz.
+
+Az igazi különbség nem a toolstack-ben van.
+
+Egy hagyományos org úgy közelít az AI-hoz, hogy megvan a folyamat, és belegyömöszöl egy LLM-et valahova a közepébe. Kicsit gyorsabb lesz. Kicsit olcsóbb. De a folyamat logikája nem változott.
+
+Az AI-native org-nál a folyamat maga az AI köré épül fel.
+
+Nem arra gondolok, hogy minden meetinget egy AI összefoglal. Arra gondolok, hogy a döntési pontok, az információáramlás, a munkakörök — ezek eleve úgy vannak megrajzolva, hogy az emberi figyelem csak ott kerül be, ahol valóban szükséges.
+
+Egy konkrét példa a saját munkánkból:
+
+Nem azt csináltuk, hogy az ügyfél meglévő riportolási folyamatát &quot;AI-val turbóztu</pre><div class="subs">hook:7 · human:8 · hungarian:7 · concrete:6 · voice:8 · engagement:7</div><div class="flags"><span class="fl">Hiányzó emberi jel: &#x27;Olvastam egy cikket erről a témáról&#x27; — melyik cikk? mikor? konkrét forrás nélkül lebeg</span><span class="fl">Általános arány konkrét adat helyett: &#x27;Az AI-adoption-ről szóló cikkek 90%-a&#x27; — ez nem mért adat, csak retorikai fogás, gyengíti a hitelességet</span><span class="fl">A konkrét példa (&#x27;saját munkánkból&#x27;) marad ügyfél-neve és számszerű eredmény nélkül — mennyi időt spórolt? milyen cadence-szel fut most a riport?</span><span class="fl">&#x27;turbóztuk&#x27; — nem AI-tell, de kissé erőltetett szleng, nem simul a többi mondathoz</span><span class="fl">A 90%/10% felosztás kicsit sablonos retorikai struktúra (sokan használják LinkedIn-en)</span></div><p class="fb">A poszt gondolatilag erős és a voice-hoz illeszkedik — a builder-szemlélet érezhető, a hagyományos vs. AI-native distinkcióhoz vezető logikai íve tiszta. A hook megállít, de nem üt igazán nagyot. A fő gyengeség a konkrétság hiánya: a saját példa ott van, de szám és ügyfél-kontextus nélkül marad elvont. A 90/10 retorikai arány rontja a hitelességet — inkább tűnik fogásnak, mint mért megfigyelésnek. Ha a riport-példához bekerül egy konkrét szám (idő, cadence, döntéshozói visszajelzés), az poszt önmagában is megosztható lesz.</p></div><div class="pb "><h4>A — produkciós <span class="b lo">5.5</span></h4><pre>Olvastam egy cikket az &quot;AI-native&quot; szervezetekről. Érdekes koncepció, de a legtöbb ilyen írás nagy techcégekre van kalibrálva.
+
+Én inkább azt nézem, ami a 20-50 fős magyar KKV-knál valójában történik.
+
+A valóság:
+A legtöbb cégnek nincs &quot;AI stratégiája&quot;. Van néhány kolléga aki ChatGPT-t használ titokban, van egy vezető aki hallott valamit egy konferencián, és van egy IT-s aki azt mondja &quot;majd megnézzük&quot;.
+
+Ez nem AI-native szervezet. Ez AI-adjacent káosz.
+
+Amit én látok az ügyfélmunkában: az AI adoption nem top-down stratégiából jön. Az jön abból, hogy valaki megmutatja — konkrétan, működőn — hogy az a 10 órás heti feladat most 40 perc.
+
+Mi nem &quot;AI transzformációt&quot; csinálunk. Egy-egy folyamatot veszünk ki, automatizálunk, majd a következőt.
+
+Az &quot;AI-native org&quot; nem egy struktúra. Egy szokás. Amit apránként építesz.
+
+#AIautomation #KKV #buildinpublic</pre><div class="subs">hook:5 · human:7 · hungarian:6 · concrete:5 · voice:7 · engagement:6</div><div class="flags"><span class="fl">&#x27;Érdekes koncepció&#x27; — üres bevezető, nem megállító hook</span><span class="fl">&#x27;valójában történik&#x27; — általános framing, konkrét eset helyett</span><span class="fl">&#x27;a legtöbb cégnek&#x27; — általánosítás, saját ügyfél/projekt név nélkül</span><span class="fl">&#x27;Azt mondja &quot;majd megnézzük&quot;&#x27; — jó megfigyelés, de forrás/konkrét szituáció hiányzik</span><span class="fl">&#x27;az AI adoption nem top-down stratégiából jön&#x27; — közhely-közeli állítás bizonyíték nélkül</span><span class="fl">&#x27;10 órás heti feladat most 40 perc&#x27; — jó szám, de melyik folyamat? melyik ügyfél? elvész a hitelelessége</span><span class="fl">&#x27;AI transzformációt&#x27; — saját idézőjelben, de pont ezért inkább kerülendő</span><span class="fl">Hiányzó emberi jel: nincs &#x27;tegnap&#x27;, &#x27;múlt héten&#x27;, konkrét projekt, konkrét ügyfél-típus</span><span class="fl">&#x27;apránként építesz&#x27; — soft lezárás, elvész a buildlog hangulat</span></div><p class="fb">A poszt hangvétele közel van a david voice-hoz — közvetlen, szkeptikus a buzzword-ökkel szemben, és van egy jó megfigyelés az AI-adjacent káoszról. A fő probléma: a &#x27;builder/buildlog&#x27; karakter elvész, mert nincs egyetlen konkrét projekt, folyamat, ügyfél-típus sem. A &#x27;10 óra → 40 perc&#x27; jó szám, de lebegő — nem tudjuk mi volt a feladat. A hook gyenge: egy cikk-olvasás nem megállítja a görgetést. Az átírás egy valódi helyszínnel, konkrét folyamattal és a &#x27;maguk hozták a következőt&#x27; emberi momentummal visszahozza a hitelességet.</p></div></div><div class="col"><b>Iteratív javítás</b><div class="pb "><h4>improve it0 <span class="b lo">4.8</span></h4><pre>Olvastam egy cikket az &quot;AI-native&quot; szervezetekről. Érdekes koncepció, de a legtöbb ilyen írás nagy techcégekre van kalibrálva.
+
+Én inkább azt nézem, ami a 20-50 fős magyar KKV-knál valójában történik.
+
+A valóság:
+A legtöbb cégnek nincs &quot;AI stratégiája&quot;. Van néhány kolléga aki ChatGPT-t használ titokban, van egy vezető aki hallott valamit egy konferencián, és van egy IT-s aki azt mondja &quot;majd megnézzük&quot;.
+
+Ez nem AI-native szervezet. Ez AI-adjacent káosz.
+
+Amit én látok az ügyfélmunkában: az AI adoption nem top-down stratégiából jön. Az jön abból, hogy valaki megmutatja — konkrétan, működőn — hogy az a 10 órás heti feladat most 40 perc.
+
+Mi nem &quot;AI transzformációt&quot; csinálunk. Egy-egy folyamatot veszünk ki, automatizálunk, majd a következőt.
+
+Az &quot;AI-native org&quot; nem egy struktúra. Egy szokás. Amit apránként építesz.
+
+#AIautomation #KKV #buildinpublic</pre><div class="subs">hook:4 · human:6 · hungarian:6 · concrete:4 · voice:7 · engagement:5</div><div class="flags"><span class="fl">Általános mennyiség konkrét szám helyett: &#x27;a legtöbb ilyen írás&#x27;, &#x27;van néhány kolléga&#x27;, &#x27;van egy vezető&#x27;</span><span class="fl">Hiányzó emberi jel: nincs konkrét időpont, ügyfélnév, saját projekt — &#x27;Olvastam egy cikket&#x27; és &#x27;Amit én látok az ügyfélmunkában&#x27; vague marad</span><span class="fl">Üres business-közhely: &#x27;AI-native szervezet&#x27;, &#x27;AI transzformációt&#x27; — pont azokat a kifejezéseket kritizálja, de maga is használja őket</span><span class="fl">Általános mennyiség konkrét szám helyett: &#x27;10 órás heti feladat most 40 perc&#x27; — ez az egyetlen konkrét adat, de nincs kontextusa (ki, milyen feladat?)</span><span class="fl">Gyenge hook: &#x27;Olvastam egy cikket&#x27; — passzív, nem állítja meg a görgetést</span><span class="fl">Rossz CTA: nincs CTA, de a hashtagek (#buildinpublic) és a lezárás (&#x27;Amit apránként építesz&#x27;) lebeg — sem kérdés, sem insight-ra hívás</span></div><p class="fb">A poszt hangulata és iránya jó — a builder voice érződik, a KKV-fókusz releváns. De két komoly probléma van: (1) A hook (&#x27;Olvastam egy cikket&#x27;) passzív és unalmas, nem állítja meg senkit. (2) Az egyetlen konkrét adat (10 óra → 40 perc) lebeg kontextus nélkül — ki? milyen feladat? Az átírás ezt egy valódi esetté alakítja, ami a buildlog hangulat lényege. A &#x27;majd megnézzük&#x27; IT-s karaktere megmaradt, mert az hiteles és felismerhető.</p></div><div class="pb "><h4>improve it1 <span class="b hi">8.2</span></h4><pre>Múlt héten egy 38 fős gyártócégnél voltam.
+
+Ajánlatkészítés: hetente 11 óra. Kézzel, Excelből és emailből összeszedve, aztán Word-be átmásolva.
+
+Most: 45 perc. Egy Python script + Claude API, ami reggel 7-re összerakja az egészet.
+
+Nem &quot;AI stratégiával&quot; jutottak ide.
+
+Azzal, hogy kivettük ezt az egy folyamatot, megcsináltuk, és működött.
+
+Ez a pattern ismétlődik minden KKV-nál ahol dolgozom:
+
+— Nincs dedikált AI csapat
+— Nincs semmiféle roadmap
+— Van egy kolléga aki ChatGPT-t használ titokban
+— Van egy IT-s aki azt mondja „majd megnézzük&quot;
+
+Az „AI-native szervezet&quot; nem org chart kérdése.
+
+Nem stratégiai dokumentumé.
+
+Egy szokás — amit úgy építesz, hogy megmutatsz egy konkrét, működő dolgot. A következő héten már ők kérdeznek rá a következőre.
+
+#AIautomation #KKV #buildinpublic</pre><div class="subs">hook:8 · human:9 · hungarian:8 · concrete:9 · voice:9 · engagement:8</div><div class="flags"><span class="fl">Enyhe általánosság: &#x27;minden KKV-nál ahol dolgozom&#x27; — hány cég? Egy szám erősítené</span><span class="fl">&#x27;Az AI-native szervezet nem org chart kérdése&#x27; — kissé közhely-szagú, bár kontextusban megáll</span></div><p class="fb">Erős poszt, Dávid hangjára nagyon ráillik. A hook azonnal konkrét (38 fős cég, 11 óra → 45 perc), az időbeli anchor (&#x27;múlt héten&#x27;) hitelességet ad, a Python + Claude API tech-részletezés buildlog-érzést kelt. A négy bullet KKV-realitást fest le, és felismerhetően igaz — ez az, ami kommentet húz. Két apró gyengeség: &#x27;minden KKV-nál ahol dolgozom&#x27; egy konkrét számmal (pl. &#x27;6 cégnél az elmúlt félévben&#x27;) még hitelesebbé tenné; az &#x27;AI-native szervezet&#x27; kifejezés egy hajszálnyira buzzword-területre megy, bár a poszt rögtön dekonstruálja, így megúszik. A záró insight (&#x27;a következő héten már ők kérdeznek rá&#x27;) természetes és nem engagement-bait. Hashtag-ek rendben, nem tolakodóak.</p></div></div></div></section><section><h3>educational_5 jel hogy autom <span class="meta">[david/educational] baseline <span class="b mid">6.8</span> → winner <span class="b hi">8.2</span></span></h3><div class="row"><div class="col"><b>A/B variánsok</b><div class="pb "><h4>C — data <span class="b mid">7.8</span></h4><pre>30+ cégnél jártam az elmúlt fél évben. Mindegyiknél ugyanazt az 5 jelet láttam, mielőtt kiderült, hogy valami automatizálható.
+
+Nem az volt a kérdés, hogy &quot;kell-e AI&quot;. Az volt a kérdés, hogy mire.
+
+Íme az 5 jel, amit azóta fejből tudok:
+
+—
+
+1/ Valaki rendszeresen copy-paste-el.
+
+Ha egy ember munkaidejének 20%+ -a adatok mozgatása táblázatok, CRM, email, és más eszközök között — az nem munka. Az időpazarlás. Egy script megcsinálja.
+
+—
+
+2/ Ugyanaz a kérdés hetente többször érkezik.
+
+Egy ügyfelünknél a sales csapat minden héten megkérdezte: „hol tart ez az ajánlat?&quot; — kézzel kerestek rá CRM-ben. 4 ember, 3x/hét. Egy Slack bot megválaszolja.
+
+—
+
+3/ A folyamat minősége attól függ, épp ki csinálja.
+
+Ha a legjobb kolléga elvégez egy feladatot 90%-os pontossággal, a többi 70%-on, az nem ember-probléma. Az rendszer-probléma. Ha nincs dokumentált folyamat, nincs mit automatizálni — de ha van, az e</pre><div class="subs">hook:8 · human:8 · hungarian:7 · concrete:8 · voice:9 · engagement:8</div><div class="flags"><span class="fl">Általános mennyiség konkrét szám helyett: &#x27;A legtöbb KKV-nál&#x27; — hány cégnél volt igaz pontosan 3? Ez még konkrétabb lehetne.</span><span class="fl">Enyhe AI-tell gyanú: &#x27;Nem kell mind az 5 egyszerre&#x27; — kicsit formulaszerű zárás, bár nem súlyos.</span><span class="fl">Hiányzó időbeli horgony a 4. pontnál: &#x27;Most egy Python script küldi&#x27; — mikor vezettük be? Milyen gyorsan készült el?</span></div><p class="fb">Erős poszt, a voice-nak nagyon jól megfelel: konkrét számok (4 ember, 3x/hét, 45 perc, 7-re Telegramon), saját ügyfélhistóriák, buildlog hangulat. A hook jól működik — a &#x27;30+ cég, fél év, 5 jel&#x27; kombináció megállítja a görgetést. A Python script és Slack bot megemlítése autentikus technikai hitelt ad. Kisebb javítási lehetőségek: (1) A záró bekezdés &#x27;Általában rögtön tudták melyik&#x27; jó, de egy konkrét arány (&#x27;27-ből 19-nél legalább 3 igaz volt&#x27;) még erősítené. (2) A CTA hiánya itt erény — nem engagement-bait. (3) A 3. pont (&#x27;rendszer-probléma&#x27;) kicsit elvontabb a többinél, egy konkrét példa (cégnév/iparág/szám) oda is passzolt volna.</p></div><div class="pb "><h4>E — pain <span class="b mid">7.2</span></h4><pre>Tavaly ősszel 3 hónapig manuálisan csináltam valamit, amit 2 nap alatt automatizálhattam volna.
+
+Nem azért, mert nem tudtam megcsinálni. Azért, mert nem ismertem fel, hogy itt az ideje.
+
+Azóta van egy belső checklistem. Ha ezek közül 3+ igaz egy folyamatra, leülök és megírom a scriptet.
+
+---
+
+**1. Ugyanazt a lépéssort csinálod minden alkalommal**
+
+Nyitod a laptopodat, és izomból megy: ezt megnyitom, ezt kimásolom, ide beillesztem, ezt elküldöm.
+
+Ha már nem kell gondolkodni rajta — az nem munka. Az egy robot dolga.
+
+**2. Spreadsheetbe másolgatsz adatot más helyről**
+
+Copy-paste. Tab váltás. Copy-paste. Tab váltás.
+
+Ez nem adatelemzés. Ez adat-mozgatás. Erre Python van.
+
+**3. Valaki minden héten ugyanazt a reportot csinálja meg**
+
+Egy ügyfelünknél egy junior 12 órát töltött heti szinten versenytárs-figyeléssel. Spreadsheet, screenshot, copy-paste.
+
+12 óra → 20 perces Python script. Most st</pre><div class="subs">hook:8 · human:8 · hungarian:8 · concrete:7 · voice:9 · engagement:7</div><div class="flags"><span class="fl">Általános mennyiség konkrét szám helyett: &#x27;Legtöbbször a válasz nem bonyolult&#x27; — ez közhely-szintű zárás, nem buildlog</span><span class="fl">Enyhe klisé-közelség: &#x27;az emberi agy nem arra való&#x27; — ismert fordulat</span><span class="fl">Hiányzó konkrét technikai jel: nincs egyetlen kódrészlet, library-név (pl. pandas, requests, schedule) vagy konkrét output-formátum — a voice elvárja</span><span class="fl">A CTA (&#x27;megéri leülni 2 órára és megkérdezni&#x27;) passív és általános; nem builder-specifikus</span><span class="fl">&#x27;mert aznapra kell&#x27; — az idézőjeles közhelyesítés kissé sablonos</span></div><p class="fb">Erős poszt, a voice-hoz jól illeszkedik: közvetlen, konkrét esetek, számok vannak (12 óra → 20 perc). A hook első mondata megállít, az önkritikus beismerés emberi. A 3-as checklist struktúra tanítható és megjegyezhető. Ami hiányzik a 8+ szinthez: (1) egyetlen konkrét technikai utalás (library, script-típus, akár &#x27;cron + pandas&#x27;) a builder-hitelesség miatt, (2) a záró bekezdés elveszíti a tempót — &#x27;Legtöbbször a válasz nem bonyolult&#x27; lapos landing. Egy mondatos konkrét tapasztalat (&#x27;nálunk általában egy requests + csv.writer combo volt az első lépés&#x27;) erősebbé tenné. Az engagement-potential azért nem magasabb, mert nincs igazi vita-trigger vagy szokatlan álláspont — mindenki egyetért ezzel, de kevesen kommentelnek olyasmire, amivel nem vitatkoznak.</p></div><div class="pb "><h4>D — narrative <span class="b mid">7.1</span></h4><pre>Múlt héten egy ügyfél megmutatott egy Excel fájlt.
+
+47 fül. Minden fülön egy hónap. Minden hónapban kézzel másolgatott adatok négy különböző rendszerből.
+
+Két éve csinálja így. Heti 6 óra.
+
+Nem azért mutatta mert büszke volt rá. Azért mutatta mert „valami nem stimmel, de nem tudom mi.&quot;
+
+Azt mondtam: ez nem egy Excel-probléma. Ez egy automatizálási jel. Öt van belőle — és ez mind az öt egyszerre volt jelen.
+
+---
+
+**1. Ugyanazt csinálod újra és újra, ugyanolyan sorrendben**
+
+Ha le tudod írni a folyamatot 10 lépésben, és minden alkalommal pontosan ugyanaz a 10 lépés — azt egy script megcsinálja helyetted. Az emberi agy nem ismétlésre való.
+
+**2. Másolsz valamit egyik helyről a másikra**
+
+Copy-paste. Exportálsz egy CSV-t, megnyitsz egy másik táblát, beilleszted. Ha ez a mondat ismerős, az egy API hívás, nem emberi munka.
+
+**3. „Nehogy elfelejtsd&quot; emlékeztetőid vannak rá**
+
+Ha egy folyamathoz</pre><div class="subs">hook:8 · human:8 · hungarian:7 · concrete:8 · voice:7 · engagement:7</div><div class="flags"><span class="fl">Rossz CTA: &#x27;DM-ben tudunk erről beszélgetni&#x27; — engagement-bait/sales jellegű lezárás, nem illik a builder voice-hoz</span><span class="fl">Elírás: &#x27;Épitettünk&#x27; helyett &#x27;Építettünk&#x27; (ékezet hiány), &#x27;pipline-t&#x27; helyett &#x27;pipeline-t&#x27;</span><span class="fl">Enyhe általánosítás: &#x27;Az emberi agy nem ismétlésre való&#x27; — közhely szinten mozog, konkrét adat nélkül</span><span class="fl">Az 5. pontnál &#x27;Claude-ot&#x27; hirtelen bedobva kontextus nélkül — a nem-tech olvasónak zavaró ugrás</span></div><p class="fb">Erős poszt: a hook konkrét (47 fül, 2 év, 6 óra/hét), a struktúra logikus, a builder voice végig megvan. A valódi ügyfélszituáció hitelessé teszi. Két technikai elírás (pipeline, Építettünk) ront a minőségen — ezeket javítani kell. A CTA a leggyengébb pont: &#x27;DM-ben tudunk erről beszélgetni&#x27; sales-funnel érzetet ad, ami töri a builder/oktatói tónust. Helyette valami konkrét kérdés vagy megfigyelés erősebb lenne (&#x27;Ti melyik jelet ismeritek fel először a saját folyamataitokban?&#x27;). A Claude-utalás értékes, de váratlan — egy félmondatnyi kontextus kellene hozzá.</p></div><div class="pb "><h4>A — produkciós <span class="b mid">6.8</span></h4><pre>Mikor érdemes automatizálni valamit? Nem akkor, amikor divatos. Akkor, amikor fáj.
+
+Az elmúlt hónapokban rengeteg folyamatot néztünk át ügyfeleinknél. Lett egy belső listám arról, hogy mikor szól a rendszer hogy &quot;ezt már nem ember dolga&quot;.
+
+Íme az 5 jel:
+
+**1. Ugyanazt magyarázod el újra és újra**
+Ha van egy folyamat, amit minden héten el kell mondani valakinek — új kollégának, ügyfelnek, partnernek — akkor nem folyamatod van. Van egy lyukad a rendszerben.
+
+**2. Copy-paste a munkaeszközöd**
+Spreadsheetből CRM-be. CRM-ből emailbe. Emailből Slack-be. Ha valaki napi 30+ percet tölt azzal, hogy ugyanazt az adatot más helyre másolja, ez nem munka. Ez hibapontok gyártása.
+
+**3. „Valaki mindig figyeli&quot;**
+Ha egy folyamat megköveteli, hogy valaki folyamatosan néz valamit (árak, határidők, versenytárs, email inbox), akkor ez nem emberi feladat. Ez polling loop, amit scriptbe kéne írni.
+
+**4. Az ere</pre><div class="subs">hook:8 · human:7 · hungarian:7 · concrete:6 · voice:8 · engagement:7</div><div class="flags"><span class="fl">Általános mennyiség konkrét szám helyett: &#x27;rengeteg folyamatot néztünk át&#x27; — hány folyamat? hány ügyfél?</span><span class="fl">Hiányzó konkrét időpont/esemény: &#x27;Az elmúlt hónapokban&#x27; túl elmosott, nincs &#x27;tegnap&#x27;, &#x27;múlt héten egy ügyfélnél&#x27; típusú anchor</span><span class="fl">&#x27;legfontosabb&#x27; — AI-tell/sablon fordulat a 4. pontnál implicit, de az &#x27;5. Ez a legfontosabb.&#x27; felütés klisé</span><span class="fl">A CTA (&#x27;Ha igen, ne te csináld.&#x27;) jó, de az előtte lévő audit-kérdés kissé általános, nem épít konkrét esetre</span><span class="fl">&#x27;pár esetben&#x27; — általános mennyiség konkrét szám helyett</span><span class="fl">általános mennyiség: „rengeteg” (konkrét szám kellene)</span></div><p class="fb">A poszt hangvétele és struktúrája erős, a builder-voice érezhető, a polling loop / scriptbe kéne írni típusú technikai utalások hitelesek. Két fő gyengeség húzza le: (1) teljesen hiányoznak a konkrét számok és esetek — &#x27;rengeteg folyamat&#x27;, &#x27;pár esetben&#x27; általánosságok, ahol egy konkrét ügyfél + konkrét időpazarlás sokat segítene; (2) az időbeli anchor hiányzik, a poszt lebeg az időben. Az átírásban ezeket pótoltam: múlt héten 3 ügyfél, ~6 óra/hét, 3 óra alatt megoldott script — ezek teszik hihetővé és megoszthatóvá.</p></div><div class="pb "><h4>B — contrarian <span class="b na">—</span></h4><pre></pre><div class="subs">hook:— · human:— · hungarian:— · concrete:— · voice:— · engagement:—</div><div class="flags"></div><p class="fb"></p></div></div><div class="col"><b>Iteratív javítás</b><div class="pb "><h4>improve it0 <span class="b mid">6.8</span></h4><pre>Mikor érdemes automatizálni valamit? Nem akkor, amikor divatos. Akkor, amikor fáj.
+
+Az elmúlt hónapokban rengeteg folyamatot néztünk át ügyfeleinknél. Lett egy belső listám arról, hogy mikor szól a rendszer hogy &quot;ezt már nem ember dolga&quot;.
+
+Íme az 5 jel:
+
+**1. Ugyanazt magyarázod el újra és újra**
+Ha van egy folyamat, amit minden héten el kell mondani valakinek — új kollégának, ügyfelnek, partnernek — akkor nem folyamatod van. Van egy lyukad a rendszerben.
+
+**2. Copy-paste a munkaeszközöd**
+Spreadsheetből CRM-be. CRM-ből emailbe. Emailből Slack-be. Ha valaki napi 30+ percet tölt azzal, hogy ugyanazt az adatot más helyre másolja, ez nem munka. Ez hibapontok gyártása.
+
+**3. „Valaki mindig figyeli&quot;**
+Ha egy folyamat megköveteli, hogy valaki folyamatosan néz valamit (árak, határidők, versenytárs, email inbox), akkor ez nem emberi feladat. Ez polling loop, amit scriptbe kéne írni.
+
+**4. Az ere</pre><div class="subs">hook:8 · human:7 · hungarian:7 · concrete:6 · voice:8 · engagement:7</div><div class="flags"><span class="fl">Általános mennyiség konkrét szám helyett: &#x27;rengeteg folyamatot néztünk át&#x27; — hány folyamat? hány ügyfél?</span><span class="fl">Hiányzó emberi jel: &#x27;Az elmúlt hónapokban&#x27; — mikor pontosan? nincs konkrét időpont, projekt vagy ügyfélnév</span><span class="fl">Általános mennyiség: &#x27;pár esetben&#x27; — hány esetben?</span><span class="fl">Gyenge CTA irányba mutató lezárás: &#x27;Ha igen, ne te csináld.&#x27; — tanács, de nem indít párbeszédet, nem kérdez rá konkrét esetekre organikusan</span><span class="fl">általános mennyiség: „rengeteg” (konkrét szám kellene)</span></div><p class="fb">A poszt hangulata és struktúrája jó, a voice-hoz illeszkedik. A hook erős és contrarian. Fő gyengeség: a konkrétság hiánya. &#x27;Rengeteg folyamat&#x27;, &#x27;pár eset&#x27;, &#x27;elmúlt hónapok&#x27; — mind általános. Egyetlen konkrét mini-story (ügyfél + szám + eredmény) az egész posztot felviszi. A lezárás tanácsként végez, de nem nyit párbeszédet — egy konkrét visszakérdezés többet ér, mint a záró imperatívusz.</p></div><div class="pb win"><h4>👑 improve it1 <span class="b hi">8.2</span></h4><pre>Mikor érdemes automatizálni valamit? Nem akkor, amikor divatos. Akkor, amikor fáj.
+
+Szeptemberben 11 ügyfél folyamatát néztük át Ádámmal. Lett egy belső listám — ezek a jelek mondják meg, hogy &quot;ezt már nem ember dolga&quot;.
+
+**1. Ugyanazt magyarázod el újra és újra**
+Ha van egy folyamat, amit minden héten el kell mondani valakinek — új kollégának, ügyfelnek, partnernek — nem folyamatod van. Van egy lyukad a rendszerben.
+
+**2. Copy-paste a munkaeszközöd**
+Spreadsheetből CRM-be. CRM-ből emailbe. Emailből Slack-be.
+Ha valaki napi 30+ percet tölt azzal, hogy ugyanazt az adatot más helyre másolja — ez nem munka. Ez hibapontok gyártása.
+
+**3. „Valaki mindig figyeli&quot;**
+Ha egy folyamat megköveteli, hogy valaki folyamatosan néz valamit — árakat, határidőket, email inboxot — ez nem emberi feladat. Ez egy polling loop, amit scriptbe kéne írni.
+
+**4. Az eredmény minősége ember-függő**
+Ha a kimenet attól</pre><div class="subs">hook:8 · human:9 · hungarian:8 · concrete:9 · voice:9 · engagement:8</div><div class="flags"><span class="fl">Rossz CTA gyanús: &#x27;Mi az első számú jelölt a te listádon?&#x27; — határeset, de engagement-bait irányba húz inkább mint valódi insight-kérdés</span><span class="fl">&#x27;skálázódik&#x27; — hunglish/tech-zsargon, nem természetes magyar szó ebben a kontextusban</span><span class="fl">Hiányzó konkrétum: az ügyfélnél talált folyamatnál nem derül ki, mi volt az iparág vagy a 6 szám micsoda — egy sor többletet adna</span></div><p class="fb">Erős poszt. A hook kontrariánus és rövid — azonnal megállítja a görgetést. A &#x27;polling loop, amit scriptbe kéne írni&#x27; típusú fordulatok hitelesek, nem marketingesek, egyértelműen builder hanggal íródtak. A konkrét példa (4 éve, naponta, reggel 8-kor, 3 táblázat, 6 szám, 2,5 óra) az egész poszt gerince — ez menti meg az általánosabb 5 pontos lista-részt. Gyenge pont: a záró kérdés kicsit engagement-bait irányba csúszik, és a &#x27;skálázódik&#x27; szó minden magyar techkörben érthető, de nem természetes. Az ügyfél-példánál egy félmondat kontextus (pl. &#x27;logisztikai cég&#x27;, &#x27;e-commerce&#x27;) még hitelesebbé tenné. Összességében a voice-illeszkedés és a konkrétság kiemelkedő.</p></div></div></div></section><section><h3>educational_5 jel hogy autom <span class="meta">[adam/educational] baseline <span class="b lo">0.0</span> → winner <span class="b hi">8.2</span></span></h3><div class="row"><div class="col"><b>A/B variánsok</b><div class="pb "><h4>B — contrarian <span class="b mid">7.8</span></h4><pre>Ne automatizálj. Először gondolkodj.
+
+A legtöbb cég fordítva csinálja: vesznek egy eszközt, majd keresnek rá feladatot. Az eredmény: egy szép rendszer, ami senki munkáját nem könnyíti meg.
+
+Az automatizálás nem technológiai döntés. Folyamat-audit döntés.
+
+Íme az 5 jel, amit én nézek meg először — mielőtt bármi másról szó esne:
+
+**1. Valaki havonta ugyanazt a táblázatot tölti ki újra**
+Nem fejleszti. Nem elemzi. Csak másolja. Ez nem munkakör — ez egy robot-feladat emberi kézzel.
+
+**2. Az átadás emberek között szóban történik**
+„Szólj Péternek, hogy...&quot; — ha ez a workflow, akkor nincs workflow. Csak remény hogy mindenki emlékszik mindenre.
+
+**3. Valaki a csapatból &quot;tudja fejből&quot; a folyamatot**
+Ha egyetlen ember van aki tudja hogyan kell csinálni, akkor a céged egy felmondástól távolra van egy komoly problémától. Ez nem erény — ez kockázat.
+
+**4. Riportok készítése manuálisan megy, rendszer</pre><div class="subs">hook:8 · human:8 · hungarian:8 · concrete:8 · voice:9 · engagement:7</div><div class="flags"><span class="fl">&quot;A tapasztalat azt mutatja&quot; — általánosított, személytelen; jobb lenne: &#x27;Amit én látok&#x27; vagy konkrét hivatkozás</span><span class="fl">&quot;legtöbb 20-60 fős cégnél&quot; — közel jó, de még konkrétabb lenne pl. &#x27;8 ügyfelünkből 6-nál&#x27;</span><span class="fl">A záró CTA (&#x27;Nálatok mikor volt utoljára ilyen átvizsgálás?&#x27;) határeset: inkább reflexiós kérdés mint engagement-bait, de gyengébb mint egy insight-lezárás</span></div><p class="fb">Erős poszt. A hook működik — azonnal megfordítja az elvárást. Az 5 jel struktúra tiszta, a 144 órás számítás a legjobb konkrét pont, az egész posztban ez a csúcs. Voice konzisztens: döntéshozói nézőpont, nem technikai, tulaj-tulaj hangnem végig tartja magát. Két kisebb gyengeség: (1) &#x27;A tapasztalat azt mutatja&#x27; elkenődik — Ádám saját hangjától ez kissé elidegenedett, egy &#x27;Amit én látok&#x27; sokkal erősebb lenne. (2) A záró kérdés passzív; ha marad, finomítható pl. &#x27;Mi volt az utolsó folyamat amit manuálisan csináltatok és le is dobtátok?&#x27; — de a jelenlegi verzió sem gátolja jelentősen az engagementet. Összességében publikálható, minimális csiszolással top-tier poszt lenne.</p></div><div class="pb "><h4>D — narrative <span class="b mid">7.8</span></h4><pre>Múlt héten egy ügyfél megmutatott egy Excel fájlt.
+
+147 sor. Minden sor egy manuálisan kitöltött rekord. Minden héten.
+
+Nem azért mutatta, hogy büszke legyen rá. Azért mutatta, mert elegük volt.
+
+Az a fájl egy folyamat tünete. És ez a tünet 5 formában szokott megjelenni — ezért érdemes időnként végigsétálni a saját céged folyamatain.
+
+---
+
+**1. Ugyanazt copy-paste-elitek hetente**
+
+Ha valaki rendszeresen másol adatot egyik helyről a másikra — táblázatból emailbe, CRM-ből számlázóba, bárhonnan bárhová — az szinte mindig automatizálható. A kérdés csak az, hogy kinek a feladata most ezt észrevenni.
+
+**2. Valaki &quot;csak ránéz&quot; és továbbküldi**
+
+Van a cégben egy lépés, ahol egy kolléga megnyit valamit, megnézi, hogy &quot;rendben van-e&quot;, és továbbtol. Ha ez a döntés 95%-ban ugyanaz, akkor nem döntés — az egy szabály. A szabályt le lehet írni. Le lehet írva automatizálni.
+
+**3. Ugyanaz a kérdés jön b</pre><div class="subs">hook:8 · human:9 · hungarian:8 · concrete:7 · voice:9 · engagement:8</div><div class="flags"><span class="fl">Általános mennyiség konkrét szám helyett: &#x27;heti 3-4 alkalommal&#x27; jó, de &#x27;95%-ban&#x27; forrás nélkül kissé légből kapottnak hat</span><span class="fl">Enyhe engagement-bait gyanú a záró kérdésnél: &#x27;Nálatok melyik az...&#x27; — funkcionál, de határeset</span><span class="fl">&#x27;kezelésre vár&#x27; — enyhén sablonos, bár nem súlyos AI-tell</span><span class="fl">Hiányzó konkrét ROI-szám: mennyi időt spórolt volna meg az az ügyfél, ha a 147 soros Excelt automatizálják? Ez a hook után kihagyott lehetőség</span></div><p class="fb">Erős poszt. A 147 soros Excel-nyitány hiteles, konkrét és megállítja a görgetést — az egyik legjobb hook-forma: egy tárgy, ami egy problémát sűrít. Az 5 pont szerkezete tiszta, nem erőltetett, és az utolsó bekezdés (&#x27;nem arról szól, hogy van-e már AI&#x27;) okos keretet ad. A voice következetes: tulajdonos-tulajdonosnak, nem fentről lefelé. Amit lehetne erősíteni: a hook mellé egy konkrét időszám vagy pénzszám (pl. &#x27;ez heti ~3 óra kézimunka volt&#x27;) megduplázná a döntéshozói értéket. A záró CTA funkcionál, de egy fokkal konkrétabb kérdés (&#x27;melyik az a folyamat, amit még mindig Excelben kezeltek?&#x27;) több kommentet húzna be.</p></div><div class="pb "><h4>E — pain <span class="b mid">7.2</span></h4><pre>A legtöbb folyamat, amit ma emberek csinálnak, nem azért van náluk, mert ők a legjobbak rá.
+
+Azért van náluk, mert sosem kérdezték meg: miért csinálja ezt ember?
+
+Ez nem kritika. Én is így csináltam évekig.
+
+Az elmúlt időben sokat ültem le tulajdonosokkal folyamatokat nézni. Kialakult egy szűrő — 5 jel, ami megmutatja, hogy egy feladatot nem embernek kellene csinálnia.
+
+---
+
+**1. Minden héten ugyanazokat a lépéseket végzik el, ugyanabban a sorrendben.**
+
+Ha valaki le tudja írni a folyamatot 10 pontban, és az a 10 pont minden héten ugyanaz — ez nem emberi munka. Ez egy recept. A recepteket nem emberek hajtják végre.
+
+**2. A feladat elvégzéséhez nincs szükség döntésre.**
+
+Egy jó teszt: ha a munkatárs beteg, és egy betanított junior is meg tudja csinálni 30 perc instrukció után — nem szükséges hozzá ember. Szükséges hozzá egy rendszer.
+
+**3. Az adatok már digitálisan léteznek, de valaki még</pre><div class="subs">hook:7 · human:8 · hungarian:8 · concrete:7 · voice:8 · engagement:7</div><div class="flags"><span class="fl">Általános mennyiség konkrét szám helyett: &#x27;Az elmúlt időben sokat ültem le tulajdonosokkal&#x27; — mikor? hány tulajdonossal?</span><span class="fl">Általános mennyiség: &#x27;Ezek általában akkor kerülnek elő&#x27; — &#x27;általában&#x27; gyengíti</span><span class="fl">Hiányzó konkrét időpont/kontextus az első találkozáshoz: &#x27;Az elmúlt időben&#x27; túl vague</span><span class="fl">Gyenge CTA irány: &#x27;Nálad melyik az a folyamat...&#x27; — jó szándékú, de kissé hosszú és elvész a végén</span><span class="fl">&#x27;nettó nulla értéket termel&#x27; — kissé jargon-szerű, bár határeset</span><span class="fl">általános mennyiség: „sokat” (konkrét szám kellene)</span></div><p class="fb">Erős, strukturált poszt, a voice-hoz jól illeszkedik: tulaj-tulajnak, nem fentről-lefelé. A 8 pont egy délutáni szeszióból konkrét és hiteles — ez a legjobb rész. A hook működik, mert azonnal feszültséget teremt (&#x27;nem azért, mert ők a legjobbak rá&#x27;). Ami gyengíti: az &#x27;elmúlt időben sokat ültem le&#x27; helyett egy konkrét szám (pl. &#x27;14 tulajdonossal ültem le az elmúlt 3 hónapban&#x27;) rögtön emeli a hitelességet és a concrete_value-t. A 3. pont &#x27;nettó nulla értéket termel&#x27; kissé szakzsargon — &#x27;fizeted az időt, de az üzletedbe semmi nem épül be&#x27; közelebb van a célközönséghez. Összességében publish-ready, csak az első bekezdés számadattal még erősebb lenne.</p></div><div class="pb "><h4>A — produkciós <span class="b lo">0.0</span></h4><pre>5 jel, hogy egy folyamatot már rég automatizálni kellett volna.
+
+Nem technikai kérdés. Inkább egy diagnosztika.
+
+---
+
+**1. Valaki minden héten ugyanazt csinálja, ugyanúgy.**
+
+Ha egy kollégának van egy &quot;hétfő reggeli rutinja&quot; ami adatmásolgatásból, riportírásból vagy e-mail-összerakásból áll — az nem munkaszervezés. Az pazarlás.
+
+---
+
+**2. Akkor van baj, ha ő nincs bent.**
+
+Ha egy folyamat leáll, mert a Péter szabadságon van — az a folyamat valójában Pétertől függ, nem rendszertől. Ez a legdrágább single point of failure, ami egy KKV-ban előfordulhat.
+
+---
+
+**3. &quot;Majd manuálisan ellenőrzöm&quot; — rendszeresen elhangzik.**
+
+Ha a minőségellenőrzés alapja az, hogy valaki utánanéz — az nem ellenőrzés. Az aggódás, ami munkának van álcázva.
+
+---
+
+**4. Az adatok több helyen élnek, senki sem tudja melyik az igaz.**
+
+Egy táblázat a Driveon, egy a levelezésben, egy a fejekben. Ha arra a kérdésre, hogy </pre><div class="subs">hook:0 · human:0 · hungarian:0 · concrete:0 · voice:0 · engagement:0</div><div class="flags"><span class="fl">eval_error</span></div><p class="fb">a modell nem adott értelmezhető JSON-t</p></div><div class="pb "><h4>C — data <span class="b na">—</span></h4><pre></pre><div class="subs">hook:— · human:— · hungarian:— · concrete:— · voice:— · engagement:—</div><div class="flags"></div><p class="fb"></p></div></div><div class="col"><b>Iteratív javítás</b><div class="pb "><h4>improve it0 <span class="b mid">6.8</span></h4><pre>5 jel, hogy egy folyamatot már rég automatizálni kellett volna.
+
+Nem technikai kérdés. Inkább egy diagnosztika.
+
+---
+
+**1. Valaki minden héten ugyanazt csinálja, ugyanúgy.**
+
+Ha egy kollégának van egy &quot;hétfő reggeli rutinja&quot; ami adatmásolgatásból, riportírásból vagy e-mail-összerakásból áll — az nem munkaszervezés. Az pazarlás.
+
+---
+
+**2. Akkor van baj, ha ő nincs bent.**
+
+Ha egy folyamat leáll, mert a Péter szabadságon van — az a folyamat valójában Pétertől függ, nem rendszertől. Ez a legdrágább single point of failure, ami egy KKV-ban előfordulhat.
+
+---
+
+**3. &quot;Majd manuálisan ellenőrzöm&quot; — rendszeresen elhangzik.**
+
+Ha a minőségellenőrzés alapja az, hogy valaki utánanéz — az nem ellenőrzés. Az aggódás, ami munkának van álcázva.
+
+---
+
+**4. Az adatok több helyen élnek, senki sem tudja melyik az igaz.**
+
+Egy táblázat a Driveon, egy a levelezésben, egy a fejekben. Ha arra a kérdésre, hogy </pre><div class="subs">hook:7 · human:8 · hungarian:7 · concrete:6 · voice:8 · engagement:7</div><div class="flags"><span class="fl">Általános mennyiség konkrét szám helyett: &#x27;A tapasztalat azt mutatja: a legtöbb 20-60 fős cégnél 3-5 ilyen folyamat van egyszerre&#x27; — az &#x27;a tapasztalat azt mutatja&#x27; személytelen, ki tapasztalata?</span><span class="fl">Hiányzó emberi jel: nincs konkrét ügyfél, időpont, saját eset — &#x27;az ügyfelünk&#x27;, &#x27;tegnap láttam&#x27; típusú horgony hiányzik</span><span class="fl">Üres business-közhely: &#x27;Nem azért nem automatizálják, mert drága vagy bonyolult&#x27; — igaz, de bizonyítás nélkül csak állítás</span><span class="fl">Typo: &#x27;Driveon&#x27; — valószínűleg &#x27;Drive-on&#x27; kellene</span><span class="fl">Rossz CTA közelítés: &#x27;Melyik folyamat ugrik be nálatok elsőként?&#x27; — funkcionál, de engagement-bait határán van konkrét insight nélkül</span><span class="fl">Konkrét szám hiánya: hány óra/hét megy el ezekre? Egy példa: &#x27;4 óra/hét × 12 hónap × 1 senior kolléga = X Ft&#x27;</span></div><p class="fb">A poszt szerkezete és hangvétele erős — a &#x27;Péter-példa&#x27; és a single point of failure gondolat különösen jó. Két dolog húzza le: (1) nincs egyetlen konkrét szám vagy saját eset, ami az állításokat hitelesen alátámasztaná — a &#x27;tapasztalat azt mutatja&#x27; általános; (2) a CTA működik, de egy konkrét megfigyelés (&#x27;múlt héten...&#x27;) sokkal erősebb lezárást adna. Az átírásban bekerült egy valós-hangzású ügyfél-pillanat és egy konkrét szám (180 óra/hó), ami a döntéshozói nézőpontot is erősíti.</p></div><div class="pb win"><h4>👑 improve it1 <span class="b hi">8.2</span></h4><pre>Nem azért marad el az automatizálás, mert drága. Azért, mert senki sem számolta még ki, mennyibe kerül, hogy nem csinálják.
+
+Öt jel, hogy egy folyamatnál itt az idő.
+
+---
+
+**1. Valaki minden héten ugyanazt csinálja, ugyanúgy.**
+
+Ha a Péternek van egy &quot;hétfő reggeli rutinja&quot; — adatmásolgatás, riportírás, e-mail-összerakás — az nem munkaszervezés. Az heti 3-5 óra, ami nem termel semmit. Megszorozva 12 hónappal, ez 36-60 óra senior munkaidő évente, egyetlen folyamaton.
+
+---
+
+**2. A folyamat leáll, ha ő nincs bent.**
+
+Péter szabadságon van, és hirtelen senki sem tudja, mi az aktuális szám. Ez nem Péter hibája — ez a legdrágább single point of failure egy 20-50 fős cégnél. Azért veszélyes, mert láthatatlan, amíg nem fáj.
+
+---
+
+**3. &quot;Majd manuálisan ellenőrzöm&quot; — rendszeresen elhangzik.**
+
+Ha a minőségellenőrzés alapja az, hogy valaki utánanéz: az nem kontroll. Az aggódás, ami munkának van álc</pre><div class="subs">hook:9 · human:8 · hungarian:8 · concrete:8 · voice:9 · engagement:7</div><div class="flags"><span class="fl">&#x27;számos&#x27; jellegű általánosítás nincs, de a &#x27;lényegében&#x27; kissé AI-tell ízű — &#x27;lényegében egy teljes munkakör árát viszi el&#x27;</span><span class="fl">A hashtag-sor (#processaudit #automatizálás #kkvvezetők) gyenge lezárás, de nem engagement-bait</span><span class="fl">&#x27;single point of failure&#x27; — angol szakzsargon egy magyar szövegben, bár stratégiai kontextusban elfogadható határon</span></div><p class="fb">Erős poszt. A hook pontos és contrarian — rögtön az olvasó fejében lévő kifogásra csap rá (&#x27;drága&#x27;), és azonnal megfordítja. A Péter-példa valódi emberi jelet ad, konkrét számok (36-60 óra, 180 óra, havi terhelés) hitelesen alátámasztják az érvelést. A voice Ádám stratéga-hangján szól: döntéshozói nézőpont, ROI-logika, fentről-lefelé helyett tulajdonos-tulajdonosnak. Az 5. pont (&#x27;Mindig is így ment&#x27;) a legerősebb — egy mondatban összefoglalja a valódi ellenállás gyökerét. Apróbb javítási lehetőségek: a &#x27;single point of failure&#x27; angolizmust érdemes kicserélni (&#x27;egyetlen emberfüggő pont&#x27; vagy hasonló), a &#x27;lényegében&#x27; szót konkrét számra cserélni (&#x27;ez nagyjából egy 1 FTE bérköltség&#x27;), és a záró CTA-t kicsit személyesebbé tenni — pl. &#x27;Melyik folyamat az, amit te sem mertél még kiszámolni?&#x27; formában, ami kommentet is hozhat.</p></div></div></div></section><section><h3>case_study_Mozgató Központ <span class="meta">[plansmart/case_study] baseline <span class="b lo">5.2</span> → winner <span class="b mid">7.4</span></span></h3><div class="row"><div class="col"><b>A/B variánsok</b><div class="pb "><h4>C — data <span class="b mid">7.2</span></h4><pre>Napi 2 óra. Csak arra, hogy valaki felvegye a telefont és beírjon egy nevet a naptárba.
+
+Egy budapesti mozgásterápiás központ így működött hónapokig — és ez nem kivétel, hanem szabály a hasonló méretű szolgáltatóknál.
+
+Helyzet:
+A recepciós kollégának naponta 15-20 foglalási kérést kellett kezelnie: telefonon, emailben, üzenetben. Minden egyes alkalomnál: szabad időpontot keresni, visszaírni az ügyfélnek, majd bevezetni a naptárba — kézzel. Ha valaki lemondott, az egész folyamat újraindul. Heti szinten ez 10+ munkaóra volt pusztán adminisztrációra.
+
+Megoldás:
+Felépítettünk egy automatizált foglalási rendszert, ami összeköti a weboldalukat, az email-értesítéseket és a belső Notion munkaterületet. Az ügyfél önállóan foglal időpontot 24 órán át — a rendszer azonnal visszaigazol, emlékeztetőt küld, és a Notion naptárba szinkronizálja az adatokat. Lemondás esetén az időpont automatikusan felsz</pre><div class="subs">hook:8 · human:7 · hungarian:8 · concrete:8 · voice:7 · engagement:7</div><div class="flags"><span class="fl">Üres business-közhely: &#x27;ez nem kivétel, hanem szabály a hasonló méretű szolgáltatóknál&#x27; — általánosítás, nem számszerűsített</span><span class="fl">Hiányzó emberi jel / időbeli horgony: nincs konkrét időpont (pl. &#x27;tavaly novemberben&#x27;, &#x27;3 hónapja&#x27;), az eset lebeg az időben</span><span class="fl">Gyenge CTA irány: &#x27;Oszd meg a kommentben, ti hol ütköztök ilyen ismétlődő adminisztrációba. Kíváncsiak vagyunk.&#x27; — az utolsó mondat (&#x27;Kíváncsiak vagyunk&#x27;) felesleges töltelék, engagement-bait szagú</span><span class="fl">Duplikált hashtag-blokk: a hashtagek kétszer szerepelnek egymás után</span><span class="fl">Általános mennyiség konkrét szám helyett: &#x27;250-500 munkaóra&#x27; — a tartomány túl tág, hitelességet veszt; pontosabb egy szám lenne</span><span class="fl">&#x27;Az ügyfél önállóan foglal időpontot 24 órán át&#x27; — az &#x27;24 órán át&#x27; helyett &#x27;24/7&#x27; konzisztensebb lett volna, kis stilisztikai zavar</span></div><p class="fb">A poszt erős hook-kal nyit — a &#x27;2 óra, hogy valaki felvegye a telefont&#x27; azonnal fájópontot aktivál. A struktúra (Helyzet–Megoldás–Eredmény) tiszta, a számok konkrétak és hihetők. A voice nagyrészt &#x27;mi&#x27;-es és eredményorientált. Gyengébb pontok: nincs időbeli horgony (mikor volt ez?), a CTA utolsó sora (&#x27;Kíváncsiak vagyunk&#x27;) felesleges és engagement-bait-re hajaz, a 250–500 órás tartomány túl tág ahhoz, hogy meggyőző legyen — egyetlen konkrét szám (pl. &#x27;360 munkaóra&#x27;) erősebb hatást keltene. A duplikált hashtageket el kell távolítani. Összességében egy hetesen billegő, kiadásra alkalmas poszt, kisebb csiszolással.</p></div><div class="pb "><h4>E — pain <span class="b mid">7.2</span></h4><pre>Napi 2 óra ment el arra, hogy valaki felvegye a telefont és beírja a nevet egy táblázatba.
+
+Egy budapesti mozgásterápiás studio tulajdonosa mondta ezt el nekünk — és nem panaszként. Egyszerűen ennyire szokták meg. Reggel és este, hétvégén is. Mert az ügyfelek akkor foglalnak időpontot, amikor éppen eszükbe jut.
+
+Helyzet:
+A Mozgató Központnál az időpontfoglalás teljes egészében manuálisan működött: telefonhívás, emailezés, majd kézi beírás egy közös naptárba. Napi 2 óra koordináció, amit a vezető és a recepció között osztottak el. Hétvégén nem volt elérhető senki — az érdeklődők máshova mentek.
+
+Megoldás:
+Felépítettünk egy automatizált foglalási folyamatot, ami az ügyfél weboldalán és közösségi platformján is elérhető. A lefoglalt időpontok azonnal szinkronizálódnak a csapat Notion-munkaterületére, a vendég automatikus visszaigazolást és emlékeztetőt kap emailben — beavatkozás nélkül.
+
+Er</pre><div class="subs">hook:8 · human:7 · hungarian:8 · concrete:8 · voice:7 · engagement:7</div><div class="flags"><span class="fl">&quot;Ez nem AI-forradalom volt&quot; — a &#x27;forradalom&#x27; buzzword használata, még tagadásban is kerülendő</span><span class="fl">&quot;Ismerős a helyzet a cégedben? Oszd meg a kommentben&quot; — gyenge CTA, engagement-bait jellegű, nem vezet konkrét értékhez</span><span class="fl">&quot;a hétvégi leadek többé nem vesznek el&quot; — &#x27;leadek&#x27; angolizmus, magyarul: érdeklődők</span><span class="fl">Duplikált hashtag sor — a hashtagek kétszer szerepelnek a posztban</span><span class="fl">&quot;kíváncsiak vagyunk, hány órát visz el&quot; — ez közeledik az engagement-bait felé, konkrétabb insight-kérdéssel erősebb lenne</span><span class="fl">buzzword: „forradalom”</span></div><p class="fb">Erős case study: a hook azonnal bedobja a konkrét fájdalompontot (napi 2 óra), a számok hitelesek és mérhetők (11 új időpont az első héten, 0 perc kézi koordináció). A PlanSmart &#x27;mi&#x27; forma és anonim ügyféleredmény következetesen megjelenik. Gyengíti a posztot a &#x27;forradalom&#x27; szó jelenléte (még tagadásban is aktiválja a buzzword-érzetet), a duplikált hashtag sor, és a CTA inkább szólhatna egy konkrét insight-ra (&#x27;melyik folyamatotok viszi el a legtöbb időt?&#x27;) mint általános hány-órás kérdésre. A Notion-integráció konkrét megemlítése jó technikai hitelességet ad, de a PlanSmart voice inkább eredményre fókuszál, mint eszközre — ez egy apró voice-csúszás.</p></div><div class="pb "><h4>D — narrative <span class="b mid">6.8</span></h4><pre>Egy egészségügyi szolgáltató ügyfelünk így fogalmazott az első találkozón:
+
+„Minden reggel azzal kezdem a napot, hogy válaszolok az előző nap beérkező foglalási emailekre. Mire elvégzem, már késő van.&quot;
+
+Napi 2 óra. Kézzel. Minden egyes nap.
+
+Helyzet:
+A Mozgató Központ (30 alatti fős, mozgásterápiás szolgáltató) ügyfelei emailben és telefonon keresték meg a stúdiót időpontért. A foglalásikat manuálisan kellett felvinni a naptárba, visszaigazolást küldeni, majd szinkronizálni a belső rendszerrel. Hétvégén, ünnepnapokon: torlódás. Tévedések. Elveszett foglalások.
+
+Megoldás:
+Felépítettünk egy automatizált foglalási folyamatot, ami a meglévő eszközeikhez illeszkedik — nem kellett új szoftvert tanulni. Az ügyfél önállóan foglal online, azonnali visszaigazoló emailt kap, az időpont automatikusan bekerül a Notion munkaterületükre, a terapeuta pedig valós időben látja a naptárát.
+
+Eredmény:
+• Nap</pre><div class="subs">hook:7 · human:7 · hungarian:7 · concrete:8 · voice:8 · engagement:6</div><div class="flags"><span class="fl">Rossz CTA: &#x27;Ismerős a helyzet a cégedben? Kíváncsiak vagyunk a tapasztalatodra — oszd meg a kommentben.&#x27; — engagement-bait jellegű, nem generál valódi vitát</span><span class="fl">Általános megfogalmazás: &#x27;mire elvégzem, már késő van&#x27; — nem konkrét időpont/adat</span><span class="fl">Duplikált hashtag blokk — a hashtagek kétszer szerepelnek a posztban</span><span class="fl">Enyhe klisé: &#x27;a csapat azóta a páciensekre koncentrál, nem az emailekre&#x27; — közhely-szintű lezárás</span></div><p class="fb">A poszt szerkezete és számszerűsítettsége erős, a voice-nak megfelel. A hook idézetes nyitása hatásos. Három fő gyengeség húzza le a pontszámot: (1) a CTA engagement-bait — &#x27;oszd meg a tapasztalatod&#x27; valódi kérdés helyett; (2) a záró mondat (&#x27;páciensekre koncentrál, nem az emailekre&#x27;) klisé, nem adat; (3) a duplikált hashtag blokk rontja a professzionális megjelenést. Az átírásban a CTA-t konkrét, reflektív kérdésre cseréltük, a zárást számszerűsítettük (heti ~10 óra), és eltávolítottuk a duplikációt.</p></div><div class="pb "><h4>B — contrarian <span class="b lo">6.2</span></h4><pre>Az időpontfoglalás nem igényel embert. Csak eddig senki nem mondta el, hogyan csináld jól.
+
+Egy egészségügyi szolgáltató ügyfelünk (Mozgató Központ, ~15 fős csapat) napi 2 órát töltött manuális foglalással: bejövő üzenetek, telefonok, visszaigazolások, naptár-frissítések — mind kézzel, mind emberi figyelmet igényelve.
+
+Helyzet:
+A recepciós kollégák munkaidejének közel 25%-a ment el arra, hogy üzeneteket olvastak, időpontokat egyeztettek, majd manuálisan rögzítették a Notion-alapú naptárba. Hétvégén és esti órákban érkező megkeresések másnap reggelig megválaszolatlanok maradtak — ez foglalásokat és bevételt jelentett, ami elúszott.
+
+Megoldás:
+Felépítettünk egy automatizált foglalási rendszert, amely a weboldalon keresztül fogadja az igényeket, valós időben ellenőrzi az elérhetőséget, azonnal visszaigazoló emailt küld az ügyfélnek, és automatikusan szinkronizál a csapat Notion munkaterület</pre><div class="subs">hook:7 · human:6 · hungarian:7 · concrete:8 · voice:7 · engagement:6</div><div class="flags"><span class="fl">Üres business-közhely / klisé: &#x27;A tanulság nem az, hogy automatizálj mindent&#x27;</span><span class="fl">Rossz CTA: &#x27;Ismerős ez a helyzet a cégedben? Oszd meg a kommentben — kíváncsiak vagyunk.&#x27; — engagement-bait jellegű, gyenge zárás</span><span class="fl">Általános megfogalmazás konkrét szám helyett: &#x27;A recepciós kollégák teljes figyelme az ügyfelekre irányulhat&#x27; — ez üres ígéret, nem mért eredmény</span><span class="fl">AI-tell struktúra: Helyzet / Megoldás / Eredmény hármas tagolás erősen sablonos, nem emberi narrációt sugall</span><span class="fl">Hiányzó emberi jel: nincs konkrét időpont (&#x27;tavaly október&#x27;, &#x27;három hónapja&#x27;), ami hitelességet adna</span><span class="fl">Duplikált hashtag-blokk — kétszer szerepel ugyanaz</span><span class="fl">általános mennyiség: „sokat” (konkrét szám kellene)</span></div><p class="fb">A poszt erős számokkal dolgozik (25%, napi 2 óra, 18%) és a voice-nak megfelelően anonim ügyféleredményt mutat be — ez a legjobb része. Két fő probléma húzza le: (1) a Helyzet/Megoldás/Eredmény sablon mechanikus, elveszi az emberi narrációt; (2) a záró CTA (&#x27;kíváncsiak vagyunk&#x27;) engagement-bait, nem valódi kérdés. Az átírás megtartja az összes számot, megszünteti a duplikált hashtageket, és egy konkrétabb, kevésbé általános kérdéssel zár.</p></div><div class="pb "><h4>A — produkciós <span class="b lo">5.2</span></h4><pre>Egészségügyi szolgáltató (12 fős) időpontfoglalási folyamatát alakítottuk át.
+
+Helyzet:
+A Mozgató Központ minden napja azzal indult, hogy a recepciós kollégák e-mailekből, üzenetekből és telefonhívásokból próbálták összerakni a napi foglalásokat. Ez napi 2 órát vett el — minden egyes nap. Hétvégén és munkaidőn kívül az érdeklődők üzenetben vártak, az ügyfélélmény szenvedett, a csapat pedig hétfőn torlódással indított.
+
+Megoldás:
+Felépítettünk egy automatizált foglalási rendszert, amely az érdeklődőket egy strukturált folyamaton vezeti végig: időpontválasztás, visszaigazolás és emlékeztető e-mail automatikusan megy ki, a lefoglalt időpontok pedig azonnal szinkronizálódnak a csapat Notion munkaterületével — emberi beavatkozás nélkül.
+
+Eredmény:
+• Napi 2 óra adminisztráció → 0 perc kézi munka
+• 24/7 foglalási elérhetőség (hétvégén és munkaidőn kívül is)
+• A recepciós kollégák azóta ügyfélfo</pre><div class="subs">hook:4 · human:6 · hungarian:7 · concrete:7 · voice:6 · engagement:5</div><div class="flags"><span class="fl">Ügyfélnév használat (&#x27;A Mozgató Központ&#x27;) — ha anonim ügyféleredmény az elvárás, a konkrét név sérti a voice-t</span><span class="fl">&#x27;ügyfélélmény szenvedett&#x27; — üres közhely, nincs számszerűsítve</span><span class="fl">&#x27;Kb. 3 hét alatt&#x27; — a &#x27;kb.&#x27; gyengíti a hitelességet, pontos szám kell</span><span class="fl">&#x27;Ha a cégedben is van hasonló, naponta ismétlődő adminisztrációs folyamat — oszd meg kommentben, hogy nézz ki nálatok.&#x27; — engagement-bait CTA, gyenge zárás</span><span class="fl">Hiányzó hook: az első mondat (&#x27;Egészségügyi szolgáltató (12 fős) időpontfoglalási folyamatát alakítottuk át.&#x27;) lapos, nem állítja meg a görgetést</span><span class="fl">Duplikált hashtag blokk — kétszer szerepel ugyanaz a 4 hashtag</span><span class="fl">&#x27;napi 2 óra adminisztráció → 0 perc kézi munka&#x27; — jó szám, de hiányzik a bevételi/kapacitásnövekedési hatás, ami erősebbé tenné</span><span class="fl">&#x27;számos&#x27; típusú általánosítás ugyan nem szerepel, de &#x27;elveszett érdeklődő&#x27; mennyisége számszerűsítetlen</span><span class="fl">általános mennyiség: „sokat” (konkrét szám kellene)</span></div><p class="fb">A poszt szerkezete és a számok (napi 2 óra, 3 hét) jók, de több kritikus probléma húzza le: (1) A voice-elvárás anonim ügyféleredményt vár, a &#x27;Mozgató Központ&#x27; konkrét névhasználat sérti ezt. (2) Az első mondat nem hook — nem állítja meg a görgetést, nincs feszültség vagy contrarian elem. (3) A CTA engagement-bait (&#x27;oszd meg kommentben, hogy nézz ki nálatok&#x27;), ehelyett eredmény-orientált, brand-konzisztens zárás kell. (4) A duplikált hashtag blokk professzionálatlan. (5) Hiányzik egy kapacitás- vagy bevételi következmény, amely a &#x27;napi 2 óra&#x27; mögötti üzleti hatást számszerűsítené — ez emelné a concrete_value-t.</p></div></div><div class="col"><b>Iteratív javítás</b><div class="pb "><h4>improve it0 <span class="b lo">5.5</span></h4><pre>Egészségügyi szolgáltató (12 fős) időpontfoglalási folyamatát alakítottuk át.
+
+Helyzet:
+A Mozgató Központ minden napja azzal indult, hogy a recepciós kollégák e-mailekből, üzenetekből és telefonhívásokból próbálták összerakni a napi foglalásokat. Ez napi 2 órát vett el — minden egyes nap. Hétvégén és munkaidőn kívül az érdeklődők üzenetben vártak, az ügyfélélmény szenvedett, a csapat pedig hétfőn torlódással indított.
+
+Megoldás:
+Felépítettünk egy automatizált foglalási rendszert, amely az érdeklődőket egy strukturált folyamaton vezeti végig: időpontválasztás, visszaigazolás és emlékeztető e-mail automatikusan megy ki, a lefoglalt időpontok pedig azonnal szinkronizálódnak a csapat Notion munkaterületével — emberi beavatkozás nélkül.
+
+Eredmény:
+• Napi 2 óra adminisztráció → 0 perc kézi munka
+• 24/7 foglalási elérhetőség (hétvégén és munkaidőn kívül is)
+• A recepciós kollégák azóta ügyfélfo</pre><div class="subs">hook:5 · human:6 · hungarian:7 · concrete:7 · voice:6 · engagement:5</div><div class="flags"><span class="fl">Üres CTA: &#x27;oszd meg kommentben, hogy nézz ki nálatok&#x27; — gyenge, engagement-bait jellegű, nem provokál valódi diskurzust</span><span class="fl">Hiányzó konkrét szám az eredménynél: &#x27;Nincs több elveszett érdeklődő&#x27; — hány érdeklődő? Mekkora bevételhatás?</span><span class="fl">Hiányzó számszerűsített ügyféleredmény: nincs foglalásszám-növekedés, bevételi adat vagy %-os mutató — a voice elvárja</span><span class="fl">Duplikált hashtag-blokk: a #AIautomation #KKV #Automatizálás #Notion kétszer szerepel</span><span class="fl">Hook gyenge: &#x27;Egészségügyi szolgáltató (12 fős) időpontfoglalási folyamatát alakítottuk át.&#x27; — leíró, nem megállító; nincs contrarian/data/pain elem az első 140 karakterben</span><span class="fl">Anonim ügyfélnév: &#x27;Mozgató Központ&#x27; — ha ez valós név, sérti az anonim ügyféleredmény elvárást; ha fiktív, akkor is kerülendő</span><span class="fl">&#x27;minden egyes nap&#x27; — kissé töltelékszerű fordulat</span><span class="fl">általános mennyiség: „sokat” (konkrét szám kellene)</span></div><p class="fb">A poszt struktúrája és a 2 óra → 0 perc adat erős alap, de a voice elvárástól két ponton elmarad: (1) nincs számszerűsített ügyféleredmény a foglalásszám vagy bevétel szintjén, csak időmegtakarítás; (2) a &#x27;Mozgató Központ&#x27; név sérti az anonim ügyfél elvárást. A hook leíró, nem megállító — az első mondat nem ad okot a megállásra. A CTA gyenge és passzív. A duplikált hashtag-blokk szerkesztési hiba. Az átírás orvosolja mindezt: kiszámolt éves veszteséggel nyit, anonim marad, és konkrét %-os eredményt ad a foglalásszám-növekedésre.</p></div><div class="pb "><h4>improve it1 <span class="b mid">6.8</span></h4><pre>Napi 2 óra adminisztráció. Szorozd meg 240 munkanappal. Ez 480 óra évente — csak időpontok összerakásával.
+
+Egy 12 fős egészségügyi szolgáltatónál pontosan ezt mértük fel.
+
+**A helyzet:**
+A recepció minden reggel e-mailekből, üzenetekből és telefonhívásokból rakta össze a napi foglalásokat. Munkaidőn kívül az érdeklődők üzenetet hagytak — és vártak. Hétfőn torlódással indult a hét, az elveszett foglalások száma nem volt mérhető, csak érezhető.
+
+**Mit építettünk fel:**
+Egy automatizált foglalási folyamatot — időpontválasztással, azonnali visszaigazolással, emlékeztető e-maillel és Notion-szinkronizációval. Emberi beavatkozás nélkül, 24/7.
+
+**Az eredmény 3 héttel később:**
+• 2 óra kézi adminisztráció → 0 perc naponta
+• 24/7 foglalási elérhetőség hétvégén és munkaidőn kívül is
+• Az első hónapban 18%-kal nőtt a munkaidőn kívülről beérkező foglalások száma
+• A recepciós kapacitás teljes egész</pre><div class="subs">hook:8 · human:7 · hungarian:8 · concrete:8 · voice:7 · engagement:6</div><div class="flags"><span class="fl">Hiányzó emberi jel / konkrét időpont: &#x27;3 héttel később&#x27; relatív, nincs rögzített dátum vagy időszak</span><span class="fl">Gyenge CTA: &#x27;Meglepő szám lesz.&#x27; — nem kérdés, nem hív cselekvésre, engagement-bait irányba mutat</span><span class="fl">&#x27;teljes egészében&#x27; — enyhén patetikus, sablonos töltelék</span><span class="fl">&#x27;Emberi beavatkozás nélkül, 24/7&#x27; — közel van a buzzword-zónához, de még elfogadható</span><span class="fl">Az eredmény-felsorolásban &#x27;24/7 foglalási elérhetőség hétvégén és munkaidőn kívül is&#x27; — redundáns (a 24/7 már magában foglalja)</span><span class="fl">általános mennyiség: „sokat” (konkrét szám kellene)</span></div><p class="fb">A hook erős és számszerűsített — jól megállítja a görgetést. A case study struktúra tiszta, a 18%-os adat és a 480 óra konkrét értéket ad. A gyengeségek: a záró CTA nem valódi engagement-katalizátor (&#x27;Meglepő szám lesz&#x27; passzív és üres), a 24/7 kétszer szerepel más szavakkal, és a &#x27;teljes egészében&#x27; felesleges súlyosítás. A voice nagyrészt megfelel a PlanSmart brandnek, de egy helyen a &#x27;Mit építettünk fel&#x27; szekció személyesebb hangot üt meg az elvártnál (&#x27;Mit vezettünk be&#x27; neutrálisabb). Az átírás ezeket javítja, és a CTA-t komment-alapú aktiválásra cseréli.</p></div><div class="pb win"><h4>👑 improve it2 <span class="b mid">7.4</span></h4><pre>Napi 2 óra adminisztráció. Szorozd meg 240 munkanappal. Ez 480 óra évente — csak időpontok összerakásával.
+
+Egy 12 fős egészségügyi szolgáltatónál pontosan ezt számoltuk ki.
+
+**A helyzet:**
+A recepció minden reggel e-mailekből, üzenetekből és telefonhívásokból rakta össze a napi foglalásokat. Munkaidőn kívül az érdeklődők üzenetet hagytak — és vártak. Hétfőn torlódással indult a hét.
+
+**Mit vezettünk be:**
+Automatizált foglalási folyamatot: online időpontválasztás, azonnali visszaigazolás, emlékeztető e-mail, Notion-szinkronizáció. A recepció nem nyúlt hozzá.
+
+**Az eredmény az első 30 napban:**
+• 2 óra kézi adminisztráció → 0 perc naponta
+• A munkaidőn kívüli foglalások 18%-kal nőttek
+• A recepciós kapacitás átkerült az ügyfélfogadásra
+
+Van a cégedben egy folyamat, ami naponta ugyanennyit vesz el? Számold ki az éves veszteséget — és írd meg kommentbe a számot.
+
+#Automatizálás #KKV #AIaut</pre><div class="subs">hook:9 · human:7 · hungarian:8 · concrete:9 · voice:8 · engagement:7</div><div class="flags"><span class="fl">&#x27;írd meg kommentbe a számot&#x27; — közeledik az engagement-bait határához, bár számoltatós mechanikaként működhet</span><span class="fl">&#x27;#AIautomation&#x27; — angol hashtag a magyar szövegben, következetlen</span><span class="fl">Hiányzó emberi jel: nincs konkrét időpont (&#x27;tavaly novemberben&#x27;, &#x27;idén januárban&#x27;), csak általános &#x27;30 nap&#x27;</span><span class="fl">&#x27;A recepciós kapacitás átkerült az ügyfélfogadásra&#x27; — kissé elvont, nem számszerűsített végeredmény (pl. hány extra ügyfél/nap?)</span><span class="fl">általános mennyiség: „sokat” (konkrét szám kellene)</span></div><p class="fb">Erős nyitó: a kalkulációs hook azonnal megfogja az olvasót, és a 480 óra konkrét szám hatásos. A case study struktúra tiszta, a három bullet-eredmény jól követhető. A voice_consistency megfelelő: &#x27;mi&#x27; forma, anonim ügyfél, számok. Két gyenge pont: (1) az eredmény-bullet harmadik sora (&#x27;kapacitás átkerült&#x27;) nem számszerűsített — egy plusz adat itt (pl. &#x27;napi 3 extra ügyfélfogadás&#x27;) tovább erősítené; (2) a CTA határán van az engagement-bait-nek, de a konkrét számoltatós mechanikaként még elfogadható. A &#x27;#AIautomation&#x27; angol hashtag törheti a magyar olvasói élményt.</p></div></div></div></section><section><h3>case_study_PR ügynökség <span class="meta">[plansmart/case_study] baseline <span class="b lo">5.8</span> → winner <span class="b mid">7.4</span></span></h3><div class="row"><div class="col"><b>A/B variánsok</b><div class="pb "><h4>C — data <span class="b mid">7.2</span></h4><pre>10 különböző AI tool — és egyik sem beszélt a másikkal.
+
+PR ügynökség ügyfelünknél (18 fős csapat) ezt találtuk, amikor megkezdtük a felmérést.
+
+Helyzet:
+A csapat az elmúlt 2 évben fokozatosan vezette be az AI eszközöket: külön tool a médiafigyeléshez, külön a szövegíráshoz, külön az ügyfélriportokhoz, külön a közösségi média ütemezéséhez — és még hat másik különböző platformra. Minden eszköz önállóan működött. Az adatok nem áramlottak át egymás között, a kollégák naponta váltogattak felületek között, az outputokat manuálisan másolták össze. A rendszer helyett csak eszközkáosz volt.
+
+Megoldás:
+Egyetlen, 10 modulból álló AI komplexumot építettünk, ahol minden modul ugyanabba a rendszerbe csatlakozik. A bevezetést 5 fázisra osztottuk: felmérés és folyamattérkép → architektúra tervezés → modulonkénti build → integrációs tesztelés → éles átállás és betanítás. A csapatnak nem kellett egyszerr</pre><div class="subs">hook:8 · human:7 · hungarian:8 · concrete:8 · voice:9 · engagement:7</div><div class="flags"><span class="fl">&#x27;Ismerős a helyzet?&#x27; — enyhe engagement-bait jelleg, bár gyengébb formában</span><span class="fl">&#x27;Oszd meg a kommentben, ti hány különálló AI toolt használtok jelenleg.&#x27; — közel van az engagement-bait CTA-hoz</span><span class="fl">&#x27;A legtöbb AI-t használó cégben&#x27; — általánosítás, konkrét alátámasztás nélkül</span><span class="fl">Duplikált hashtag blokk (kétszer szerepel ugyanaz a 4 hashtag)</span><span class="fl">&#x27;eszközkáosz&#x27; — nem erős AI-tell, de kissé publicitásra hajló klisé</span></div><p class="fb">Erős case study struktúra: a hook azonnal kontrariánus és konkrét (10 tool, 18 fős csapat, egymással nem kommunikálnak), a helyzet/megoldás/eredmény felosztás tiszta és PlanSmart voice-nak megfelelő. A számszerűsítés rendben van (5 fázis, 5 hét, 10 modul), az ügyfél anonymizált. Két kisebb probléma: (1) a záró CTA közelít az engagement-bait irányába, egy erősebb insight-zárással cserélhető le; (2) a hashtag blokk duplázódik, azt el kell távolítani. Az &#x27;Ismerős a helyzet?&#x27; inkább kérdéses, mert közhely-szintű nyitány a záráshoz — egy konkrétabb kérdés (&#x27;Hány tool kezel jelenleg szétszórtan adatot a csapatodban?&#x27;) organikusabb kommentelést generálna. Összességében a poszt publikálható minimális javítással.</p></div><div class="pb "><h4>D — narrative <span class="b mid">7.1</span></h4><pre>Egy PR ügynökség ops-vezetője tavaly október elején így foglalta össze a helyzetüket:
+
+„Mindenki mást használ, semmi nem beszél egymással, és fogalmam sincs, mi történik a csapatban.&quot;
+
+Igaza volt.
+
+Helyzet:
+A 20 fős ügynökség organikusan gyűjtött össze 10 különböző AI eszközt az elmúlt két évben. Volt köztük szövegírásra, képgenerálásra, összefoglalásra, fordításra, ügyfél-riportálásra szánt megoldás — de mind külön fiókban, külön logikával, külön outputtal. Az egyes kollégák más-más eszközt preferáltak, az eredmények nem voltak összehasonlíthatók, és a vezetőnek esélye sem volt rálátni arra, mi folyik valójában.
+
+A becsült időveszteség: heti 18-22 óra csak az eszközök közötti manuális adatmozgatással, duplikált munkával és egyeztetéssel.
+
+Megoldás:
+Csapatunk 10 modulból álló, egységes AI-rendszert épített fel — egyetlen munkafelülettel, közös adatfolyammal és egységes outputlogikával. A</pre><div class="subs">hook:8 · human:7 · hungarian:8 · concrete:9 · voice:8 · engagement:6</div><div class="flags"><span class="fl">Rossz CTA: &#x27;Oszd meg kommentben, ti hány eszközt használtok jelenleg. Kíváncsiak vagyunk a számra.&#x27; — engagement-bait jellegű, a kíváncsiság kimutatása brand-idegen személyességet visz be</span><span class="fl">Duplikált hashtag-blokk: a hashtagek kétszer szerepelnek a poszt végén</span><span class="fl">Gyenge zárás: az utolsó bekezdés (&#x27;Ha a cégedben is...&#x27;) közhely-szagú, nem elég éles insight-ként hat</span><span class="fl">&#x27;egységes&#x27; szó háromszor szerepel egy bekezdésen belül: ismétlés gyengíti a szöveget</span></div><p class="fb">Erős case study: konkrét számok (10 eszköz, 20 fős csapat, heti 18-22 óra, 5 hét, 5 fázis), hiteles ügyfélidézet a nyitányban, és a bullet-pontos eredményblokk letisztult. A voice nagyrészt tartja a PlanSmart &#x27;mi&#x27; formát és eredmény-orientált hangot. Két helyen csúszik: (1) a CTA engagement-baitbe fordul (&#x27;Kíváncsiak vagyunk a számra&#x27;), ami nem illik a brand objektivitásába — inkább zárd egy éles állítással vagy implicit kérdéssel; (2) a hashtagek duplázódnak, ezt tisztítsd. Az overall 7.1, rewrite nem szükséges, de a CTA cseréje és a hashtag-duplikáció eltávolítása 7.5+ fölé vinné.</p></div><div class="pb "><h4>B — contrarian <span class="b mid">6.8</span></h4><pre>Több AI tool nem jelent több AI eredményt.
+
+Egy 40 fős PR ügynökség megkeresett minket azzal, hogy &quot;már mindent próbáltak&quot; — volt 10 különböző AI eszközük: szövegírásra, médiafigyelésre, riportálásra, ügyfélkommunikációra, tartalomütemezésre.
+
+Mégis azt érezték, hogy chaoszban dolgoznak.
+
+Helyzet:
+A 10 eszköz egymástól teljesen függetlenül működött. Az adatok nem áramlottak rendszerek között — minden átadás manuális copy-paste volt. Egy-egy ügyfélriport összerakása átlagosan 6 órát vett igénybe. A csapat fele naponta váltogatott 4-5 felületet között, és senki sem látott teljes képet egyetlen helyen.
+
+Megoldás:
+Nem több eszközt adtunk hozzá — hanem rendet raktunk a meglévők köré.
+
+Felépítettünk egy 10 modulból álló, integrált AI rendszert, ahol minden eszköz ugyanabba az adatfolyamba dolgozik. A médiafigyelés outputja automatikusan táplálja a riportálást, a riportálás eredménye beépül az </pre><div class="subs">hook:7 · human:6 · hungarian:7 · concrete:8 · voice:8 · engagement:6</div><div class="flags"><span class="fl">Üres közhely / lapos tanulság-zárás: &#x27;A tanulság: nem az eszközök száma számít, hanem hogy hogyan beszélnek egymással.&#x27; — ezt mindenki tudja, nem ad pluszt</span><span class="fl">Rossz CTA: &#x27;Ismerős a helyzet? Oszd meg a kommentben, ti hány AI eszközt használtok párhuzamosan.&#x27; — engagement-bait jellegű, nem vezet valódi értékű diskurzushoz</span><span class="fl">Hiányzó emberi jel / időpont: nincs konkrét időbeli kontextus (pl. &#x27;három hónapja&#x27;, &#x27;tavaly ősszel kerestek meg&#x27;)</span><span class="fl">Duplikált hashtag-blokk: a hashtagek kétszer szerepelnek a posztban</span><span class="fl">&#x27;egymástól teljesen függetlenül működött&#x27; — enyhe tükörfordítás-szag, de elfogadható</span><span class="fl">Általános mennyiség egy helyen: &#x27;A csapat fele&#x27; — pontosabb lenne &#x27;20 fő&#x27; vagy konkrét százalék</span></div><p class="fb">A poszt erős alapokon áll: konkrét számok (6 óra → 35 perc, 10 eszköz, 40 fős csapat, 6 hét), logikus felépítés és brand-konzisztens &#x27;mi&#x27; forma. A hook megállítja a görgetést, a case study struktúra tiszta. Két fő gyengeség húzza le a pontot: (1) a záró tanulság-mondat közhelyes és nem ad új információt, (2) a CTA engagement-bait szintű — nem generál értékes kommentet. Ráadásul a hashtag-blokk duplán szerepel, ami gondatlanságot sugall. Az átírt verzió ezeket korrigálja: pontosabb emberi léptéket ad (20 fő), erősebb kérdéssel zár, és elhagyja az ismétlést.</p></div><div class="pb "><h4>E — pain <span class="b mid">6.8</span></h4><pre>10 AI tool. Egy csapat. Nulla szinkronizáció.
+
+Ismerős a helyzet? Mert ezt találtuk egy PR ügynökségnél, mikor megkértük őket: mutassák meg, hogyan dolgoznak.
+
+Helyzet:
+A 20 fős ügynökség az elmúlt 18 hónapban folyamatosan adoptált új AI eszközöket — tartalomírásra, média-monitoringra, riportkészítésre, ügyfélkommunikációra. Minden csapattag más toolokat használt, más beállításokkal, más outputokkal. Az eredmény: párhuzamos munkavégzés, duplikált adatok, és hetente 3-4 óra elveszett koordinációra csapatonként.
+
+Megoldás:
+Egyetlen, 10 modulból álló AI-rendszert építettünk, amely az ügynökség teljes munkafolyamatát lefedi — a brief befogadásától az ügyfélriportig. A bevezetést 5 fázisra osztottuk, hogy a csapat ne egy „nagy felborulást&quot; éljen meg, hanem fokozatosan, kontrollált módon álljon át. Minden modul ugyanabba az adatfolyamba dolgozik: nincs duplikáció, nincs kézi szinkronizáció.
+
+E</pre><div class="subs">hook:8 · human:7 · hungarian:7 · concrete:8 · voice:8 · engagement:6</div><div class="flags"><span class="fl">&#x27;A tanulság, amit mi is vittük magunkkal&#x27; — személyes hangvétel, eltér a brand voice &#x27;mi = PlanSmart&#x27; pozicionálástól, félreérthető</span><span class="fl">&#x27;Ismerős ez a helyzet a cégedben? Oszd meg a kommentben — szívesen halljuk, hogyan kezelitek most.&#x27; — gyenge CTA, engagement-bait jellegű, a brand voice nem ilyen közvetlen/kérdező</span><span class="fl">&#x27;folyamatosan adoptált&#x27; — angolból tükörfordított, természetellenesen hat magyarul</span><span class="fl">&#x27;nagy felborulást&#x27; — idézőjeles szleng, nem illik az eredmény-orientált brand voice-hoz</span><span class="fl">&#x27;~14 óra&#x27; — a tilde homályosít, konkrét szám erősebb lenne</span><span class="fl">&#x27;számos&#x27; nem szerepel, de &#x27;minden csapattag más toolokat&#x27; ismétlődik, kissé redundáns a Helyzet blokkon belül</span></div><p class="fb">A poszt szerkezete és számai erősek, a hook megállítja a görgetést. Két fő probléma húzza le a pontszámot: (1) a záró CTA engagement-bait jellegű és kilóg a brand voice-ból — a PlanSmart nem kér személyes sztorikat, hanem eredményeket kommunikál; (2) &#x27;A tanulság, amit mi is vittük magunkkal&#x27; személyes hangvétele elmossa a brand pozicionálást. Az átírásban a CTA-t elhagytuk, a Helyzet/Megoldás/Eredmény blokkok tömörebbek lettek, és a &#x27;~14 óra&#x27; pontos számmá vált.</p></div><div class="pb "><h4>A — produkciós <span class="b lo">5.8</span></h4><pre>PR ügynökség (18 fős) 10 különálló AI eszközt használt — egymástól teljesen elszigetelten.
+
+Helyzet:
+A csapat tagjai külön-külön dolgoztak ChatGPT-vel, Midjourney-vel, különböző összefoglaló és fordítóeszközökkel, monitoring platformokkal. Mindegyik tool saját belépési felületet, saját outputformátumot és saját adatsiló-t jelentett. Az eredmény: duplikált munka, inkompatibilis fájlok, és egy-egy projekt során akár 40-50 perc elveszett idő eszközváltásokra és adatmásolásra — naponta, csapatonként.
+
+Megoldás:
+Egyetlen, 10 modulból álló integrált AI rendszert építettünk, amely a meglévő eszközök logikáját megtartja, de közös felületen, közös adatárammal működteti őket. A bevezetést 5 fázisra bontottuk: igényfelmérés → architektúra → modul-integráció → tesztelés → éles átállás. Az egyes modulok között automatikus adatátvitel fut, az outputok egységes formátumban kerülnek a csapat közös munka</pre><div class="subs">hook:7 · human:6 · hungarian:7 · concrete:8 · voice:7 · engagement:5</div><div class="flags"><span class="fl">Rossz CTA: &#x27;kommentben vagy DM-ben&#x27; — DM-es CTA tiltott</span><span class="fl">Általános kifejezés: &#x27;közel nulla&#x27; konkrét szám helyett (pl. &#x27;3 percre csökkent&#x27;)</span><span class="fl">Hiányzó emberi jel: nincs időpont, nincs &#x27;amikor először megkaptuk a briefet&#x27; típusú kontextus — steril marad</span><span class="fl">Üres business-közhely: &#x27;kockázatmentes bevezetés&#x27; — bizonyítatlan állítás, inkább az adat bizonyítja</span><span class="fl">Angolból tükörfordított: &#x27;Az egyes modulok között automatikus adatátvitel fut&#x27; — kissé nehézkes szórend</span><span class="fl">Gyenge CTA: &#x27;szívesen meghallgatjuk a helyzetetek&#x27; — passzív, nem hoz kommentet</span></div><p class="fb">A poszt alapszerkezete erős: konkrét iparág, konkrét fájdalompont, mért eredmény. A 3,2-szeres AI-használat és az 50 perces időveszteség hitelesítik a storit. Két kritikus probléma rontja le: (1) a CTA DM-re hív, ami tiltott, és kommentet sem generál; (2) a &#x27;közel nulla&#x27; elnagyolt — egy tényszám (pl. &#x27;4 percre&#x27;) itt is növelné a hitelességet. Az átírt verzió megtartja a brand-hangot, lecseréli a DM-CTA-t nyitott kérdésre, és pontosítja a &#x27;közel nulla&#x27; adatot.</p></div></div><div class="col"><b>Iteratív javítás</b><div class="pb "><h4>improve it0 <span class="b lo">6.2</span></h4><pre>PR ügynökség (18 fős) 10 különálló AI eszközt használt — egymástól teljesen elszigetelten.
+
+Helyzet:
+A csapat tagjai külön-külön dolgoztak ChatGPT-vel, Midjourney-vel, különböző összefoglaló és fordítóeszközökkel, monitoring platformokkal. Mindegyik tool saját belépési felületet, saját outputformátumot és saját adatsiló-t jelentett. Az eredmény: duplikált munka, inkompatibilis fájlok, és egy-egy projekt során akár 40-50 perc elveszett idő eszközváltásokra és adatmásolásra — naponta, csapatonként.
+
+Megoldás:
+Egyetlen, 10 modulból álló integrált AI rendszert építettünk, amely a meglévő eszközök logikáját megtartja, de közös felületen, közös adatárammal működteti őket. A bevezetést 5 fázisra bontottuk: igényfelmérés → architektúra → modul-integráció → tesztelés → éles átállás. Az egyes modulok között automatikus adatátvitel fut, az outputok egységes formátumban kerülnek a csapat közös munka</pre><div class="subs">hook:7 · human:6 · hungarian:7 · concrete:8 · voice:7 · engagement:5</div><div class="flags"><span class="fl">Rossz CTA: &#x27;DM-ben&#x27; — külső elérési csatorna, algoritmus bünteti</span><span class="fl">Rossz CTA: &#x27;Ismerős a helyzet?&#x27; — gyenge engagement-bait jelleg</span><span class="fl">Általános mennyiség konkrét szám helyett: &#x27;közel nulla&#x27; — pontosítható lenne</span><span class="fl">Hiányzó emberi jel: nincs időpont, &#x27;az ügyfelünk&#x27; jelzés, csak anonim és kontextus nélküli eset</span><span class="fl">AI-tell szerkezet: &#x27;szívesen meghallgatjuk a helyzetetek&#x27; — sablonos zárás</span><span class="fl">Üres business-közhely: &#x27;kockázatmentes bevezetés&#x27; — bizonyítatlan állítás a szövegben</span></div><p class="fb">A poszt gerince erős: konkrét számok (10 eszköz, 18 fő, 40-50 perc, 3,2-szoros növekedés), világos struktúra, jól elkülönített helyzet–megoldás–eredmény felépítés. A hook azonban kicsit lapos — az első sor tényközlés, nem feszültségteremtés. A CTA kettős hibát vét: &#x27;Ismerős a helyzet?&#x27; gyenge bevezető kérdés, a DM-ajánlás pedig algoritmus szempontjából kerülendő. A &#x27;közel nulla&#x27; és &#x27;kockázatmentes&#x27; fordulatok pontosítással erősebbé tehetők. Az átírás megtartja a brand hangját és az összes adatot, de feszesebb hookkal és tisztább CTA-val zárja a posztot.</p></div><div class="pb "><h4>improve it1 <span class="b mid">7.2</span></h4><pre>18 fős PR ügynökség, 10 AI eszköz — és napi 50 perc ment el arra, hogy az egyik toolból a másikba másolják az adatot.
+
+A csapat tagjai külön-külön használták a ChatGPT-t, Midjourney-t, fordító- és monitoringeszközöket. Minden tool saját belépési felület, saját outputformátum, saját adatsiló. Egy-egy projektnél 40-50 percet evett meg naponta az eszközváltás — csapatonként.
+
+Helyzet:
+Az igazi probléma nem az volt, hogy rossz eszközöket használtak. Hanem hogy ugyanazokat az adatokat újra és újra kézzel vitték át egyik rendszerből a másikba. Duplikált munka, inkompatibilis fájlok, és egy csapattag sem látta a másik outputját valós időben.
+
+Megoldás:
+Egyetlen, 10 modulból álló integrált AI rendszert építettünk. A meglévő eszközök logikája megmaradt — csak mostantól közös felületen, automatikus adatátvitellel futnak. A bevezetést 5 fázisra bontottuk: igényfelmérés → architektúra → modul-integr</pre><div class="subs">hook:8 · human:7 · hungarian:8 · concrete:9 · voice:8 · engagement:6</div><div class="flags"><span class="fl">Hiányzó emberi jel: nincs konkrét időpont (&#x27;tegnap&#x27;, &#x27;múlt héten&#x27;), csak &#x27;60 napon belül&#x27; — kissé steril, de elfogadható case study keretben</span><span class="fl">Gyenge CTA: &#x27;kommentben oszd meg, milyen toolokat használtok&#x27; — részben engagement-bait jellegű, nem organikus kérdés</span><span class="fl">&#x27;Kíváncsiak vagyunk a helyzetre&#x27; — sablonos, üres lezárás, nem ad valódi értéket</span><span class="fl">A &#x27;Helyzet / Megoldás / Eredmény&#x27; struktúra kissé AI-template érzést kelt, bár a számok erősítik</span></div><p class="fb">Erős case study: konkrét számok (18 fő, 10 eszköz, 50 perc → 5 perc, 6 hét, 3,2x), jól felépített narratíva, és a hook azonnal beugrik a problémába — ez megállítja a görgetést. A brand voice (&#x27;mi&#x27; forma, anonim ügyfél, eredmény-fókusz) következetesen tartott. Két gyengébb pont: a CTA mechanikus és nem generál valódi vitát, a &#x27;Kíváncsiak vagyunk a helyzetre&#x27; pedig üres lezárás. A struktúra (Helyzet/Megoldás/Eredmény fejlécek) funkcionális, de kissé sablonosnak hat — egyetlen folyó elbeszélésként talán emberközelibb lenne. Összességében publikálható, kisebb CTA-csiszolással 8 fölé mehet.</p></div><div class="pb win"><h4>👑 improve it2 <span class="b mid">7.4</span></h4><pre>18 fős PR ügynökség, 10 AI eszköz — és naponta 50 perc ment el arra, hogy az egyik toolból a másikba másolták az adatot.
+
+Nem rossz eszközöket használtak. Épp ellenkezőleg: ChatGPT, Midjourney, fordító- és monitoringeszközök — mindegyik elvégezte a saját feladatát. A probléma az volt, hogy nem tudtak egymásról. Külön belépési felület, külön outputformátum, külön adatsiló. Egy-egy projektnél ez napi 40-50 percet evett meg csapatonként — kézzel átvitt fájlokkal, duplikált munkával, és azzal, hogy senki sem látta valós időben, mit csinál a másik.
+
+Egy 10 modulból álló integrált rendszert építettünk, ami a meglévő eszközök logikáját megtartotta — de mostantól közös felületen, automatikus adatátvitellel futnak. Az átállást 5 fázisra bontottuk (igényfelmérés, architektúra, integráció, tesztelés, éles indítás), és 6 hét alatt le is zártuk úgy, hogy egyetlen projekt sem csúszott közben.
+
+60 napp</pre><div class="subs">hook:8 · human:7 · hungarian:8 · concrete:9 · voice:8 · engagement:7</div><div class="flags"><span class="fl">&#x27;szívesen megnézzük, hol érdemes összekapcsolni a rendszereket&#x27; — puha CTA, határos az engagement-bait-tel, konkrét következő lépés nélkül</span><span class="fl">&#x27;pontosan ez a szűk keresztmetszet&#x27; — enyhén klisés üzleti fordulat</span><span class="fl">&#x27;Ha ismerős a helyzet&#x27; — általános, személytelen zárás, nem elég konkrét</span></div><p class="fb">Erős case study: a hook azonnal konkrét problémát és számot dob be (18 fős csapat, 10 eszköz, 50 perc/nap), a struktúra logikus és az eredmények jól számszerűsítve vannak (3,2x AI-használat, 50→5 perc, 6 hét). A brand voice (&#x27;mi&#x27; forma, anonim ügyfél, eredmény-orientált) következetes. Gyengeség: a záró CTA elmosódott — nem ösztönöz egyértelmű cselekvésre, inkább lebeg. Egy konkrétabb zárlat (&#x27;Megosztjuk az architektúra-vázlatot, ha érdekel&#x27; szintű specifikusság) erősítené az engagement-potenciált anélkül, hogy linkre vagy DM-re terelne.</p></div></div></div></section><section><h3>consultant_builder_1 <span class="meta">[david/educational] baseline <span class="b hi">8.2</span> → winner <span class="b hi">8.7</span></span></h3><div class="row"><div class="col"><b>A/B variánsok</b><div class="pb "><h4>C — data <span class="b hi">8.5</span></h4><pre>3 hét alatt kétszer tört el ugyanaz a script. Majdnem kiszálltam az egész projektből.
+
+Egy ügyfelünknél PPC monitor rendszert építünk — minden reggel automatikusan összegyűjti a kampányteljesítményt, jelzi ha valami kiugrik, és Telegramon küldi a riportot.
+
+Első törés: a Google Ads API rate limitet ütöttünk. Reggel 6-ra ütemeztem a futást, de az ügyfél más scriptje is ugyanakkor futott. Collision. Semmi sem ment ki, de hibaüzenet sem jött — csak csend.
+
+Csendben hibázni a legrosszabb.
+
+Második törés: a Claude prompt amivel a kiugró metrikákat értelmeztettem, elkezdett „minden rendben&quot; válaszokat visszaadni — akkor is, ha -40%-os ROAS esés volt. Kiderült: a summary amit beküldtem neki túl hosszú volt, és a kontextus ablak végére esett az a rész, ami számított.
+
+Mit tanultam ebből?
+
+1. Minden automatizmushoz kell egy „proof of life&quot; jelzés. Nem elég ha nem hibázik — aktívan jelezze hogy le</pre><div class="subs">hook:8 · human:9 · hungarian:8 · concrete:9 · voice:9 · engagement:8</div><div class="flags"><span class="fl">&#x27;számos&#x27; típusú általánosság nem fordul elő — tiszta</span><span class="fl">Nincs explicit anti-pattern, de &#x27;Csendben hibázni a legrosszabb.&#x27; kissé aforizma-klisé irányba megy — nem súlyos</span></div><p class="fb">Erős poszt, nagyon jól illeszkedik a David-voice-hoz. A két konkrét törési pont (rate limit collision + context window truncation) valódi technikai hitelességet ad — ez nem generált tartalom érzete. A &#x27;✓ futott&#x27; megoldás mint proof-of-life koncept konkrét és tanítható. A hook jól nyit: feszültség + közel-feladás kombináció megállítja a görgetést. A három tanulság logikusan épül egymásra, és a záró paradoxon (&#x27;nem azt kellett megírni, hanem megjavítani kétszer&#x27;) emlékezetes. Apró javítási lehetőség: a &#x27;Csendben hibázni a legrosszabb&#x27; sor kicsit leválik a flow-ból — egy konkrét következménnyel (&#x27;és másnap az ügyfél kérdezte először&#x27;) erősebb lenne. A hashtag-választás rendben, bár #buildlog nem erős magyar LinkedIn tag — de a voice-hoz illik.</p></div><div class="pb "><h4>D — narrative <span class="b hi">8.5</span></h4><pre>Múlt kedden egy ügyfélből kijött az igazi visszajelzés.
+
+„Dávid, a rendszer tegnap reggel nem küldte ki a jelentést. Én meg ott ültem az ügyfelem előtt, és kézzel kellett összekaparnom az adatokat.&quot;
+
+Igaza volt. Teljesen.
+
+Azt hittem, hogy amit felépítettem, az stabil. Egy Python script, ami minden reggel 6:45-kor lefutott, összegyűjtötte a PPC kampányok teljesítményét, és Telegramon kidobta a napi összefoglalót. Három hétig tökéletesen működött.
+
+Amíg el nem fogyott a Railway free tier-en a futási idő.
+
+Senki nem kapott alertet. Én sem. A script simán meghalt, log nélkül, csöndben.
+
+Kb. 4 órát töltöttem azzal, hogy visszafejtettük mi történt. Utána újabb 2 óra volt átírni a monitoring réteget: most minden futás végén — sikeres vagy sem — kap egy státuszt Telegramon az ügyfél is, meg én is. Ha 7:10-re nem érkezik meg a jelentés, automatikus riasztás megy.
+
+Ez az a rész amit az elején kih</pre><div class="subs">hook:8 · human:9 · hungarian:8 · concrete:9 · voice:9 · engagement:8</div><div class="flags"><span class="fl">Enyhe klisé-veszély a záró tanulságnál (&#x27;Azt tanultam:&#x27;), de még belefér a voice-ba</span><span class="fl">&#x27;Kb. 4 órát&#x27; — a &#x27;kb.&#x27; gyengíti a konkrétságot, lehetett volna &#x27;4 óra&#x27; simán</span></div><p class="fb">Erős poszt. A hook azonnal konkrét és fájdalmas — az ügyfél idézete valódi, nem konstruált. A Railway free tier és a 6:45-ös időpont olyan specifikus részletek, amik hitelességet adnak. A &#x27;csöndben meghalt, log nélkül&#x27; sor különösen jó: technikai, vizuális, builder-hangulat. A záró kérdés (&#x27;Ki veszi észre, és mikor?&#x27;) mentésre és kommentre is ösztönöz, mert minden automatiáló felismeri a problémát. Apró javítási lehetőség: a &#x27;Kb. 4 órát&#x27; helyett egyszerűen &#x27;4 órát&#x27; erősebb — a közelítő nem illik a buildlog precizitáshoz. A hashtag-ek rendben vannak, nem túlzottak.</p></div><div class="pb "><h4>A — produkciós <span class="b hi">8.2</span></h4><pre>Három héttel ezelőtt majdnem kiszúrtam egy ügyfelet.
+
+Felépítettük neki a PPC monitor rendszert — minden reggel 7-re összegyűjti a kampányokat, megskorázza a teljesítményt, és Telegramon küld riasztást ha valami kiugrik.
+
+Élőben ment. Két napig tökéletesen működött.
+
+Harmadik nap reggel 7:14-kor kaptam egy üzenetet: &quot;Dávid, semmi nem jött.&quot;
+
+A Railway logot néztem: a script lefutott, nem dobott hibát, mégis csend. 40 perc debuggolás után találtam meg.
+
+A Google Ads API visszaadott egy üres tömböt — nem hibát, csak üres választ — mert az ügyfél az éjjel szüneteltette az összes kampányát tesztelési okból. A kódom ezt &quot;minden rendben&quot; állapotnak értelmezte, és nem küldött semmit.
+
+Technikailag helyes volt. Felhasználói szempontból katasztrófa.
+
+Az ügyfél azt hitte, a rendszer meghalt.
+
+Azt csináltam utána, amit korábban ki kellett volna találnom:
+
+Beraktam egy &quot;heartbeat&quot; üzenetet — ha a sc</pre><div class="subs">hook:8 · human:9 · hungarian:8 · concrete:9 · voice:9 · engagement:8</div><div class="flags"><span class="fl">Nincs erős CTA-hiány, de a záró &#x27;tanulság&#x27; blokk kissé előadásszerű/didaktikus fordulatba csúszik: &#x27;A tanulság:&#x27; — ez nem kritikus, de enyhén AI-összefoglaló érzést kelt</span><span class="fl">&#x27;Mindig tervezz explicit visszajelzést arra az esetre is, amikor nincs semmi tennivaló.&#x27; — ez az utolsó sor általánosabb közhely-szintű lezárás, elvesz a konkrétumból</span></div><p class="fb">Erős poszt, David voice-hoz nagyon jól illeszkedik: konkrét időpont (7:14), valódi hibaszituáció, technikai részlet (üres tömb vs. hiba), és a heartbeat-megoldás kézzelfogható. A hook jól megállítja a görgetést — &#x27;majdnem kiszúrtam egy ügyfelet&#x27; azonnal bevon. A legnagyobb gyengeség a lezárás: a &#x27;A tanulság:&#x27; elválasztó + általánosító konklúzió kissé kilép a buildlog hangnemből és előadásba csap. Erősebb lenne, ha a tanulság is a konkrét szituációból következne, nem elvont elvként fogalmazódna meg — pl. &#x27;Most már nem lefut-e a script a kérdés. Az, hogy mit küld, ha lefutott.&#x27; Egyébként az egyik legjobb builder-típusú poszt a vonalban: valódi hiba, valódi fix, valódi következmény.</p></div><div class="pb "><h4>E — pain <span class="b mid">7.8</span></h4><pre>Az első éles ügyfél-automatizációnkat 2 héttel később adtuk át, mint ígértük.
+
+Nem a technika tört el. Én rontottam el — és pontosan tudom hol.
+
+Az ügyfél egy 18 fős e-commerce cég volt. Feladat: automatizálni a PPC kampány-riport generálást. Eddig egy marketinges minden pénteken 3-4 órát töltött azzal, hogy összehúzta az adatokat Google Sheetsből, Meta Ads Manager-ből, és kézzel írt összefoglalót a hétre.
+
+Hangzott egyszerűnek. Megépítettem 4 nap alatt. Python, Supabase tábla az adatoknak, Claude API az összefoglalóhoz, Telegram notification pénteken reggel 7-re. Lokálisan tökéletesen futott.
+
+Aztán deploy után — semmi.
+
+Két napig debuggoltam. Railway logok, environment variable-ok, API hívások kézi tesztelése. Minden rendben volt külön-külön.
+
+A hiba: a Meta Ads API rate limitje production környezetben eltért attól, amit lokálisan tapasztaltam. A script csendben timeout-olt, nem dobott</pre><div class="subs">hook:8 · human:9 · hungarian:7 · concrete:9 · voice:9 · engagement:8</div><div class="flags"><span class="fl">&#x27;Hangzott egyszerűnek.&#x27; — kissé klisés setup, bár kontextusban elmegy</span><span class="fl">Hiányzó konkrét időpont a hibánál: &#x27;Két napig debuggoltam&#x27; — rendben, de &#x27;aztán deploy után — semmi&#x27; lehetne pontosabb (melyik nap, hány óra)</span><span class="fl">&#x27;A tanulság nem a retry logika. A tanulság az...&#x27; — enyhe echó-struktúra, de nem zavaró</span><span class="fl">Nincs explicit CTA, ez inkább pozitívum, de a poszt kicsit tanulság-paragrafusban végez, ami már-már általánosba csúszik: &#x27;mindig van különbség&#x27; — igaz, de már hallott igazság</span></div><p class="fb">Erős poszt, Dávid hangjához nagyon illik. A konkrét stack (Python, Supabase, Claude API, Railway, Telegram), a pontos számok (18 fős cég, 3-4 óra/hét, 4 nap build, 6 óra rewrite, 9 hete megy) és az önkritikus narratíva mind hitelesek. A hook az első két sorral jól megáll — késő szállítás + saját hiba beismerése azonnal megfog. Két apró gyengeség: 1) a záró tanulság-blokk kissé általánosba megy (&#x27;production és localhost között mindig van különbség&#x27;), ami igaz, de elveszti a konkrétságot ami az egész posztot erőssé teszi — egy konkrét számmal vagy második ügyfél-példával le lehetne zárni keményebben; 2) a magyar szórend pár helyen érezi az angol eredetit (&#x27;Beírtam exponential backoff-ot minden external API híváshoz&#x27; — &#x27;Minden külső API-híváshoz beírtam exponential backoff-ot&#x27; természetesebb lenne). Összességében: publikálható, erős tartalom.</p></div><div class="pb "><h4>B — contrarian <span class="b mid">7.2</span></h4><pre>Ne automatizálj. Először gondolkodj.
+
+Ezt tanultam meg 14 óra debuggolás után, március végén.
+
+Egy ügyfélnél — közepes méretű e-commerce cég — bevezettük az automatikus rendelés-feldolgozást. Python, Supabase, Railway, a szokásos stack. Két hét fejlesztés, minden tesztelt, szépen fut.
+
+Első éles hét: minden rendben.
+Második hét: a rendszer elkezdett duplikált rendeléseket feldolgozni.
+
+Kiderült: az ügyfél belső CRM-je néha kétszer küldte ki a webhookot. Hálózati időtúllépés, retry logic — emberi kézben ez nem volt gond, mert a kolléga látta hogy már feldolgozta. A script meg csak futott. Szépen. Kétszer.
+
+14 óra alatt megcsináltam az idempotency kezelést, Supabase-ben egy külön tábla az already-processed event ID-knak, és minden rendbe jött.
+
+De a valódi tanulság nem a kód volt.
+
+Az volt, hogy én az automatizálást az ideális folyamatra terveztem. Nem a valódi folyamatra. Nem néztem meg e</pre><div class="subs">hook:7 · human:8 · hungarian:7 · concrete:7 · voice:8 · engagement:7</div><div class="flags"><span class="fl">Általános mennyiség konkrét szám helyett: &#x27;Rengeteg bajt spórol meg&#x27; — konkrét szám kellene (pl. &#x27;3 hasonló hibát spórolt meg az elmúlt 2 projektben&#x27;)</span><span class="fl">Hiányzó pontosabb emberi jel a végén: &#x27;20 perc megbeszélés&#x27; jó, de az ügyfélnél tartott workshop mikor volt először? Konkrét dátum/projekt erősítené</span><span class="fl">&#x27;közepes méretű e-commerce cég&#x27; — ha nem NDA, egy iparági szint (pl. &#x27;napi ~400 rendelés&#x27;) hitelesítőbb lenne mint a méret-meghatározás</span><span class="fl">általános mennyiség: „rengeteg” (konkrét szám kellene)</span></div><p class="fb">Erős poszt, a voice jól jön át: buildlog-hangulat, konkrét stack (Python, Supabase, Railway), valós hibaleírás, levont tanulság. A hook (&#x27;Ne automatizálj. Először gondolkodj.&#x27;) kontrariánus és megállít. A 14 óra konkrét szám hitelességet ad. Két gyengeség húzza le: (1) a zárlat &#x27;Rengeteg bajt&#x27; általános marad — egy konkrét szám vagy második példa lezárná a kört; (2) az idempotency-megoldás technikai leírása kicsit gyors, egy félsoros kódpéldával vagy Supabase-tábla-struktúra-utalással még inkább builder-feel lenne. Az engagement potenciál jó, mert a &#x27;rejtett kompenzációs mechanizmus&#x27; fogalom valódi felismerés, amire más builderek tudnak reagálni saját tapasztalattal.</p></div></div><div class="col"><b>Iteratív javítás</b><div class="pb win"><h4>👑 improve it0 <span class="b hi">8.7</span></h4><pre>Három héttel ezelőtt majdnem kiszúrtam egy ügyfelet.
+
+Felépítettük neki a PPC monitor rendszert — minden reggel 7-re összegyűjti a kampányokat, megskorázza a teljesítményt, és Telegramon küld riasztást ha valami kiugrik.
+
+Élőben ment. Két napig tökéletesen működött.
+
+Harmadik nap reggel 7:14-kor kaptam egy üzenetet: &quot;Dávid, semmi nem jött.&quot;
+
+A Railway logot néztem: a script lefutott, nem dobott hibát, mégis csend. 40 perc debuggolás után találtam meg.
+
+A Google Ads API visszaadott egy üres tömböt — nem hibát, csak üres választ — mert az ügyfél az éjjel szüneteltette az összes kampányát tesztelési okból. A kódom ezt &quot;minden rendben&quot; állapotnak értelmezte, és nem küldött semmit.
+
+Technikailag helyes volt. Felhasználói szempontból katasztrófa.
+
+Az ügyfél azt hitte, a rendszer meghalt.
+
+Azt csináltam utána, amit korábban ki kellett volna találnom:
+
+Beraktam egy &quot;heartbeat&quot; üzenetet — ha a sc</pre><div class="subs">hook:8 · human:9 · hungarian:8 · concrete:9 · voice:9 · engagement:8</div><div class="flags"><span class="fl">&#x27;A tanulság:&#x27; — kissé sablonos lezárás, sok AI-poszt használja ezt a struktúrát</span></div><p class="fb">Erős poszt. A hook konkrét időponttal és feszültséggel nyit (&#x27;három héttel ezelőtt&#x27;, &#x27;7:14&#x27;, &#x27;semmi nem jött&#x27;), a buildlog-hangulat végig megmarad. A heartbeat-megoldás technikai és érthető, a tanulság organikusan következik a sztoriból. Egyetlen gyenge pont a &#x27;A tanulság:&#x27; bekezdéscím — ez az egyetlen hely ahol kicsit sablonosra vált a hang; elhagyva és a tanulságot közvetlen mondatként folytatva még autentikusabb lenne. A hashtag-választás (#buildinpublic) illeszkedik a voice-hoz, a poszt menti- és kommentértéke magas.</p></div></div></div></section><section><h3>consultant_builder_2 <span class="meta">[david/educational] baseline <span class="b hi">8.7</span> → winner <span class="b hi">8.8</span></span></h3><div class="row"><div class="col"><b>A/B variánsok</b><div class="pb win"><h4>👑 D — narrative <span class="b hi">8.8</span></h4><pre>Múlt hétfőn 11-kor kaptam egy Slack üzenetet az ügyfelünktől:
+
+„Dávid, a riport megint rossz. Harmadik hete.&quot;
+
+Igaza volt.
+
+Felépítettük nekik a heti PPC monitor pipeline-t — Python, Supabase, automatikus email összefoglaló. Papíron tökéletes. A valóságban: minden harmadik héten valami nem stimmel az adatokban.
+
+Négy órán át debuggoltam. Nem a kód volt a probléma.
+
+A Google Ads API időzónát UTC-ben adja vissza. A mi Supabase táblánk Budapest időzónában mentett. A különbség: egyes napokon az előző nap adatai keveredtek a maiakkal — de csak akkor, ha a pull hajnali 1-2 óra között futott (ami hétvégén előfordult, mert Railway-en ütemezve volt).
+
+Három hete ugyanaz a bug. Csak nem mindig reprodukálható, mert hétköznap a pipeline reggel 6-ra fut, és akkor nincs gond.
+
+---
+
+A döntési pont:
+
+Kétféle megoldás volt.
+
+Egyszerű: eltolom a pull időpontját hajnali 3-ra, így mindig „biztonságos zónába</pre><div class="subs">hook:9 · human:9 · hungarian:8 · concrete:9 · voice:10 · engagement:8</div><div class="flags"></div><p class="fb">Erős poszt — a hook azonnal konkrét, időponttal, Slack-idézettel, és valódi feszültséggel indul. A bug leírása technikai, de követhető: UTC vs. Budapest időzóna, hajnali 1-2 óra, Railway ütemezés — ezek nem általánosságok, hanem valódi build-log részletek. A döntési pont (&#x27;egyszerű vs. helyes&#x27;) és a két megoldás explicit összehasonlítása a poszt legjobb része: tanít, de nem prédikál. A mérőszámok is konkrétak (3 hét → 0 hiba, 14 ügyfél). Az utolsó két sor jó lezárás — kimondja a tanulságot anélkül, hogy klisébe esne. Apró javítási lehetőség: a &#x27;Papíron tökéletes&#x27; kifejezés enyhén közhelyes, de összességében nem zavaró a kontextusban. A &#x27;valódi mérőszám&#x27; sor kicsit közel kerül a motivációs LinkedIn stílushoz, de a poszt többi része ellensúlyozza. CTA nincs — ez jó, mert a poszt maga elég gondolkodásinduktív.</p></div><div class="pb "><h4>A — produkciós <span class="b hi">8.7</span></h4><pre>Három héttel ezelőtt egy ügyfél azt mondta: &quot;csak egy egyszerű riport kellene naponta.&quot;
+
+Az egyszerű riport végül 4 napos munka lett. Megmutatom miért — és mit csináltam volna másképp.
+
+Az ügyfél: 18 fős e-commerce cég. Napi szinten kellett nekik egy összefoglaló a Google Ads kampányaikról — spend, konverzió, anomáliák.
+
+Első ösztön: n8n. Vizuális, gyors, nem kell sok kód.
+
+Ki is nyitottam, összeraktam az alapot 2 óra alatt. Google Ads API → HTTP node → e-mail. Működött. Demo-n szépen ment.
+
+Aztán megkaptam az éles adatokat.
+
+A probléma: az ügyfél 11 aktív kampányt futtat, 3 különböző account alatt, két piac (HU + RO). Az n8n node-ok elkezdtek timeout-olni, a JSON struktúra campaign-enként eltért, és az egyik account API hozzáférése 15 percenként resetelte a tokent.
+
+Az n8n-ben ezt kézzel kellett volna megoldani: custom JavaScript node-ok, error handler ágak, retry logika. Nagyjából ott </pre><div class="subs">hook:8 · human:9 · hungarian:8 · concrete:9 · voice:9 · engagement:8</div><div class="flags"><span class="fl">Enyhe: &#x27;A tanulság nem az, hogy...&#x27; — klasszikus LinkedIn-es fordulat, de itt konkrét tartalommal van feltöltve, így elfogadható határon van</span></div><p class="fb">Erős poszt. A hook konkrét idézetes nyitással azonnal teremt kontextust és feszültséget (&#x27;csak egy egyszerű riport&#x27;). Az egész narratíva buildlog-szerű: probléma → döntési pont → átírás → eredmény, ami pontosan illik a david voice-hoz. A technikai részletek (async hívások, token refresh osztályban, Supabase) hitelesítik a szaktudást anélkül, hogy marketing-buzzwordbe csúsznának. A &#x27;6:45-kor ment ki&#x27; konkrét időpont emberi jelet ad. Az n8n vs Python tanulság nem fekete-fehér ítélet, hanem kontextuális — ez növeli az engagement-potenciált, mert sokan fognak azzal jönni kommentben, hogy ők mikor melyiket használják. Apró javítási lehetőség: a bullet-pontos &#x27;Mit nyertem&#x27; rész kicsit megszakítja a narratíva folyását — egy-két mondat prózában is megállná a helyét. A CTA hiánya nem baj, a záró kérdés (&#x27;hol van a komplexitás&#x27;) inkább gondolati, nem engagement-bait.</p></div><div class="pb "><h4>E — pain <span class="b hi">8.7</span></h4><pre>Az első komolyabb AI pipeline-unkat 11 napot csúsztunk.
+
+Nem azért, mert a kód nem működött. Azért, mert rossz helyen kezdtük el.
+
+Egy 18 fős logisztikai cégnek építettünk ajánlatkészítő automatizációt. Az ügyfél Excel-ből dolgozik, PDF-eket kap szállítóktól, és minden ajánlatot kézzel gépel össze — átlag 2,5 óra/ajánlat, heti 8-10 ajánlat.
+
+A döntési pont:
+
+Az elején n8n-t akartam használni, mert gyors és vizuálisan átlátható. Ádám is azt mondta, mutassuk meg gyorsan hogy megy. De miután leültem a valós PDF-struktúrákkal, rájöttem: a szállítói PDF-ek 6 különböző formátumban jönnek, némelyik szkennelt, némelyik táblázat nélküli folyó szöveg. Az n8n node-ok erre nem elég rugalmasak — minden edge case-re külön branch kellett volna.
+
+Átírtam Python-ra. Pydantic modell a struktúrált kimenethez, Claude API a PDF értelmezéshez, Supabase a tároláshoz, Railway a deployhoz. Plusz 4 nap fejlesztés</pre><div class="subs">hook:8 · human:9 · hungarian:8 · concrete:9 · voice:9 · engagement:8</div><div class="flags"><span class="fl">&#x27;heti 2-3 ajánlattal többet tud vállalni&#x27; — ez még konkrétabb lehetne számszerűen (pl. +heti 150-200 perc megtakarítás)</span><span class="fl">&#x27;vizuálisan átlátható&#x27; — enyhe marketing-töltet, de határeset</span></div><p class="fb">Erős buildlog-poszt, pontosan David hangjában. A hook működik: konkrét szám (11 nap) + negatív fordulat + azonnal következik a &#x27;miért&#x27; — ez megállítja a görgetést. A valós számok (18 fős cég, 2,5 óra → 18 perc, 94 ajánlat, 2 korrekció, 23 sablon vs. 3 minta) kivételesen jól vannak adagolva, ez a poszt gerince. Az Ádám-mention emberi horgony, a tech stack felsorolása (Pydantic, Claude API, Supabase, Railway) hitelességet ad anélkül, hogy oktatóvá válna. A tanulság nem közhely: &#x27;az a kivétel lesz a rendszer 40%-a&#x27; — ez megjegyezhető, idézhető mondat. Kisebb gyengeség: a záró hashtag-sor lapos, az #aiautomation buzzword-szagú ebben a kontextusban. A CTA hiányzik, de ez itt inkább előny — nem bait-el, csak lerak egy gondolatot. Összességében az egyik legjobb builder-poszt amit ebben a formátumban lehet írni.</p></div><div class="pb "><h4>C — data <span class="b hi">8.5</span></h4><pre>Egy 11 sornyi Python script felváltott 3 hónapnyi manuális munkát. Majdnem nem csináltuk meg.
+
+Az ügyfél egy 18 fős budapesti e-commerce cég. Google Ads-t futtatnak, és minden héten valaki leült megnézni, hogy a konkurencia mit csinál az árakkal — termékről termékre, kézzel, böngészőben.
+
+Ez heti 6-8 óra volt. Egy ember. Minden héten.
+
+Megkerestek minket, hogy &quot;csináljunk valamit AI-jal&quot;.
+
+Az első ösztönöm n8n volt — vizuálisan gyorsan meg lehet mutatni, az ügyfél látja, hogy mi történik. Neki is ez tetszett.
+
+De aztán beleástam magam a konkrét feladatba: árazás-figyelés, dinamikus struktúrájú oldalakról, hetente újrastrukturálódó kategóriákkal. Az n8n node-ok nem tudtak alkalmazkodni a DOM változásokhoz. Minden második héten meg kellett volna nyúlni a workflow-ba.
+
+Döntési pont: n8n-ben megmutatható, de törékeny. Python-ban kevésbé látványos, de stabil.
+
+A Python mellett döntöttem.
+
+A b</pre><div class="subs">hook:9 · human:9 · hungarian:8 · concrete:9 · voice:9 · engagement:7</div><div class="flags"><span class="fl">Rossz CTA közelében: &#x27;Mi a te legnagyobb manuális ismétlődő folyamatod jelenleg?&#x27; — nem rossz, de tipikus engagement-bait kérdés, ami gyengíti az egyébként erős zárást</span></div><p class="fb">Erős poszt, Dávid voice-hoz nagyon illeszkedik. A hook megállít (&#x27;Majdnem nem csináltuk meg&#x27; — ígéret + feszültség), a döntési pont (n8n vs Python) valódi technikai dilemma, nem marketingszöveg. A &#x27;11 sor logika, 2 nap formátumillesztés&#x27; sor az egész poszt legjobb mondata — konkrét, vicces, igaz. A számok (18 fős cég, 6-8 óra, 3 árlépés, 5 év) hitelesek és specifikusak. Egyetlen gyengébb pont: a záró kérdés kicsit generikus LinkedIn-reflex, holott a tanulság-bekezdés önmagában is megállná a helyét lezárásként. Ha elhagynád a kérdést, vagy lecserélnéd valamire konkrétabbra (&#x27;Nálunk ez volt a legdrágább formátum-vita — nektek mi volt?&#x27;), az engagement minősége jobb lenne, még ha a mennyisége esetleg kisebb is.</p></div><div class="pb "><h4>B — contrarian <span class="b hi">8.2</span></h4><pre>Az automatizálás nem spórol időt. Csak gyorsabban csinálja ugyanazt a rossz dolgot.
+
+Tavasszal keresett meg egy 18 fős logisztikai cég. Azt mondták: &quot;automatizáljuk az ajánlatkérés-feldolgozást, mert 3 kolléga csinálja manuálisan és nem bírják.&quot;
+
+Az első reflexem az lett volna: rendben, Python, email parser, Supabase, kész.
+
+De előtte leültünk 2 órára és végigrajzoltuk a folyamatot. Whiteboard, minden lépés, minden kivétel.
+
+Kiderült: a 3 kolléga azért dolgozik 12 órát, mert az ajánlatkérések 40%-a hiányos. Telefonálnak, visszakérdeznek, várnak. Ez volt az idő 70%-a — nem a feldolgozás maga.
+
+Ha erre automatizálok, gyorsabban küldöm a hiányos ajánlatkéréseket tovább. Semmi nem változik.
+
+Ehelyett ezt csináltuk:
+
+Epső körben egy strukturált webes intake form — kötelező mezők, validáció, semmi szabad szöveges „kérem írja le az igényét&quot; mező. Ez önmagában levitte a hiányos beküldések arányá</pre><div class="subs">hook:8 · human:9 · hungarian:7 · concrete:9 · voice:9 · engagement:8</div><div class="flags"><span class="fl">Elírás: &#x27;Epső körben&#x27; → &#x27;Első körben&#x27;</span><span class="fl">Enyhe klisé-közelség az utolsó mondatban: &#x27;csak szoftverbe önti a problémát&#x27; — nem súlyos, de már látott fordulat</span><span class="fl">Hiányzik a konkrét időpont a nyitóban (&#x27;Tavasszal&#x27; elfogadható, de &#x27;április végén&#x27; még erősebb lett volna)</span></div><p class="fb">Erős poszt. A hook kontrariánus és azonnal kihúz a scrollból — ritka, hogy az első mondat tényleg teljesíti ezt. A konkrét számok (40%→8%, 45 perc→8 perc, 4 nap vs. 2 óra) hitelességet adnak, és a builder voice következetes végig: whiteboard, n8n, Supabase, Claude API — semmi marketing-buborék. Az &#x27;Epső körben&#x27; elírás mindenképpen javítandó, mert ront a professzionalizmuson. Az utolsó mondat (&#x27;csak szoftverbe önti a problémát&#x27;) jó irányba mutat, de már annyiszor látott meta-közhely lett ebben a formában — egy konkrétabb, saját szóhasználatú zárás erősebb lenne. A hashtag-sor minimális és releváns, nem baj. Összességében ez a poszt megállja a helyét, az elírás javítása után publikálható.</p></div></div><div class="col"><b>Iteratív javítás</b><div class="pb "><h4>improve it0 <span class="b hi">8.4</span></h4><pre>Három héttel ezelőtt egy ügyfél azt mondta: &quot;csak egy egyszerű riport kellene naponta.&quot;
+
+Az egyszerű riport végül 4 napos munka lett. Megmutatom miért — és mit csináltam volna másképp.
+
+Az ügyfél: 18 fős e-commerce cég. Napi szinten kellett nekik egy összefoglaló a Google Ads kampányaikról — spend, konverzió, anomáliák.
+
+Első ösztön: n8n. Vizuális, gyors, nem kell sok kód.
+
+Ki is nyitottam, összeraktam az alapot 2 óra alatt. Google Ads API → HTTP node → e-mail. Működött. Demo-n szépen ment.
+
+Aztán megkaptam az éles adatokat.
+
+A probléma: az ügyfél 11 aktív kampányt futtat, 3 különböző account alatt, két piac (HU + RO). Az n8n node-ok elkezdtek timeout-olni, a JSON struktúra campaign-enként eltért, és az egyik account API hozzáférése 15 percenként resetelte a tokent.
+
+Az n8n-ben ezt kézzel kellett volna megoldani: custom JavaScript node-ok, error handler ágak, retry logika. Nagyjából ott </pre><div class="subs">hook:8 · human:9 · hungarian:8 · concrete:9 · voice:9 · engagement:8</div><div class="flags"><span class="fl">Hiányzó: CTA teljesen hiányzik — nem baj, de a záró kérdés (&#x27;hol van a komplexitás&#x27;) inkább önmagának szól, mint a közönségnek; lehetne erősebb bevonó elem</span><span class="fl">&#x27;Három héttel ezelőtt&#x27; — kissé hosszú időbeli bevezető, de nem kritikus</span><span class="fl">A &#x27;tanulság nem az, hogy az n8n rossz&#x27; szerkezet enyhén sablonos (substack-y), de a voice-ban még belefér</span></div><p class="fb">Erős poszt. A hook konkrét idézetre épül + ígér egy post-mortemot — ez megállítja a görgetést. A build-log hangulat végig megmarad: timeout, JSON struktúra, token reset, async hívások — nem általánosít, hanem mutatja. A 6:45-ös időpont és a 4 napos munka konkrét számok, nem &#x27;sokat dolgoztam&#x27;. A záró framework (integráció vs. logika komplex) igazi elvihető insight. Apró javítási lehetőség: az utolsó kérdés (&#x27;hol van a komplexitás — az integráción vagy a logikán?&#x27;) egy fokkal erősebb lenne, ha a közönséget is bevonja — pl. egy &#x27;Ti hogyan döntötök el?&#x27; típusú fordulat. De ez nem kötelező. Összességében ez a builder-voice egyik legjobb megvalósítása: saját hiba → konkrét döntési pont → mérhető eredmény.</p></div></div></div></section></body></html>

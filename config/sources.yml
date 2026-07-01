@@ -1,0 +1,463 @@
+# Figyelendő források — full lista
+# Kategóriánként, prioritással (1=legmagasabb)
+#
+# Per-source mezők (RSS):
+#   url               kötelező
+#   priority          1-4 (1=legmagasabb)
+#   poll_interval_sec polling gyakoriság
+#   tags              címkék
+#   max_items         opcionális — hány elemet tartunk meg (default: 50)
+#   enabled           opcionális — false esetén a collector kihagyja (DISABLED)
+#   previously_broken opcionális — true: korábban hibás volt; ha most működik -> FIXED
+
+# ════════════════════════════════════════════
+# RSS források (real-time pollozható)
+# ════════════════════════════════════════════
+rss_sources:
+
+  # ── AI cégek hivatalos blogjai (1. prioritás) ──
+  - name: "Anthropic Blog"
+    url: "https://www.anthropic.com/news"   # uses __NEXT_DATA__ scraping, not RSS
+    priority: 1
+    poll_interval_sec: 60     # percenként
+    tags: [ai_company, frontier]
+    previously_broken: true
+    # 2026-06-15 FIX: nincs hivatalos RSS. A /news Next.js oldal — a collector a fetch_nextjs_json-nal
+    # scrapeli (url-végződés /news -> Next.js útvonal). A live oldal app-router (__next_f), a __NEXT_DATA__
+    # csak fallback. Korábban STILL_FAILING volt -> most FIXED.
+
+  - name: "OpenAI Blog"
+    url: "https://openai.com/news/rss.xml"   # 2026-06-14: a /blog/rss.xml ide redirektál
+    priority: 1
+    poll_interval_sec: 60
+    tags: [ai_company, frontier]
+    max_items: 50                            # archív-nehéz feed (~1000 elem) — cap
+
+  - name: "Google AI Blog"
+    url: "https://blog.google/technology/ai/rss/"
+    priority: 1
+    poll_interval_sec: 120
+    tags: [ai_company, frontier]
+
+  - name: "Google DeepMind"
+    url: "https://deepmind.google/blog/rss.xml"   # 2026-06-14: a /blog/feed/basic/ ide redirektál
+    priority: 1
+    poll_interval_sec: 300
+    tags: [ai_company, research]
+    max_items: 50
+
+  - name: "Meta AI Research"
+    url: "https://ai.meta.com/blog/rss/"
+    priority: 2
+    poll_interval_sec: 300
+    tags: [ai_company, research]
+    previously_broken: true
+    # 2026-06-14: HTTP 400/404 minden varianson (blog/feed/, blog/rss/, feed/), edge-block. STILL_FAILING. Revisit.
+
+  - name: "Mistral AI"
+    url: "https://mistral.ai/rss.xml"        # 2026-06-14 FIX: feed.xml és news/rss.xml -> 404; rss.xml működik (73 elem)
+    priority: 2
+    poll_interval_sec: 300
+    tags: [ai_company]
+    previously_broken: true
+
+  - name: "Hugging Face Blog"
+    url: "https://huggingface.co/blog/feed.xml"
+    priority: 2
+    poll_interval_sec: 300
+    tags: [ai_company, tooling]
+    max_items: 50                            # archív-nehéz feed (~800 elem) — cap
+
+  - name: "Perplexity Blog"
+    url: "https://www.perplexity.ai/hub/blog/feed"
+    priority: 3
+    poll_interval_sec: 600
+    tags: [ai_company]
+    enabled: false
+    # 2026-06-14: HTTP 403 bot-block böngésző User-Agenttel is. DISABLED (NE töröljük). Revisit (pl. Apify/scrape).
+
+  - name: "Cohere Blog"
+    url: "https://cohere.com/blog/rss"
+    priority: 3
+    poll_interval_sec: 600
+    tags: [ai_company]
+    # 2026-06-14: a /blog/rss HTML /blog-ra redirektál (0 elem) -> üres feed / STILL_FAILING. Nem volt a fix-listán.
+
+  # ── AI tooling cégek ──
+  - name: "LangChain Blog"
+    url: "https://www.langchain.com/blog/rss.xml"   # 2026-06-14 FIX: blog.langchain.dev HTML-re ment (0 elem); ez 100 elem
+    priority: 2
+    poll_interval_sec: 300
+    tags: [tooling, agent]
+    previously_broken: true
+    max_items: 50
+
+  - name: "Cursor Blog"
+    url: "https://cursor.com/changelog/rss.xml"     # 2026-06-14 FIX: /blog/rss.xml -> 404; changelog feed működik (50 elem)
+    priority: 2
+    poll_interval_sec: 600
+    tags: [tooling, dev]
+    previously_broken: true
+
+  - name: "Replit Blog"
+    url: "https://blog.replit.com/feed.xml"         # 2026-06-14 FIX: /rss.xml -> 404; feed.xml működik
+    priority: 3
+    poll_interval_sec: 600
+    tags: [tooling, dev]
+    previously_broken: true
+    max_items: 50                                   # archív-nehéz feed (~450 elem) — cap
+
+  # ── Nemzetközi tech hírek (1-2. prioritás) ──
+  - name: "TechCrunch AI"
+    url: "https://techcrunch.com/category/artificial-intelligence/feed/"
+    priority: 2
+    poll_interval_sec: 180
+    tags: [news, intl]
+
+  - name: "The Verge AI"
+    url: "https://www.theverge.com/rss/index.xml"   # 2026-06-14 FIX: AI-specifikus feed 404; ez az általános feed, böngésző UA-val működik
+    priority: 2
+    poll_interval_sec: 300
+    tags: [news, intl]
+    previously_broken: true
+
+  - name: "Wired Business AI"
+    url: "https://www.wired.com/feed/tag/ai/latest/rss"
+    priority: 3
+    poll_interval_sec: 600
+    tags: [news, intl]
+
+  - name: "VentureBeat AI"
+    url: "https://venturebeat.com/category/ai/feed/"
+    priority: 3
+    poll_interval_sec: 300
+    tags: [news, intl]
+
+  - name: "MIT Technology Review AI"
+    url: "https://www.technologyreview.com/topic/artificial-intelligence/feed/"
+    priority: 3
+    poll_interval_sec: 600
+    tags: [news, intl, deep]
+
+  # ── Magyar tech és üzleti ──
+  - name: "HWSW"
+    url: "https://www.hwsw.hu/xml/latest_news.xml"
+    priority: 1
+    poll_interval_sec: 300
+    tags: [news, hu, tech]
+    previously_broken: true
+    # 2026-06-14: minden RSS-variant 404 (xml/latest_news.xml, rss.xml, rss/all/news/...), a főoldalon nincs feed <link>.
+    # STILL_FAILING. Revisit (esetleg scraping kell).
+
+  - name: "Bitport"
+    url: "https://bitport.hu/rss"
+    priority: 2
+    poll_interval_sec: 600
+    tags: [news, hu, tech]
+
+  - name: "Portfolio Tech"
+    url: "https://www.portfolio.hu/rss/all.xml"     # 2026-06-14 FIX: cikkek_tech.xml -> 404; nincs tech-specifikus feed, ez az általános
+    priority: 2
+    poll_interval_sec: 600
+    tags: [news, hu, business]
+    previously_broken: true
+
+  - name: "Forbes.hu"
+    url: "https://forbes.hu/feed/"
+    priority: 2
+    poll_interval_sec: 900
+    tags: [news, hu, business]
+
+  - name: "Növekedés.hu"
+    url: "https://novekedes.hu/feed"
+    priority: 3
+    poll_interval_sec: 900
+    tags: [news, hu, sme]
+
+  # ── Builder/developer közösség ──
+  - name: "Hacker News (AI keyword)"
+    url: "https://hnrss.org/newest?q=AI+OR+LLM+OR+agent&points=30"
+    priority: 2
+    poll_interval_sec: 180
+    tags: [community, builder]
+
+  - name: "Hacker News (automation)"
+    url: "https://hnrss.org/newest?q=automation+business&points=20"
+    priority: 3
+    poll_interval_sec: 300
+    tags: [community, business]
+    # Megjegyzés: a points=20 küszöb miatt gyakran 0 találat -> üres feed / STILL_FAILING. Nem hiba, csak szigorú szűrő.
+
+  - name: "Reddit r/LocalLLaMA"
+    url: "https://www.reddit.com/r/LocalLLaMA/.rss"
+    priority: 3
+    poll_interval_sec: 600
+    tags: [community, technical]
+    # Reddit gyakran 429-et ad -> a collector retry-zik (exponenciális backoff).
+
+  - name: "Reddit r/artificial"
+    url: "https://www.reddit.com/r/artificial/.rss"
+    priority: 3
+    poll_interval_sec: 600
+    tags: [community]
+
+  # ── AI hírlevelek (RSS-en keresztül) ──
+  - name: "Latent Space (swyx)"
+    url: "https://www.latent.space/feed"
+    priority: 2
+    poll_interval_sec: 1800
+    tags: [newsletter, builder]
+
+  - name: "Simon Willison"
+    url: "https://simonwillison.net/atom/everything/"
+    priority: 1
+    poll_interval_sec: 600
+    tags: [creator, builder]
+
+  - name: "Stratechery (Ben Thompson)"
+    url: "https://stratechery.com/feed/"
+    priority: 3
+    poll_interval_sec: 3600
+    tags: [newsletter, strategy]
+
+  - name: "One Useful Thing (Ethan Mollick)"
+    url: "https://www.oneusefulthing.org/feed"
+    priority: 2
+    poll_interval_sec: 3600
+    tags: [newsletter, business]
+
+  # ════════════════════════════════════════════
+  # AI Research & Thought Leaders (2026-06-22 — mind HTTP 200, feed-cím egyezik)
+  # priority: high->2, medium->3. A hibás/idegen-csatornás guess-eket javítottuk.
+  # ════════════════════════════════════════════
+  - name: "Andrej Karpathy - YouTube"
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCXUPKJO5MZQN11PqgIvyuvQ"  # FIX: a kapott UCH-... 404 volt
+    priority: 2
+    poll_interval_sec: 1800
+    tags: [creator, research, youtube]
+
+  - name: "Sam Altman - Blog"
+    url: "https://blog.samaltman.com/posts.atom"
+    priority: 2
+    poll_interval_sec: 1800
+    tags: [creator, thought_leader]
+
+  - name: "Lex Fridman - YouTube"
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCSHZKyawb77ixDdsGog4iWA"
+    priority: 2
+    poll_interval_sec: 1800
+    tags: [creator, research, youtube]
+
+  - name: "Yann LeCun - YouTube"
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCMU7l2bIv6MXlgJR3-E33Dw"  # FIX: a kapott UCF9... idegen csatorna (Dr. John Campbell) volt
+    priority: 3
+    poll_interval_sec: 3600
+    tags: [creator, research, youtube]
+
+  - name: "Lenny's Newsletter"
+    url: "https://www.lennysnewsletter.com/feed"
+    priority: 3
+    poll_interval_sec: 3600
+    tags: [creator, newsletter, product]
+
+  # SKIPPED: "Andrew Ng - The Batch" — a deeplearning.ai/the-batch/feed/ 404, és nincs hivatalos RSS/Atom feed.
+  # SKIPPED: "Ethan Mollick - One Useful Thing" — már fent szerepel (lásd a hírlevél szekciót).
+
+  # ════════════════════════════════════════════
+  # AI Automation & Agency Creators (2026-06-22 — mind HTTP 200, feed-cím egyezik)
+  # A megadott YouTube channel_id-k többsége hibás/idegen volt; web search-csel javítva.
+  # ════════════════════════════════════════════
+  - name: "Nate Herk - YouTube"
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UC2ojq-nuP8ceeHqiroeKhBA"  # FIX: kapott UCl9... 404
+    priority: 2
+    poll_interval_sec: 1800
+    tags: [creator, automation, youtube]
+
+  - name: "Liam Ottley - YouTube"
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCui4jxDaMb53Gdh-AZUTPAg"
+    priority: 2
+    poll_interval_sec: 1800
+    tags: [creator, automation, youtube]
+
+  - name: "Jono Catliff - YouTube"
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCnzxPyNnn8jk4bHFk3JUBhA"  # FIX: kapott UCQfM... 404
+    priority: 2
+    poll_interval_sec: 1800
+    tags: [creator, automation, youtube]
+
+  - name: "Nick Saraev - YouTube"
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCbo-KbSjJDG6JWQ_MTZ_rNA"  # FIX: kapott UCHsr... 404
+    priority: 2
+    poll_interval_sec: 1800
+    tags: [creator, automation, youtube]
+
+  - name: "Cole Medin - YouTube"
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCMwVTLZIRRUyyVrkjDpn4pA"  # FIX: kapott UCddi... idegen csatorna (The Verge) volt
+    priority: 2
+    poll_interval_sec: 1800
+    tags: [creator, automation, youtube]
+
+  - name: "Matt Wolfe - YouTube"
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UChpleBmo18P08aKCIgti38g"  # FIX: kapott UCogn... 404
+    priority: 2
+    poll_interval_sec: 1800
+    tags: [creator, ai_news, youtube]
+
+  - name: "Matt Wolfe - Future Tools Blog"
+    url: "https://news.futuretools.io/feed/"  # FIX: futuretools.io/feed 404 (Webflow); a hírlevél-site news.futuretools.io ad feedet
+    priority: 3
+    poll_interval_sec: 3600
+    tags: [creator, ai_news, newsletter]
+
+  - name: "Matthew Berman - YouTube"
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCawZsQWqfGSbCI5yjkdVkTA"  # FIX: kapott UCav5... 404
+    priority: 2
+    poll_interval_sec: 1800
+    tags: [creator, ai_news, youtube]
+
+  - name: "Wes Roth - YouTube"
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCqcbQf6yw5KzRoDDcZ_wBSw"  # FIX: kapott UC2gy... 404
+    priority: 2
+    poll_interval_sec: 1800
+    tags: [creator, ai_news, youtube]
+
+  - name: "Greg Isenberg - YouTube"
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCPjNBjflYl0-HQtUvOx0Ibw"  # FIX: kapott UCaB5... 404
+    priority: 3
+    poll_interval_sec: 3600
+    tags: [creator, startup, youtube]
+
+  - name: "Sabrina Ramonov - YouTube"
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCiGWNa6QK6CiKPvv5-YPv8g"  # FIX: kapott UCrVO... 404
+    priority: 3
+    poll_interval_sec: 3600
+    tags: [creator, automation, youtube]
+
+  - name: "Jack Roberts - YouTube"
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCxVxcTULO9cFU6SB9qVaisQ"  # FIX: kapott UCrqM... idegen csatorna (Tsoding Daily) volt
+    priority: 3
+    poll_interval_sec: 3600
+    tags: [creator, automation, youtube]
+
+  - name: "Logan Kilpatrick - YouTube"
+    url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCAZlsFFzPjkGamdPIse4olQ"  # FIX: kapott UCbmN... idegen csatorna (Talks at Google) volt
+    priority: 3
+    poll_interval_sec: 3600
+    tags: [creator, ai_dev, youtube]
+
+
+# ════════════════════════════════════════════
+# Twitter / X handles
+# ════════════════════════════════════════════
+twitter_handles:
+
+  # ── AI builders (legjobb minőségű tartalom) ──
+  - handle: "swyx"
+    priority: 1
+    tags: [creator, builder]
+  - handle: "simonw"
+    priority: 1
+    tags: [creator, builder]
+  - handle: "karpathy"
+    priority: 1
+    tags: [creator, researcher]
+  - handle: "jxnlco"        # Jason Liu
+    priority: 2
+    tags: [creator, builder]
+  - handle: "rakyll"        # Jaana Dogan
+    priority: 2
+    tags: [creator, dev]
+
+  # ── Agent szakértők ──
+  - handle: "yoheinakajima"
+    priority: 2
+    tags: [creator, agent]
+  - handle: "LangChainAI"
+    priority: 2
+    tags: [company, agent]
+  - handle: "LindyAI"
+    priority: 3
+    tags: [company, agent]
+
+  # ── Business AI ──
+  - handle: "GregKamradt"
+    priority: 2
+    tags: [creator, business]
+  - handle: "AlexBanks"
+    priority: 2
+    tags: [creator, business]
+  - handle: "rowancheung"
+    priority: 3
+    tags: [creator, business]
+  - handle: "bentossell"    # Ben's Bites
+    priority: 2
+    tags: [creator, newsletter]
+
+  # ── AI cégek hivatalos ──
+  - handle: "AnthropicAI"
+    priority: 1
+    tags: [company, frontier]
+  - handle: "OpenAI"
+    priority: 1
+    tags: [company, frontier]
+  - handle: "GoogleDeepMind"
+    priority: 1
+    tags: [company, frontier]
+  - handle: "MistralAI"
+    priority: 2
+    tags: [company]
+  - handle: "huggingface"
+    priority: 2
+    tags: [company, tooling]
+
+
+# ════════════════════════════════════════════
+# LinkedIn URLs (creators + company pages)
+# ════════════════════════════════════════════
+linkedin_sources:
+
+  # ── International AI thought leaders ──
+  - name: "Ethan Mollick"
+    url: "https://www.linkedin.com/in/emollick/"
+    priority: 1
+    tags: [creator, business]
+  - name: "Andrew Ng"
+    url: "https://www.linkedin.com/in/andrewyng/"
+    priority: 2
+    tags: [creator, researcher]
+  - name: "Reid Hoffman"
+    url: "https://www.linkedin.com/in/reidhoffman/"
+    priority: 3
+    tags: [investor, ai]
+
+  # ── Magyar AI / tech kontentgyártók (ha vannak) ──
+  # TODO: kutatás során feltöltjük
+  # - name: "..."
+  #   url: "https://www.linkedin.com/in/..."
+
+  # ── AI cégek céges oldalai ──
+  - name: "Anthropic (company)"
+    url: "https://www.linkedin.com/company/anthropicresearch/"
+    priority: 2
+    tags: [company]
+  - name: "OpenAI (company)"
+    url: "https://www.linkedin.com/company/openai/"
+    priority: 2
+    tags: [company]
+
+
+# ════════════════════════════════════════════
+# Polling stratégia
+# ════════════════════════════════════════════
+# priority 1 = percenként (real-time)
+# priority 2 = 5 percenként
+# priority 3 = 30 percenként
+# priority 4 = óránként
+#
+# Becsült volumen:
+# - 30 RSS source × ~3 új item/nap = 90 RSS item/nap
+# - 17 Twitter handle × ~5 tweet/nap = 85 tweet/nap
+# - 5 LinkedIn source × ~1 post/nap = 5 post/nap
+# Összesen: ~180 új elem/nap
+# Szűrés után: ~10-15 valóban releváns
+# Generálás: ~3-5 posztra való hír/nap

@@ -1,0 +1,42 @@
+# Per-account tartalom stratégia — eloszlás + posztolási gyakoriság.
+# A generator_worker ezt olvassa, és a heti tényleges eloszlás alapján dönti el,
+# milyen content_type-ot generáljon legközelebb (a legnagyobb hiányt pótolva).
+#
+# content_type értékek: educational | workshop_promo | case_study | ai_news
+
+content_distribution:
+  david:
+    educational: 0.40       # how-to, tippek
+    workshop_promo: 0.25
+    case_study: 0.20        # saját buildek
+    ai_news: 0.15
+
+  adam:
+    ai_news: 0.40           # elsőként reagál Magyarországon
+    workshop_promo: 0.25
+    case_study: 0.20
+    educational: 0.15
+
+  plansmart:
+    case_study: 0.45        # ügyféleredmények
+    workshop_promo: 0.25
+    educational: 0.20
+    ai_news: 0.10
+
+posting_frequency:
+  total_per_week: 5         # 4-6 sáv, cél 5
+  per_account_per_week:
+    david: 2
+    adam: 2
+    plansmart: 1
+
+# Content-type → forrás leképezés (a generator_worker ezt használja).
+content_sources:
+  ai_news:
+    source: feed_items          # score >= 6, nem duplikát; FeedItem input
+  educational:
+    source: prompts/educational_topics.yml   # 30 napon belül nem használt topic
+  case_study:
+    source: prompts/case_studies.yml         # még nem használt esettanulmány
+  workshop_promo:
+    source: prompts/workshop_topics.yml      # legrelevánsabb közelgő workshop

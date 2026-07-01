@@ -1,0 +1,140 @@
+[
+  {
+    "post_id": "16a7cb3a656c",
+    "voice": "david",
+    "content_type": "post",
+    "content": "3 hónapja volt egy érdekes döntési pontunk egy ügyfelünknél.\n\nA MyMins-nek kellett egy PPC monitor — figyelje a Google Ads kampányokat, jelezzen ha valami elcsúszik, adjon kontextust a változásokhoz.\n\nAz első kérdés amit Ádámmal feltettünk: vegyek-e kész eszközt, vagy építünk saját rendszert?\n\nMegnéztük a piacon lévő megoldásokat. Vannak jók. Drágák, de jók.\n\nDe aztán végigmentünk azon, hogy a MyMins pontosan mit akar látni — és rájöttünk, hogy a kész eszközök 80%-a olyan dolgot csinál, ami nekik irreleváns. A maradék 20% meg hiányzik belőlük.\n\nMegcsináltuk sajátként.\n\nPython, Supabase a háttérben, Railway-en fut, Claude API értelmezi a változásokat. Minden reggel 7-re kész egy összefoglaló: mi mozdult, mennyit, és mi lehet mögötte.\n\nAz építés kb. 3 hét volt. Nem 3 nap, nem 3 hónap — 3 hét.\n\nAmit ebből tanultam arról, hogy mikor éri meg KKV-knak saját rendszert építeni vs venni:\n\nVegyél kész eszközt ha:\n— A folyamat generikus (email, CRM, sima riport)\n— Nincs speciális kontextus amit a rendszernek értenie kell\n— Gyorsan kell, és a 80%-os megoldás is elég\n\nÉpíts sajátot ha:\n— A cég adatmodellje egyedi (MyMins-nél pl. a kampánystruktúra nem standard)\n— A \"mit jelent ez nekem\" kérdés nem megválaszolható template-tel\n— Hosszú távon skálázni akarod, és a vendor lock-in problémát okozna\n\nA valódi tanulság nem tech. Az az, hogy a legtöbb KKV nem teszi fel a kérdést elég pontosan: nem azt kérdezi, hogy \"mire van szükségem\", hanem hogy \"milyen eszközt vegyek\".\n\nEz a két kérdés nem ugyanaz.",
+    "current_visual_url": null,
+    "expected_visual_elements": [
+      "dark bg #04060a",
+      "bold display type",
+      "monospace / code-diagram",
+      "stat: 80%",
+      "PlanSmart watermark"
+    ]
+  },
+  {
+    "post_id": "9ae2ab64eb0f",
+    "voice": "adam",
+    "content_type": "post",
+    "content": "A Bolt.new CEO-ja elmondta, hogy a felhasználóik többsége nem fejlesztő.\n\nEz az egyetlen mondat, ami miatt érdemes volt megnézni ezt az interjút.\n\nEric Simons 7 évig építette a StackBlitz-et fejlesztőknek. Aztán jött a Bolt.new, és hirtelen kiderült: a legnagyobb felhasználói csoport nem ír kódot. Marketingesek, alapítók, produktmenedzserek — emberek, akiknek volt egy problémájuk, de nem volt mellette egy fejlesztő.\n\nMagyar KKV-s szemmel nézve ez pontosan az a rés, ami itthon is tátong.\n\nMennyi ötlet hal meg azért, mert \"majd ha lesz rá budget fejlesztőre\"? Mennyi belső folyamatot nem digitalizálnak azért, mert az IT kapacitás mindig máshol van lekötve?\n\nA \"vibe coding\" — ez a csúnya szó — valójában ezt az egyetlen dolgot csinálja: kiveszi az egyenletből azt a szűk keresztmetszetet, hogy valaki tudjon kódolni.\n\nA $0-ról $40M ARR-ra való növekedés nem a technológiáról szól. Arról szól, hogy végre elértek egy közönséget, amelyik mindig is akart, de nem tudott.\n\nEz itthon sem tech-kérdés. Ez kapacitás-kérdés.\n\nA 20-50 fős cégek többségénél van 2-3 ember, akinek van elég domain-tudása ahhoz, hogy megmondja mit kellene megcsinálni — de nincs mellé az eszköz, hogy maga is nekiálljon.\n\nEz változik most. Nem holnapra, de változik.\n\nNálatok ki az, akiben megvan a tudás, de eddig nem volt mellé az eszköz?",
+    "current_visual_url": "https://cdn.muapi.ai/outputs/generated/b335582ce1fe468e8b90389a57684f82.png",
+    "expected_visual_elements": [
+      "dark bg #04060a",
+      "bold display type",
+      "metric / before-after chart",
+      "PlanSmart watermark"
+    ]
+  },
+  {
+    "post_id": "29f4eeb31a5c",
+    "voice": "plansmart",
+    "content_type": "post",
+    "content": "Egészségügyi / wellness szektorban működő ügyfélnek építettük meg az automatizált foglalási rendszerét.\n\nHelyzet:\nA Mozgató Központ csapata napi 2 órát töltött manuális időpontkezeléssel: bejövő üzenetek, visszajelzések, naptárba rögzítés, manuális email-visszaigazolások. Ez hetente 10+ munkaóra volt — minden héten, minden héten újra.\n\nA legnagyobb fájdalompont: hétvégén és munkaidőn kívül érkeztek az érdeklődők, de csak hétfőn reggel tudtak reagálni rájuk. Addig a potenciális ügyfél máshoz ment.\n\nMegoldás:\nFelépítettünk egy teljesen automatizált foglalási folyamatot:\n— Az érdeklődő önállóan foglal időpontot egy egyszerű felületen\n— Azonnal megy a visszaigazoló email (személyre szabott, nem sablon-ízű)\n— Az új foglalás automatikusan bekerül a csapat Notion-naptárába\n— Emlékeztető email megy 24 órával az időpont előtt\n\nEredmény:\n• Napi 2 óra adminisztráció → 0 perc kézi munka\n• 24/7 foglalhatóság — hétvégén is, este 10-kor is\n• Az első héten 3 olyan foglalás érkezett munkaidőn kívül, amit a régi rendszer elveszített volna\n• A csapat azóta az ügyfelekre koncentrál, nem az adminisztrációra\n\nHa a cégedben is megy el napi 1-2 óra hasonló, ismétlődő folyamatra — szívesen meghallgatjuk a helyzetedet kommentben.\n\n#AIautomation #KKV #Automatizálás #Notion #FoglalásAutomatizálás",
+    "current_visual_url": "https://cdn.muapi.ai/outputs/generated/f6db241760624f27ba2fab86e96fc5ca.png",
+    "expected_visual_elements": [
+      "dark bg #04060a",
+      "bold display type",
+      "PlanSmart wordmark",
+      "stat: 2 óra",
+      "PlanSmart watermark"
+    ]
+  },
+  {
+    "post_id": "b80f4df7348a",
+    "voice": "david",
+    "content_type": "post",
+    "content": "Tegnap délután 4 órán át debuggoltam egy queue logikát amit azt hittem már kész van.\n\nA content pipeline-unk — ami figyeli a híreket, megskoráz mindent Claude-dal, majd posztot generál — 16 percenként pollolt. 16 perc. Minden egyes check között ott ült a rendszer és várt.\n\nÁtírtam async event-driven megközelítésre. Ha új item jön a queue-ba, azonnal feldolgozza. Nem vár semmire.\n\nPoll loop: 16 perc → 3,5 másodperc.\n\nNem teljesítmény-optimalizálás volt a cél. Csak rájöttem hogy rosszul gondoltam a problémát: nem azt kérdeztem, \"mikor nézzük meg újra?\" — hanem azt kellett kérdezni, \"mi történjen, ha valami változik?\" Ez más kérdés. Más architektúra is lett belőle.\n\nAmiért ezt megosztom:\n\nA KKV-knak nem több ember kell a legtöbb helyen. Jobb rendszer kell.\n\nAmikor egy cégnél valaki 12 órát tölt táblázatba másolt adatokkal hetente — az nem kapacitásprobléma. Az architektúraprobléma. A rendszer rossz kérdést tesz fel, rossz időben, rossz módon.\n\nA 16 perces poll loop az én verzióm volt ebből. Működött. Csak rosszul gondoltam a logikát.\n\nEz az, amit most ügyfeleknél is látok: rengeteg folyamat fut, de az alapkérdés rossz. Nem azt kell kérdezni, hogy \"kinek adjuk ezt a feladatot?\" — hanem hogy \"miért van ez a feladat egyáltalán embernek?\"",
+    "current_visual_url": null,
+    "expected_visual_elements": [
+      "dark bg #04060a",
+      "bold display type",
+      "monospace / code-diagram",
+      "stat: 16 perc",
+      "PlanSmart watermark"
+    ]
+  },
+  {
+    "post_id": "a7ca5ea92b6f",
+    "voice": "adam",
+    "content_type": "post",
+    "content": "A Bolt.new CEO-ja elmondta, hogy a felhasználóik többsége nem fejlesztő.\n\nEz az egy mondat megér egy misét.\n\nEric Simons 7 évet épített valamit, ami egy éjszaka alatt lett „overnight success\". A sztori ismert. Ami kevésbé ismert: a piac akiket elért, nem az akikre számítottak.\n\nNem a senior devek. Nem a tech startup alapítók.\nHanem azok, akiknek volt egy ötletük, de nem volt programozójuk.\n\nMagyar KKV kontextusban ez azt jelenti:\nAz a 12 fős e-commerce cég, akiknek kellene egy belső eszköz az ajánlatkérések kezelésére, de nem akarnak 6 hónapig fejlesztőt keresni — ma már megcsinálhatja maga.\n\nNem perfekten. Nem skálázhatóan.\nDe megcsinálhatja. Elindulhat. Megnézheti hogy működik-e.\n\nA kis csapatoknak ez hatalmas. Nem azért mert \"ingyen fejlesztő\". Hanem azért mert a kísérletezés ára drámaian lecsökkent.\n\nKorábban egy belső eszköz ötlete vagy 800.000 Ft-os fejlesztést jelentett, vagy elmaradt. Most az elmarad opció kevesebb értelmet kezd el kapni.\n\n0-ról 40M USD ARR-re jutottak — főleg azzal, hogy a nem-fejlesztők piacát fedezték fel.\n\nA kérdés amit felteszek magamnak, és neked is felteszek:\nA te céged hány döntésnél mondja azt, hogy \"kellene egy kis eszköz ehhez, de ki fogja megcsinálni\"?\n\nEzek azok a döntések amik most másképp néznek ki.",
+    "current_visual_url": "https://cdn.muapi.ai/outputs/generated/d48593aa11f14a05aef764e4c1eba003.png",
+    "expected_visual_elements": [
+      "dark bg #04060a",
+      "bold display type",
+      "metric / before-after chart",
+      "stat: 800.000 Ft",
+      "PlanSmart watermark"
+    ]
+  },
+  {
+    "post_id": "6e2ad766f4d7",
+    "voice": "plansmart",
+    "content_type": "case_study",
+    "content": "Egy budapesti mozgásterapeutás stúdió (8 fős csapat) napi 2 óráját vitte el az időpontkezelés.\n\nHelyzet:\nA recepciós minden nap telefonon és e-mailben egyeztette az időpontokat, manuálisan vezette a naptárt, és kézzel küldte ki a visszaigazolásokat. Ha valaki lemondott, azt is embernek kellett átvezetni — minden rendszerben külön. Hétvégén és esti időpontokban egyáltalán nem volt elérhető a foglalás.\n\nMegoldás:\nFelépítettünk egy automatizált rendszert, amelyben az ügyfél önállóan foglal a weboldalon, azonnali visszaigazoló e-mailt kap, az időpont automatikusan bekerül a stúdió Notion-alapú nyilvántartásába, és lemondás esetén a hely automatikusan újra elérhetővé válik.\n\nEredmény:\n• Napi 2 óra adminisztráció → 0 kézi munka\n• 24/7 foglalhatóság — hétvégén és este is\n• Az első hónapban a foglalások 34%-a munkaidőn kívül érkezett\n• A recepciós teljes munkaideje átcsoportosítható ügyfélkiszolgálásra\n\nEz nem egyedi eset. Sok kis- és középvállalkozásnál az időpontkezelés az egyik első folyamat, ahol az automatizálás azonnal mérhető hatást hoz — extra fejlesztés vagy IT-csapat nélkül.\n\nIsmerős a helyzet a cégedben? Oszd meg a kommentben, hogyan kezeli most a csapatod.",
+    "current_visual_url": null,
+    "expected_visual_elements": [
+      "dark bg #04060a",
+      "bold display type",
+      "PlanSmart wordmark",
+      "stat: 2 óra",
+      "PlanSmart watermark"
+    ]
+  },
+  {
+    "post_id": "df3684b0716b",
+    "voice": "david",
+    "content_type": "post",
+    "content": "Végre valaki rendesen megmagyarázta az AI agent loop-ok típusait.\n\nLenny's Newsletter-ben volt egy anyag erről — és ritkán látom ilyen tisztán leírva, hogy mi a különbség egy heartbeat, egy cron, egy goal-based loop és egy subagent orchestration között.\n\nMert én is sokáig azt hittem, hogy \"agent\" az, hogy Claude API-t hívok meg egyszer, kap egy promptot, visszaad valamit.\n\nNem. Az agent az, amikor a rendszer maga dönti el mikor, mit, hány alkalommal fut — és mikor áll meg.\n\nAmi a legjobban bevésődött:\n\n**Goal-based loop** — nem időre megy, hanem feltételre. Addig fut, amíg a cél nem teljesül. Ez az, ami igazán különbözik a sima scheduled job-tól. Erre épül egy jó PR review agent: nem 9-kor indul, hanem amikor pull request nyílt.\n\n**Subagent orchestration** — egy fő agent lebontja a feladatot, kiosztja részfeladatonként, összegyűjti az eredményt. Ezt most byggelem mi is egy ügyfélnél. Nem egyszerű, de skálázódik.\n\nAmi viszont hiányzik az ilyen anyagokból általában: mi van, ha az agent loop elsül? Ki fogja el a hibát? Hova logolódik?\n\nMert production-ben a loop design 30%-a. A maradék 70% error handling és observability.\n\nEzt tanultam meg az elmúlt 3 hónapban saját projekten — a kemény úton.",
+    "current_visual_url": "https://cdn.muapi.ai/outputs/generated/03d42377e6ef4f56b4545f30f887ff81.png",
+    "expected_visual_elements": [
+      "dark bg #04060a",
+      "bold display type",
+      "monospace / code-diagram",
+      "stat: 30%",
+      "PlanSmart watermark"
+    ]
+  },
+  {
+    "post_id": "c565209d581a",
+    "voice": "adam",
+    "content_type": "post",
+    "content": "Általában azt látom, hogy egy KKV-s vezető megveszi a szoftvert, feliratkozik az AI eszközre, majd 3 hónap múlva azt mondja: \"nem vált be nálunk.\"\n\nNem az eszköz a probléma.\n\nEgy 40 fős könyvelő irodánál nemrég végigmentünk a napi munkafolyamatokon. Volt CRM, volt projektkezelő, volt automatizálási tool — mindegyikért fizettek. A csapat mégis Excelben vezette a határidőket, mert \"így megszokták\".\n\nAz AI bevezetése előtt megkérdeztem a tulajdonost: le tudja-e írni nekem 10 percben, hogy mi történik pontosan miután beérkezik egy új ügyfél-megkeresés? Ki mit csinál, miben, mennyi idő alatt?\n\nNem tudta leírni.\n\nÉs ez nem kritika — hanem a legtöbb KKV valósága. A folyamat a fejekben él, nem a rendszerekben. Mindenki tudja a saját részét, de az egész láthatatlan.\n\nEbbe az eszköz nem tud belépni. Nem azért mert gyenge — hanem mert nincs mire illeszkednie.\n\nA sorrend ez:\n1. Mi az a folyamat, amit ismétlünk hetente legalább 3-szor?\n2. Le tudja-e írni valaki úgy, hogy egy új kolléga is értse?\n3. Ha igen — akkor jön az eszköz.\n\nA legtöbb cég a 3. lépésnél kezd. Aztán csodálkozik hogy \"nem működik az AI\".\n\nNem az AI a szűk keresztmetszet.\nA dokumentált folyamat az.\n\nNálad melyik az a folyamat, ami mindenki fejében él, de sehol nincs leírva?",
+    "current_visual_url": null,
+    "expected_visual_elements": [
+      "dark bg #04060a",
+      "bold display type",
+      "metric / before-after chart",
+      "stat: 10 perc",
+      "PlanSmart watermark"
+    ]
+  },
+  {
+    "post_id": "238c5ef160b9",
+    "voice": "david",
+    "content_type": "post",
+    "content": "Az Anthropic kihozta a Claude Opus 4.8-at.\n\nAmit azonnal megnéztem: agentic tasks és long-running work teljesítmény.\n\nMert ez az a kettő ami nálunk production-ben a legtöbbet bottleneck.\n\nEddig az Opus 4-gyel az volt a tapasztalat, hogy ha egy workflow 10+ lépéses lett, elkezdett \"elfáradni\" — context vége felé romlik a döntésminőség, és néha visszalép már meghozott döntésekre.\n\nHa a 4.8 valóban hozza a \"consistency to handle long-running work\" ígéretet, az nem marketing szöveg — az azt jelenti, hogy az ügyfélnél futó PPC monitor pipeline-ból kivehetek 3 checkpoint-ot amit eddig csak azért raktam be, hogy a modell \"emlékezzen\" hol tart.\n\nKevesebb overhead, kevesebb token, gyorsabb futás.\n\nTesztelni fogom a héten élesben. Ha van érdemi különbség a 4-eshez képest long-context döntéshozatalban, megírom.\n\nAddig: az Opus tier drágább mint a Sonnet, szóval csak ott érdemes váltani ahol valóban kell a komplexitás. Ne frissíts reflexből.",
+    "current_visual_url": null,
+    "expected_visual_elements": [
+      "dark bg #04060a",
+      "bold display type",
+      "monospace / code-diagram",
+      "PlanSmart watermark"
+    ]
+  },
+  {
+    "post_id": "a9cb525f0ea0",
+    "voice": "adam",
+    "content_type": "post",
+    "content": "Megjelent egy új Claude modell. A tizenegyedik idén.\n\nEgy 40 fős cég tulajdonosa kérdezte tőlem nemrég: \"Mikor állapodik meg ez az egész? Mikor lehet végre eldönteni, melyik eszközt használjuk?\"\n\nHonest válasz: nem fog. Legalábbis nem úgy, ahogy ő gondolta.\n\nDe itt van a félreértés: a versenynek nem kell követni. Egy jól felépített folyamat ma is ugyanúgy megéri magát, mint három hónap múlva — az \"alatta lévő motor\" frissülhet, a logika ugyanaz marad.\n\nAmi viszont változik: a benchmark-ok szépen emelkednek a kódolás és az agentic feladatok területén. Magyarra fordítva: az automatizált folyamatok, ahol az AI egymást követő lépéseket hajt végre felügyelet nélkül, egyre megbízhatóbbak lesznek. Ami fél évvel ezelőtt még kísérletnek számított, ma már éles rendszerben fut stabil cégeknél.\n\nEgy könyvelő iroda számára ez azt jelenti, hogy a hónap végi riport-összesítés, amit most ketten csinálnak 3 nap alatt, nem kétlépéses automatizálás lesz — hanem tíz. Megbízhatóan.\n\nA lemaradás nem abban van, hogy nem az újabb modellt használod.\nA lemaradás abban van, hogy még nem döntötted el, melyik folyamatod az első.",
+    "current_visual_url": null,
+    "expected_visual_elements": [
+      "dark bg #04060a",
+      "bold display type",
+      "metric / before-after chart",
+      "stat: 3 nap",
+      "PlanSmart watermark"
+    ]
+  }
+]

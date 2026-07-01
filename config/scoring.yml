@@ -1,0 +1,27 @@
+# Relevancia szűrés konfigja — a src/filters/keyword_filter.py és a
+# relevance_scorer (threshold) használja.
+
+# Azonnali skip, ha bármelyik kulcsszó előfordul a címben/tartalomban/URL-ben.
+# (Akadémiai / tisztán pénzügyi zaj, ami KKV-knak nem releváns.)
+skip_keywords:
+  - arxiv
+  - preprint
+  - paper
+  - dataset
+  - benchmark
+  - earnings
+  - stock
+
+# +2 pont a relevancia score-hoz, ha bármelyik kulcsszó előfordul.
+# (KKV / automation / üzleti relevancia jelek.)
+boost_keywords:
+  - automation
+  - workflow
+  - agent
+  - KKV
+  - SME
+  - small business
+  - pricing
+
+# A scorer küszöbe: ennél kisebb (boost utáni) score -> nem megy tovább generálásra.
+relevance_threshold: 6

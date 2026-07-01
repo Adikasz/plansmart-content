@@ -1,0 +1,21 @@
+[project]
+name = "plansmart-content"
+version = "0.1.0"
+description = "Realtime AI-powered content generator for 3 LinkedIn accounts and X"
+authors = [
+    { name = "Jécsai Dávid", email = "david@plansmart.live" },
+    { name = "Nagy Ádám" },
+]
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "B"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

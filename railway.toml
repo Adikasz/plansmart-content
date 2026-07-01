@@ -1,0 +1,17 @@
+[build]
+builder = "RAILPACK"
+
+# ════════════════════════════════════════════
+# EGY SERVICE — a unified orchestrator (src.workers.main):
+#   APScheduler (collector / filter / breaking / morning)
+#   + Telegram approval bot
+#   + health szerver (:$PORT, /health, /status)
+# mind egy process-ben, egy event loopban.
+#
+# RAILPACK builder: auto-detektálja a Python projektet (requirements.txt /
+# pyproject.toml), nem használ nixpacks.toml-t.
+# ════════════════════════════════════════════
+[deploy]
+startCommand = "python -m src.workers.main"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

@@ -1,0 +1,112 @@
+# Fiók konfiguráció — 3 LinkedIn + 2 X
+# Credentials NEM ide — env változókba!
+# Ez a fájl csak metaadat és voice mapping.
+
+accounts:
+
+  # ════════════════════════════════════════════
+  # DÁVID — Builder voice
+  # ════════════════════════════════════════════
+  david:
+    full_name: "Jécsai Dávid"
+    voice_id: "david"
+    voice_prompt: "prompts/voice_david.md"
+
+    linkedin:
+      linkedin_account_id: "david"      # token_store / publisher account-kulcs
+      author_type: "person"            # urn:li:person:<id>
+      linkedin_urn: ""                  # urn:li:person:<id> — OAuth után töltjük
+      profile_url: "https://www.linkedin.com/in/..."     # TODO
+      access_token_env: "LINKEDIN_DAVID_TOKEN"
+      user_id_env: "LINKEDIN_DAVID_USER_ID"
+      enabled: true
+      posts_per_week: 4
+      posting_days: [mon, wed, fri, sun]  # 4. opcionális
+      posting_times: ["08:30", "17:30"]   # random kettő közül
+
+    twitter:
+      handle: "..."                                       # TODO
+      access_token_env: "TWITTER_DAVID_TOKEN"
+      access_secret_env: "TWITTER_DAVID_SECRET"
+      enabled: true
+      posts_per_week: 12        # napi 1-2 hot take
+      thread_max_count: 2       # max 2 thread/hét
+
+
+  # ════════════════════════════════════════════
+  # ÁDÁM — Strategist voice
+  # ════════════════════════════════════════════
+  adam:
+    full_name: "Nagy Ádám"
+    voice_id: "adam"
+    voice_prompt: "prompts/voice_adam.md"
+
+    linkedin:
+      linkedin_account_id: "adam"       # token_store / publisher account-kulcs
+      author_type: "person"            # urn:li:person:<id>
+      linkedin_urn: ""                  # urn:li:person:<id> — OAuth után töltjük
+      profile_url: "https://www.linkedin.com/in/..."     # TODO
+      access_token_env: "LINKEDIN_ADAM_TOKEN"
+      user_id_env: "LINKEDIN_ADAM_USER_ID"
+      enabled: true
+      posts_per_week: 4
+      posting_days: [tue, thu, sat, sun]
+      posting_times: ["09:00", "18:00"]
+
+    twitter:
+      handle: "..."                                       # TODO
+      access_token_env: "TWITTER_ADAM_TOKEN"
+      access_secret_env: "TWITTER_ADAM_SECRET"
+      enabled: true
+      posts_per_week: 10
+      thread_max_count: 2
+
+
+  # ════════════════════════════════════════════
+  # PLANSMART — Brand voice
+  # ════════════════════════════════════════════
+  plansmart:
+    full_name: "PlanSmart"
+    voice_id: "plansmart"
+    voice_prompt: "prompts/voice_plansmart.md"
+
+    linkedin:
+      linkedin_account_id: "plansmart"  # token_store / publisher account-kulcs
+      author_type: "organization"      # urn:li:organization:<id>
+      linkedin_urn: ""                  # urn:li:organization:<id> — OAuth után töltjük
+      page_url: "https://www.linkedin.com/company/plansmart/"  # TODO
+      access_token_env: "LINKEDIN_PLANSMART_TOKEN"
+      organization_id_env: "LINKEDIN_PLANSMART_ORG_ID"
+      enabled: true
+      posts_per_week: 3
+      posting_days: [wed, fri, sun]
+      posting_times: ["10:00"]
+      post_types:
+        wed: "case_study"        # esettanulmány
+        fri: "workshop_promo"    # workshop hirdetés
+        sun: "weekly_recap"      # heti összefoglaló (opcionális)
+
+    # PlanSmart-nak nincs X fiók kezdetben
+    twitter:
+      enabled: false
+
+
+# ════════════════════════════════════════════
+# Telegram approval csatornák
+# ════════════════════════════════════════════
+telegram:
+  bot_token_env: "TELEGRAM_BOT_TOKEN"
+
+  # Két különböző chat / channel:
+  channels:
+    posts:
+      chat_id_env: "TELEGRAM_POSTS_CHAT_ID"
+      description: "Új posztok approve/edit/regenerate/skip"
+
+    reactions:
+      chat_id_env: "TELEGRAM_REACTIONS_CHAT_ID"
+      description: "Valós idejű reakciók friss hírekre (sürgős!)"
+
+  # Notification beállítások
+  hot_alert_score: 9              # 9+ pontos hír azonnali külön ping
+  hot_alert_silent_hours: [22, 7] # 22:00-7:00 közt csendes mode

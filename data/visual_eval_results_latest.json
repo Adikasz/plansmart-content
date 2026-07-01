@@ -1,0 +1,1140 @@
+{
+  "generated_at": "2026-06-30T01:06:15",
+  "dataset_size": 10,
+  "variants": [
+    "A",
+    "B",
+    "C",
+    "D"
+  ],
+  "images_generated": 40,
+  "total_cost": 1.28,
+  "aggregate": {
+    "per_variant_avg": {
+      "A": 5.38,
+      "B": 5.1,
+      "C": 5.43,
+      "D": 5.15
+    },
+    "per_variant_subscores": {
+      "A": {
+        "brand_alignment_score": 6.8,
+        "hungarian_text_quality": 3.9,
+        "scroll_stopping_score": 7.6,
+        "professional_score": 5.4
+      },
+      "B": {
+        "brand_alignment_score": 6.4,
+        "hungarian_text_quality": 4.1,
+        "scroll_stopping_score": 7.2,
+        "professional_score": 5.2
+      },
+      "C": {
+        "brand_alignment_score": 6.9,
+        "hungarian_text_quality": 3.6,
+        "scroll_stopping_score": 7.4,
+        "professional_score": 5.5
+      },
+      "D": {
+        "brand_alignment_score": 6.5,
+        "hungarian_text_quality": 4.0,
+        "scroll_stopping_score": 7.2,
+        "professional_score": 5.3
+      }
+    },
+    "per_voice_avg": {
+      "david": {
+        "A": 5.08,
+        "B": 5.5,
+        "C": 5.6,
+        "D": 4.4
+      },
+      "adam": {
+        "A": 5.7,
+        "B": 4.5,
+        "C": 4.92,
+        "D": 5.65
+      },
+      "plansmart": {
+        "A": 5.35,
+        "B": 5.5,
+        "C": 6.1,
+        "D": 5.65
+      }
+    },
+    "winner_overall": "C",
+    "winner_per_voice": {
+      "david": "C",
+      "adam": "A",
+      "plansmart": "C"
+    }
+  },
+  "posts": [
+    {
+      "voice": "david",
+      "visual_text": {
+        "main_text": "80% IRRELEVÁNS, 20% HIÁNYZIK",
+        "sub_text": "3 hét alatt saját PPC monitor rendszert építettünk a kész eszközök helyett",
+        "stat": "3 hét"
+      },
+      "variants": [
+        {
+          "variant": "A",
+          "label": "produkciós (current)",
+          "prompt": "Dark #04060a background. Bold Bebas Neue / Neue Machina display typography.\n\nMAIN TEXT (huge, centered, white, Hungarian, all caps):\n\"80% IRRELEVÁNS, 20% HIÁNYZIK\"\n\nSTAT (giant, teal glow): \"3 hét\"\n\nSUBTEXT (smaller, grey, Hungarian):\n\"3 hét alatt saját PPC monitor rendszert építettünk a kész eszközök helyett\"\n\nBottom right: small PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nCinematic lighting, slight film grain, Soul Cinema aesthetic.\nHigh contrast, scroll-stopping, trending AI content creator style.\nNo people. No clutter. Single focal point. No marketing buzzwords.\nVoice style: technical builder — terminal/code/system-diagram accents, cool teal glow, monospace details.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/a4609286435c4851ae93cdfcc700f4a7.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 3,
+            "scroll_stopping_score": 7,
+            "professional_score": 4,
+            "anti_pattern_flags": [
+              "garbled Hungarian subtitle text ('alazlk', 'épilkéttunk', 'helyzett' — nonsense/misspelled words)",
+              "background HUD/code elements are generic AI-art UI overlay",
+              "multiple competing focal points (headline stat + '3 hét' + subtitle + background clutter)",
+              "background text panels are hallucinated/unreadable pseudo-code"
+            ],
+            "overall_score": 4.5,
+            "feedback": "A headline ('80% IRRELEVÁNS, 20% HIÁNYZIK') és a '3 hét' focal elem erős és brand-conform, de a subtitle szöveg súlyosan hibás magyarsággal van írva ('alazlk', 'épilkéttunk', 'helyzett') — ez azonnal hiteltelenné teszi a posztot; a háttéri HUD-panelek olvashatatlan, AI-generált pseudo-szövege szintén anti-pattern. A subtitle szöveget kézzel kell beírni (pl. 'Saját PPC monitorrendszert építettünk 3 hét alatt a kész eszközök helyett'), és a háttér zajt csökkenteni kell a cinematic fókusz érdekében."
+          }
+        },
+        {
+          "variant": "B",
+          "label": "minimalista (kevesebb elem, nagyobb type)",
+          "prompt": "Dark #04060a near-black background, vast negative space. Bebas Neue / Neue Machina display typography, MASSIVE.\n\nONE focal line (huge, centered, white, Hungarian, all caps):\n\"80% IRRELEVÁNS, 20% HIÁNYZIK\"\n\nTiny stat detail (monospace, low-key): \"3 hét\"\nOptional tiny caption (Hungarian, small, grey, bottom): \"3 hét alatt saját PPC monitor rendszert építettünk a kész eszközök helyett\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nMinimalist, high contrast, a single idea. Cinematic but restrained.\nNo people. No stock-photo clichés. No marketing buzzwords. Absolutely no clutter — one element only.\nVoice style: technical builder — terminal/code/system-diagram accents, cool teal glow, monospace details.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/483ac6f0527a473ba6e0293b1f70274e.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 6,
+            "hungarian_text_quality": 4,
+            "scroll_stopping_score": 7,
+            "professional_score": 5,
+            "anti_pattern_flags": [
+              "garbled subtitle text ('sssjat', 'renslszert', 'épjíktünk', 'helyzett' — nonsense/hallucinated words in bottom caption)",
+              "placeholder watermark '[BRAND_LOGO]' instead of real PlanSmart mark",
+              "generic AI-art HUD/UI element competing with focal text",
+              "font is not Bebas Neue / Neue Machina — appears to be a rounded sans, off-brand",
+              "'3 hét' label top-left creates a second focal point, minor clutter"
+            ],
+            "overall_score": 4.8,
+            "feedback": "The headline '80% IRRELEVÁNS, 20% HIÁNYZIK' is bold and concept-correct, but the bottom caption is completely garbled AI-hallucinated Hungarian — fix or remove it before publishing. Replace the placeholder [BRAND_LOGO] with the actual PlanSmart watermark and swap the typeface to the brand-specified Bebas Neue / Neue Machina to bring brand alignment up significantly."
+          }
+        },
+        {
+          "variant": "C",
+          "label": "filmes (több grain, atmoszféra)",
+          "prompt": "Dark #04060a cinematic background with volumetric lighting, atmospheric haze, pronounced film grain and subtle lens vignette. Moody, depth-of-field bokeh.\n\nMAIN TEXT (large, centered, white, Hungarian, all caps):\n\"80% IRRELEVÁNS, 20% HIÁNYZIK\"\n\nSTAT (glowing accent): \"3 hét\"\nSUBTEXT (smaller, grey, Hungarian):\n\"3 hét alatt saját PPC monitor rendszert építettünk a kész eszközök helyett\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nStrong 'Soul Cinema' aesthetic: dramatic light, grain, high contrast, premium movie-poster feel.\nNo people. No stock-photo clichés. No marketing buzzwords. Single focal point.\nVoice style: technical builder — terminal/code/system-diagram accents, cool teal glow, monospace details.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/a5bb22ac874a467c8c0edcb073d2bfe5.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 3,
+            "scroll_stopping_score": 8,
+            "professional_score": 5,
+            "anti_pattern_flags": [
+              "garbled background text (nonsense Hungarian/pseudo-code mix throughout)",
+              "subtitle text contains hallucinated/garbled Hungarian: 'altakt saját PPC monitor vezépzleinzk a kész eszközök helyztt'",
+              "multiple competing background UI elements creating clutter",
+              "generic AI-art HUD/dashboard overlay aesthetic"
+            ],
+            "overall_score": 5.5,
+            "feedback": "A headline ('80% IRRELEVÁNS, 20% HIÁNYZIK') is punchy and on-brand, but the subtitle copy is visibly garbled AI-hallucinated Hungarian ('altakt', 'vezépzleinzk', 'helyztt') which would destroy credibility with any Hungarian B2B audience — this must be fixed with real, typeset text. Strip or heavily blur the background pseudo-UI noise to achieve the 'one clear focal element' rule and push the cinematic grain/lighting further to compensate."
+          }
+        },
+        {
+          "variant": "D",
+          "label": "adat-fókuszú (szám dominál)",
+          "prompt": "Dark #04060a background, faint technical grid. The NUMBER is the hero.\n\nGIANT METRIC (dominant, centered, teal glow, monospace+display mix):\n\"3 hét\"\n\nMAIN LABEL (Hungarian, all caps, above or below the number):\n\"80% IRRELEVÁNS, 20% HIÁNYZIK\"\nSUBTEXT (small, grey, Hungarian):\n\"3 hét alatt saját PPC monitor rendszert építettünk a kész eszközök helyett\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nData-visual energy: the metric dominates the frame, everything else supports it. Cinematic lighting, slight grain, high contrast.\nNo people. No stock-photo clichés. No marketing buzzwords. One focal number.\nVoice style: technical builder — terminal/code/system-diagram accents, cool teal glow, monospace details.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/ffc424389b2940e1be4c7873e9f44ba1.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 6,
+            "hungarian_text_quality": 2,
+            "scroll_stopping_score": 6,
+            "professional_score": 3,
+            "anti_pattern_flags": [
+              "garbled Hungarian body text ('allazt sáját', 'renizzert', 'épíźktünk', 'helyzezt' — nonsense AI-hallucinated words)",
+              "duplicate headline repeated twice creating clutter",
+              "background UI elements feel generic AI-rendered dashboard noise",
+              "watermark labeled 'BRAND LOGO' placeholder — not a real PlanSmart mark"
+            ],
+            "overall_score": 3.5,
+            "feedback": "A hero stat ('3 hét') és a dark háttér iránya jó, de a body copy teljesen olvashatatlan — az AI garbled, nem létező magyar szavakat generált ('allazt', 'renizzert', 'épíźktünk'), ami súlyos brand-hitelességi probléma; a szöveget minden esetben kézzel kell megírni és utólag rá kell helyezni. A duplikált alcím és a zsúfolt háttér-UI eltávolítandó, egyetlen tiszta fókuszelemre van szükség."
+          }
+        }
+      ],
+      "winner_variant": "C",
+      "winner_score": 5.5,
+      "total_cost": 0.128,
+      "post_id": "16a7cb3a656c",
+      "content_type": "post",
+      "content": "3 hónapja volt egy érdekes döntési pontunk egy ügyfelünknél.\n\nA MyMins-nek kellett egy PPC monitor — figyelje a Google Ads kampányokat, jelezzen ha valami elcsúszik, adjon kontextust a változásokhoz.\n\nAz első kérdés amit Ádámmal feltettünk: vegyek-e kész eszközt, vagy építünk saját rendszert?\n\nMegnéztük a piacon lévő megoldásokat. Vannak jók. Drágák, de jók.\n\nDe aztán végigmentünk azon, hogy a MyMins pontosan mit akar látni — és rájöttünk, hogy a kész eszközök 80%-a olyan dolgot csinál, ami nekik irreleváns. A maradék 20% meg hiányzik belőlük.\n\nMegcsináltuk sajátként.\n\nPython, Supabase a háttérben, Railway-en fut, Claude API értelmezi a változásokat. Minden reggel 7-re kész egy összefoglaló: mi mozdult, mennyit, és mi lehet mögötte.\n\nAz építés kb. 3 hét volt. Nem 3 nap, nem 3 hónap — 3 hét.\n\nAmit ebből tanultam arról, hogy mikor éri meg KKV-knak saját rendszert építeni vs venni:\n\nVegyél kész eszközt ha:\n— A folyamat generikus (email, CRM, sima riport)\n— Nincs speciális kontextus amit a rendszernek értenie kell\n— Gyorsan kell, és a 80%-os megoldás is elég\n\nÉpíts sajátot ha:\n— A cég adatmodellje egyedi (MyMins-nél pl. a kampánystruktúra nem standard)\n— A \"mit jelent ez nekem\" kérdés nem megválaszolható template-tel\n— Hosszú távon skálázni akarod, és a vendor lock-in problémát okozna\n\nA valódi tanulság nem tech. Az az, hogy a legtöbb KKV nem teszi fel a kérdést elég pontosan: nem azt kérdezi, hogy \"mire van szükségem\", hanem hogy \"milyen eszközt vegyek\".\n\nEz a két kérdés nem ugyanaz.",
+      "current_visual_url": null,
+      "expected_visual_elements": [
+        "dark bg #04060a",
+        "bold display type",
+        "monospace / code-diagram",
+        "stat: 80%",
+        "PlanSmart watermark"
+      ]
+    },
+    {
+      "voice": "adam",
+      "visual_text": {
+        "main_text": "A FEJLESZTŐ NÉLKÜLI MEGOLDÁS",
+        "sub_text": "Bolt.new: $0-ról $40M ARR-ra a nem-kódolók miatt. Magyar KKV-knál ugyanez a hiányzó kapacitás.",
+        "stat": "$40M ARR"
+      },
+      "variants": [
+        {
+          "variant": "A",
+          "label": "produkciós (current)",
+          "prompt": "Dark #04060a background. Bold Bebas Neue / Neue Machina display typography.\n\nMAIN TEXT (huge, centered, white, Hungarian, all caps):\n\"A FEJLESZTŐ NÉLKÜLI MEGOLDÁS\"\n\nSTAT (giant, teal glow): \"$40M ARR\"\n\nSUBTEXT (smaller, grey, Hungarian):\n\"Bolt.new: $0-ról $40M ARR-ra a nem-kódolók miatt. Magyar KKV-knál ugyanez a hiányzó kapacitás.\"\n\nBottom right: small PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nCinematic lighting, slight film grain, Soul Cinema aesthetic.\nHigh contrast, scroll-stopping, trending AI content creator style.\nNo people. No clutter. Single focal point. No marketing buzzwords.\nVoice style: strategist — financial-dashboard minimalism, warm gold or soft green metric accent, before/after framing.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/c63332dff2d7497797a5b32734537020.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 5,
+            "scroll_stopping_score": 8,
+            "professional_score": 6,
+            "anti_pattern_flags": [
+              "garbled hungarian text: 'maziét' is not a valid Hungarian word (likely hallucinated)",
+              "subtitle copy reads awkwardly: 'nem-kódolók maziét' is nonsensical",
+              "'hiánszó' missing accent — should be 'hiányzó'",
+              "'FEJLESZTÖ' missing correct accent — should be 'FEJLESZTŐ'"
+            ],
+            "overall_score": 6.0,
+            "feedback": "A focal stat ($40M ARR) lands well and the dark background with spotlight lighting is on-brand, but the body copy contains a hallucinated word ('maziét') and a typo ('hiánszó' → 'hiányzó') that immediately undermine credibility — fix the Hungarian before publishing. Also correct the diacritic on 'FEJLESZTŐ' in the headline to meet brand typography standards."
+          }
+        },
+        {
+          "variant": "B",
+          "label": "minimalista (kevesebb elem, nagyobb type)",
+          "prompt": "Dark #04060a near-black background, vast negative space. Bebas Neue / Neue Machina display typography, MASSIVE.\n\nONE focal line (huge, centered, white, Hungarian, all caps):\n\"A FEJLESZTŐ NÉLKÜLI MEGOLDÁS\"\n\nTiny stat detail (monospace, low-key): \"$40M ARR\"\nOptional tiny caption (Hungarian, small, grey, bottom): \"Bolt.new: $0-ról $40M ARR-ra a nem-kódolók miatt. Magyar KKV-knál ugyanez a hiányzó kapacitás.\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nMinimalist, high contrast, a single idea. Cinematic but restrained.\nNo people. No stock-photo clichés. No marketing buzzwords. Absolutely no clutter — one element only.\nVoice style: strategist — financial-dashboard minimalism, warm gold or soft green metric accent, before/after framing.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/8aa6eaea0c0f47d2a9171e7160f7acf3.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 5,
+            "hungarian_text_quality": 4,
+            "scroll_stopping_score": 5,
+            "professional_score": 4,
+            "anti_pattern_flags": [
+              "garbled/hallucinated text in fine print (bottom lines contain nonsense syllables and corrupted Hungarian words)",
+              "$40M ARR appears twice creating competing focal elements",
+              "background is dark grey but not the specified near-black #04060a",
+              "placeholder 'BRAND LOGO' watermark instead of real PlanSmart watermark",
+              "no cinematic/film grain aesthetic — flat and sterile",
+              "display typeface is generic bold sans, not Bebas Neue / Neue Machina character"
+            ],
+            "overall_score": 3.8,
+            "feedback": "A legkritikusabb probléma a két garbled fine-print sor alján — olvasható szöveg helyett értelmetlen betűsort generált az AI, ami azonnal hiteltelenné teszi a képet; ezeket valódi szerkesztett szövegre kell cserélni. Az egyetlen fókuszelemként a '$40M ARR' felirat duplán jelenik meg, ami megtöri a hierarchiát — csak a nagy heading maradjon, a metrika-accent pedig egyszer, felette."
+          }
+        },
+        {
+          "variant": "C",
+          "label": "filmes (több grain, atmoszféra)",
+          "prompt": "Dark #04060a cinematic background with volumetric lighting, atmospheric haze, pronounced film grain and subtle lens vignette. Moody, depth-of-field bokeh.\n\nMAIN TEXT (large, centered, white, Hungarian, all caps):\n\"A FEJLESZTŐ NÉLKÜLI MEGOLDÁS\"\n\nSTAT (glowing accent): \"$40M ARR\"\nSUBTEXT (smaller, grey, Hungarian):\n\"Bolt.new: $0-ról $40M ARR-ra a nem-kódolók miatt. Magyar KKV-knál ugyanez a hiányzó kapacitás.\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nStrong 'Soul Cinema' aesthetic: dramatic light, grain, high contrast, premium movie-poster feel.\nNo people. No stock-photo clichés. No marketing buzzwords. Single focal point.\nVoice style: strategist — financial-dashboard minimalism, warm gold or soft green metric accent, before/after framing.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/8b13807b867d492cb27251a4f7c3ae12.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 3,
+            "scroll_stopping_score": 7,
+            "professional_score": 5,
+            "anti_pattern_flags": [
+              "garbled Hungarian text in subtitle ('mdizt', 'iagÿgyr thál' are nonsense words/hallucinated letters)",
+              "subtitle copy is factually incoherent despite readable headline"
+            ],
+            "overall_score": 5.2,
+            "feedback": "A headline és a $40M ARR focal stat erős és brand-konform, a cinematic spotlight háttér és a PlanSmart watermark jól illeszkedik — de az alcím szövege súlyosan sérült (gépi szöveghallucinációk: 'mdizt', 'iagÿgyr thál'), ami professzionális kontextusban diszkvalifikáló hiba; az alcímet manuálisan kell újragenerálni tiszta, ellenőrzött magyar szöveggel."
+          }
+        },
+        {
+          "variant": "D",
+          "label": "adat-fókuszú (szám dominál)",
+          "prompt": "Dark #04060a background, faint technical grid. The NUMBER is the hero.\n\nGIANT METRIC (dominant, centered, teal glow, monospace+display mix):\n\"$40M ARR\"\n\nMAIN LABEL (Hungarian, all caps, above or below the number):\n\"A FEJLESZTŐ NÉLKÜLI MEGOLDÁS\"\nSUBTEXT (small, grey, Hungarian):\n\"Bolt.new: $0-ról $40M ARR-ra a nem-kódolók miatt. Magyar KKV-knál ugyanez a hiányzó kapacitás.\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nData-visual energy: the metric dominates the frame, everything else supports it. Cinematic lighting, slight grain, high contrast.\nNo people. No stock-photo clichés. No marketing buzzwords. One focal number.\nVoice style: strategist — financial-dashboard minimalism, warm gold or soft green metric accent, before/after framing.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/be1bed5fae42491e8d7cf72808b7fc62.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 4,
+            "scroll_stopping_score": 8,
+            "professional_score": 6,
+            "anti_pattern_flags": [
+              "garbled Hungarian text in body copy ('mäjzt' is not a valid Hungarian word — likely a hallucinated/corrupted rendering of 'által' or similar)",
+              "watermark reads 'PRAN_LOGO' instead of PlanSmart branding",
+              "body copy line 'Bolt-new' should be 'Bolt.new'",
+              "subtitle text slightly cluttered with two lines competing with the hero stat"
+            ],
+            "overall_score": 5.8,
+            "feedback": "A hero stat ($40M ARR) and cinematic glow treatment are strong scroll-stoppers, but the body copy contains a critically garbled word ('mäjzt') that makes the brand look unprofessional to any Hungarian reader; fix the text rendering and replace the placeholder 'PRAN_LOGO' watermark with the actual PlanSmart mark before publishing."
+          }
+        }
+      ],
+      "winner_variant": "A",
+      "winner_score": 6.0,
+      "total_cost": 0.128,
+      "post_id": "9ae2ab64eb0f",
+      "content_type": "post",
+      "content": "A Bolt.new CEO-ja elmondta, hogy a felhasználóik többsége nem fejlesztő.\n\nEz az egyetlen mondat, ami miatt érdemes volt megnézni ezt az interjút.\n\nEric Simons 7 évig építette a StackBlitz-et fejlesztőknek. Aztán jött a Bolt.new, és hirtelen kiderült: a legnagyobb felhasználói csoport nem ír kódot. Marketingesek, alapítók, produktmenedzserek — emberek, akiknek volt egy problémájuk, de nem volt mellette egy fejlesztő.\n\nMagyar KKV-s szemmel nézve ez pontosan az a rés, ami itthon is tátong.\n\nMennyi ötlet hal meg azért, mert \"majd ha lesz rá budget fejlesztőre\"? Mennyi belső folyamatot nem digitalizálnak azért, mert az IT kapacitás mindig máshol van lekötve?\n\nA \"vibe coding\" — ez a csúnya szó — valójában ezt az egyetlen dolgot csinálja: kiveszi az egyenletből azt a szűk keresztmetszetet, hogy valaki tudjon kódolni.\n\nA $0-ról $40M ARR-ra való növekedés nem a technológiáról szól. Arról szól, hogy végre elértek egy közönséget, amelyik mindig is akart, de nem tudott.\n\nEz itthon sem tech-kérdés. Ez kapacitás-kérdés.\n\nA 20-50 fős cégek többségénél van 2-3 ember, akinek van elég domain-tudása ahhoz, hogy megmondja mit kellene megcsinálni — de nincs mellé az eszköz, hogy maga is nekiálljon.\n\nEz változik most. Nem holnapra, de változik.\n\nNálatok ki az, akiben megvan a tudás, de eddig nem volt mellé az eszköz?",
+      "current_visual_url": "https://cdn.muapi.ai/outputs/generated/b335582ce1fe468e8b90389a57684f82.png",
+      "expected_visual_elements": [
+        "dark bg #04060a",
+        "bold display type",
+        "metric / before-after chart",
+        "PlanSmart watermark"
+      ]
+    },
+    {
+      "voice": "plansmart",
+      "visual_text": {
+        "main_text": "NAPI 2 ÓRA → 0 PERC ADMINISZTRÁCIÓ",
+        "sub_text": "24/7 automatizált foglalási rendszer: önszolgáló időpontfoglalás, azonnali visszaigazolás, Notion-szinkronizálás",
+        "stat": "napi 2 óra"
+      },
+      "variants": [
+        {
+          "variant": "A",
+          "label": "produkciós (current)",
+          "prompt": "Dark #04060a background. Bold Bebas Neue / Neue Machina display typography.\n\nMAIN TEXT (huge, centered, white, Hungarian, all caps):\n\"NAPI 2 ÓRA → 0 PERC ADMINISZTRÁCIÓ\"\n\nSTAT (giant, teal glow): \"napi 2 óra\"\n\nSUBTEXT (smaller, grey, Hungarian):\n\"24/7 automatizált foglalási rendszer: önszolgáló időpontfoglalás, azonnali visszaigazolás, Notion-szinkronizálás\"\n\nBottom right: small PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nCinematic lighting, slight film grain, Soul Cinema aesthetic.\nHigh contrast, scroll-stopping, trending AI content creator style.\nNo people. No clutter. Single focal point. No marketing buzzwords.\nVoice style: premium SaaS brand — refined neutral accents, PlanSmart wordmark, trustworthy and official.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/b77b0d9d7f304227b1cb492ea113c7b9.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 6,
+            "hungarian_text_quality": 3,
+            "scroll_stopping_score": 7,
+            "professional_score": 4,
+            "anti_pattern_flags": [
+              "garbled Hungarian text in subtitle (fogláćyester, önszogr, önslogúlo, vezzaigazikolás — nonsense/hallucinated words)",
+              "duplicate focal element (headline repeats in teal, creating two competing focal points)",
+              "subtitle block undermines premium feel with corrupted text"
+            ],
+            "overall_score": 4.5,
+            "feedback": "A főcím ('NAPI 2 ÓRA → 0 PERC ADMINISZTRÁCIÓ') erős és jól olvasható, de a felirat-blokk tele van AI által generált, értelmetlen magyar szavakkal (fogláćyester, önszogr, vezzaigazikolás), ami teljesen tönkreteszi a prémium megbízhatóságot — ezt a sort el kell távolítani vagy valódi szöveggel kell helyettesíteni; emellett a teal 'napi 2 óra' ismétlés felesleges second focal point, egyetlen erős fókuszra kell szűkíteni."
+          }
+        },
+        {
+          "variant": "B",
+          "label": "minimalista (kevesebb elem, nagyobb type)",
+          "prompt": "Dark #04060a near-black background, vast negative space. Bebas Neue / Neue Machina display typography, MASSIVE.\n\nONE focal line (huge, centered, white, Hungarian, all caps):\n\"NAPI 2 ÓRA → 0 PERC ADMINISZTRÁCIÓ\"\n\nTiny stat detail (monospace, low-key): \"napi 2 óra\"\nOptional tiny caption (Hungarian, small, grey, bottom): \"24/7 automatizált foglalási rendszer: önszolgáló időpontfoglalás, azonnali visszaigazolás, Notion-szinkronizálás\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nMinimalist, high contrast, a single idea. Cinematic but restrained.\nNo people. No stock-photo clichés. No marketing buzzwords. Absolutely no clutter — one element only.\nVoice style: premium SaaS brand — refined neutral accents, PlanSmart wordmark, trustworthy and official.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/9bdf3b6f696d46ab9e24239d43fcb6f6.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 6,
+            "hungarian_text_quality": 3,
+            "scroll_stopping_score": 7,
+            "professional_score": 4,
+            "anti_pattern_flags": [
+              "garbled Hungarian text in subtitle: 'foglalósi pestver' (nonsense), 'önszolguódő idopőnitfoglalás' (multiple errors), 'veszaigazolás' (wrong word)",
+              "background is dark grey not the specified near-black #04060a",
+              "no cinematic/film grain aesthetic — flat and plain",
+              "typography feels generic bold rather than Bebas Neue / Neue Machina character"
+            ],
+            "overall_score": 4.2,
+            "feedback": "A főcím ('NAPI 2 ÓRA → 0 PERC ADMINISZTRÁCIÓ') erős és scroll-stopping, de az alcím szövege súlyosan hibás magyar szavakat tartalmaz ('pestver', 'önszolguódő', 'veszaigazolás'), ami teljesen hiteltelenné teszi a vizuált egy B2B közönség előtt — ezt azonnal javítani kell. A design lapos és filmszerű mélység nélküli; adj hozzá enyhe film grain textúrát, igazi #04060a hátteret és egy accentszínt (pl. halvány arany vagy kék vonal) a hierarchia erősítéséhez."
+          }
+        },
+        {
+          "variant": "C",
+          "label": "filmes (több grain, atmoszféra)",
+          "prompt": "Dark #04060a cinematic background with volumetric lighting, atmospheric haze, pronounced film grain and subtle lens vignette. Moody, depth-of-field bokeh.\n\nMAIN TEXT (large, centered, white, Hungarian, all caps):\n\"NAPI 2 ÓRA → 0 PERC ADMINISZTRÁCIÓ\"\n\nSTAT (glowing accent): \"napi 2 óra\"\nSUBTEXT (smaller, grey, Hungarian):\n\"24/7 automatizált foglalási rendszer: önszolgáló időpontfoglalás, azonnali visszaigazolás, Notion-szinkronizálás\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nStrong 'Soul Cinema' aesthetic: dramatic light, grain, high contrast, premium movie-poster feel.\nNo people. No stock-photo clichés. No marketing buzzwords. Single focal point.\nVoice style: premium SaaS brand — refined neutral accents, PlanSmart wordmark, trustworthy and official.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/e15ecdd7620741a2b6a3e4d847fbe023.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 4,
+            "scroll_stopping_score": 8,
+            "professional_score": 6,
+            "anti_pattern_flags": [
+              "garbled subtitle text: 'automatizákt', 'foglalási roe:zuzer', 'veszaigazolás' — nonsense/corrupted Hungarian words in the subtitle line"
+            ],
+            "overall_score": 6.0,
+            "feedback": "A főcím ('NAPI 2 ÓRA → 0 PERC ADMINISZTRÁCIÓ') erős, olvasható és scroll-stopping, a cinematic spotlight háttér és a PlanSmart watermark jól illeszkedik a brand DNA-hoz — azonban az alcím súlyos AI-hallucináció-hibákat tartalmaz ('automatizákt', 'roe:zuzer', 'veszaigazolás'), amelyek tönkreteszik a professzionális megjelenést; ezeket az alcím szövegét újra kell generálni vagy manuálisan kell felülírni helyes magyar szöveggel."
+          }
+        },
+        {
+          "variant": "D",
+          "label": "adat-fókuszú (szám dominál)",
+          "prompt": "Dark #04060a background, faint technical grid. The NUMBER is the hero.\n\nGIANT METRIC (dominant, centered, teal glow, monospace+display mix):\n\"napi 2 óra\"\n\nMAIN LABEL (Hungarian, all caps, above or below the number):\n\"NAPI 2 ÓRA → 0 PERC ADMINISZTRÁCIÓ\"\nSUBTEXT (small, grey, Hungarian):\n\"24/7 automatizált foglalási rendszer: önszolgáló időpontfoglalás, azonnali visszaigazolás, Notion-szinkronizálás\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nData-visual energy: the metric dominates the frame, everything else supports it. Cinematic lighting, slight grain, high contrast.\nNo people. No stock-photo clichés. No marketing buzzwords. One focal number.\nVoice style: premium SaaS brand — refined neutral accents, PlanSmart wordmark, trustworthy and official.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/f9c17102401c455197c651499d583791.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 4,
+            "scroll_stopping_score": 7,
+            "professional_score": 6,
+            "anti_pattern_flags": [
+              "garbled Hungarian text: 'foglalósi restzer' (should be 'foglalási rendszer')",
+              "garbled Hungarian text: 'önszologúló' (should be 'önállóan foglaló' or 'önkiszolgáló')",
+              "garbled Hungarian text: 'veszaigazolás' (should be 'visszaigazolás')",
+              "multiple competing text blocks reduce focal clarity"
+            ],
+            "overall_score": 5.5,
+            "feedback": "A fő headline ('napi 2 óra') jól működik vizuálisan és illeszkedik a brand DNA-hoz, de a body copy súlyos helyesírási/generálási hibákat tartalmaz ('restzer', 'önszologúló', 'veszaigazolás'), amelyek teljesen hiteltelenné teszik a prémium SaaS megjelenést — ezeket kötelező javítani; emellett az alcím szövegmennyisége megbontja az egyetlen fókális elem elvét."
+          }
+        }
+      ],
+      "winner_variant": "C",
+      "winner_score": 6.0,
+      "total_cost": 0.128,
+      "post_id": "29f4eeb31a5c",
+      "content_type": "post",
+      "content": "Egészségügyi / wellness szektorban működő ügyfélnek építettük meg az automatizált foglalási rendszerét.\n\nHelyzet:\nA Mozgató Központ csapata napi 2 órát töltött manuális időpontkezeléssel: bejövő üzenetek, visszajelzések, naptárba rögzítés, manuális email-visszaigazolások. Ez hetente 10+ munkaóra volt — minden héten, minden héten újra.\n\nA legnagyobb fájdalompont: hétvégén és munkaidőn kívül érkeztek az érdeklődők, de csak hétfőn reggel tudtak reagálni rájuk. Addig a potenciális ügyfél máshoz ment.\n\nMegoldás:\nFelépítettünk egy teljesen automatizált foglalási folyamatot:\n— Az érdeklődő önállóan foglal időpontot egy egyszerű felületen\n— Azonnal megy a visszaigazoló email (személyre szabott, nem sablon-ízű)\n— Az új foglalás automatikusan bekerül a csapat Notion-naptárába\n— Emlékeztető email megy 24 órával az időpont előtt\n\nEredmény:\n• Napi 2 óra adminisztráció → 0 perc kézi munka\n• 24/7 foglalhatóság — hétvégén is, este 10-kor is\n• Az első héten 3 olyan foglalás érkezett munkaidőn kívül, amit a régi rendszer elveszített volna\n• A csapat azóta az ügyfelekre koncentrál, nem az adminisztrációra\n\nHa a cégedben is megy el napi 1-2 óra hasonló, ismétlődő folyamatra — szívesen meghallgatjuk a helyzetedet kommentben.\n\n#AIautomation #KKV #Automatizálás #Notion #FoglalásAutomatizálás",
+      "current_visual_url": "https://cdn.muapi.ai/outputs/generated/f6db241760624f27ba2fab86e96fc5ca.png",
+      "expected_visual_elements": [
+        "dark bg #04060a",
+        "bold display type",
+        "PlanSmart wordmark",
+        "stat: 2 óra",
+        "PlanSmart watermark"
+      ]
+    },
+    {
+      "voice": "david",
+      "visual_text": {
+        "main_text": "16 PERC → 3,5 MÁSODPERC",
+        "sub_text": "A polling hurok helyett event-driven megközelítés. Nem kapacitás, hanem architektúraprobléma.",
+        "stat": "16 perc"
+      },
+      "variants": [
+        {
+          "variant": "A",
+          "label": "produkciós (current)",
+          "prompt": "Dark #04060a background. Bold Bebas Neue / Neue Machina display typography.\n\nMAIN TEXT (huge, centered, white, Hungarian, all caps):\n\"16 PERC → 3,5 MÁSODPERC\"\n\nSTAT (giant, teal glow): \"16 perc\"\n\nSUBTEXT (smaller, grey, Hungarian):\n\"A polling hurok helyett event-driven megközelítés. Nem kapacitás, hanem architektúraprobléma.\"\n\nBottom right: small PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nCinematic lighting, slight film grain, Soul Cinema aesthetic.\nHigh contrast, scroll-stopping, trending AI content creator style.\nNo people. No clutter. Single focal point. No marketing buzzwords.\nVoice style: technical builder — terminal/code/system-diagram accents, cool teal glow, monospace details.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/7b704c37d86644cf958ccc2f8ab6a59e.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 5,
+            "scroll_stopping_score": 8,
+            "professional_score": 6,
+            "anti_pattern_flags": [
+              "garbled UI text in corners (nonsense alphanumeric strings like 'IRABÁG AB56E', 'BÉBS ACHENAI', 'BÁJORÖ CNINAN')",
+              "placeholder watermark text '[BRAND_LOGO]' visible under PlanSmart logo",
+              "'DERAS LOGO' ghost text visible in lower right",
+              "subtitle line has typo: 'inhem' instead of 'hanem'",
+              "'polling húrok' is awkward Hungarian — should be 'polling hurkok'",
+              "multiple decorative HUD elements create mild clutter"
+            ],
+            "overall_score": 5.8,
+            "feedback": "The focal stat '16 perc → 3,5 másodperc' lands well and the neon-on-dark cinematic aesthetic is on-brand, but the corners are filled with AI-hallucinated gibberish text (a critical credibility killer for a tech B2B brand), the subtitle contains a grammatical error ('inhem' → 'hanem'), and the '[BRAND_LOGO]' placeholder was left unresolved — all three must be fixed before publishing."
+          }
+        },
+        {
+          "variant": "B",
+          "label": "minimalista (kevesebb elem, nagyobb type)",
+          "prompt": "Dark #04060a near-black background, vast negative space. Bebas Neue / Neue Machina display typography, MASSIVE.\n\nONE focal line (huge, centered, white, Hungarian, all caps):\n\"16 PERC → 3,5 MÁSODPERC\"\n\nTiny stat detail (monospace, low-key): \"16 perc\"\nOptional tiny caption (Hungarian, small, grey, bottom): \"A polling hurok helyett event-driven megközelítés. Nem kapacitás, hanem architektúraprobléma.\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nMinimalist, high contrast, a single idea. Cinematic but restrained.\nNo people. No stock-photo clichés. No marketing buzzwords. Absolutely no clutter — one element only.\nVoice style: technical builder — terminal/code/system-diagram accents, cool teal glow, monospace details.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/3845a61b087d4f2ba16da3c8ed9a13c7.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 8,
+            "hungarian_text_quality": 6,
+            "scroll_stopping_score": 9,
+            "professional_score": 7,
+            "anti_pattern_flags": [
+              "garbled or non-Hungarian text: 'inehram' should be 'hanem', likely AI text hallucination",
+              "multiple competing focal elements: headline strip + two floating '16 perc' ghost texts create visual clutter",
+              "faint UI screenshot background reads as generic AI-art / nonsense UI detail"
+            ],
+            "overall_score": 7.2,
+            "feedback": "A főcím '16 PERC → 3,5 MÁSODPERC' erős és azonnal megragadó, a sötét háttér és a teal akcentus illeszkedik a brand DNA-hoz — de az alsó copy-ban az 'inehram' szó egyértelműen AI-szöveg-hallucináció, ami tönkreteszi a szakmai hitelességet; javítani kell 'hanem'-re. A két lebegő ghost '16 perc' felirat redundáns zajt visz a kompozícióba, érdemes eltávolítani vagy integrálni a strip-be."
+          }
+        },
+        {
+          "variant": "C",
+          "label": "filmes (több grain, atmoszféra)",
+          "prompt": "Dark #04060a cinematic background with volumetric lighting, atmospheric haze, pronounced film grain and subtle lens vignette. Moody, depth-of-field bokeh.\n\nMAIN TEXT (large, centered, white, Hungarian, all caps):\n\"16 PERC → 3,5 MÁSODPERC\"\n\nSTAT (glowing accent): \"16 perc\"\nSUBTEXT (smaller, grey, Hungarian):\n\"A polling hurok helyett event-driven megközelítés. Nem kapacitás, hanem architektúraprobléma.\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nStrong 'Soul Cinema' aesthetic: dramatic light, grain, high contrast, premium movie-poster feel.\nNo people. No stock-photo clichés. No marketing buzzwords. Single focal point.\nVoice style: technical builder — terminal/code/system-diagram accents, cool teal glow, monospace details.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/c01e7ae4d42d446898436c32159f0af5.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 4,
+            "scroll_stopping_score": 8,
+            "professional_score": 6,
+            "anti_pattern_flags": [
+              "garbled Hungarian text: 'helyettt' (triple t), 'megközelétgs' (nonsense suffix), 'ihhem' (wrong word, should be 'hanem'), 'kapacitás' missing accent consistency"
+            ],
+            "overall_score": 6.2,
+            "feedback": "A cinematic dark background, spotlight dramatics és a bold stat-kontrast (16 PERC → 3,5 MÁSODPERC) erős scroll-stopping erő — de a body copy tele van AI-generálta typo/garble hibával ('helyettt', 'megközelétgs', 'ihhem'), ami tönkreteszi a prémium benyomást és hiteltelenné teszi a brand üzenetet; ezeket manuálisan kell korrigálni minden generálás után."
+          }
+        },
+        {
+          "variant": "D",
+          "label": "adat-fókuszú (szám dominál)",
+          "prompt": "Dark #04060a background, faint technical grid. The NUMBER is the hero.\n\nGIANT METRIC (dominant, centered, teal glow, monospace+display mix):\n\"16 perc\"\n\nMAIN LABEL (Hungarian, all caps, above or below the number):\n\"16 PERC → 3,5 MÁSODPERC\"\nSUBTEXT (small, grey, Hungarian):\n\"A polling hurok helyett event-driven megközelítés. Nem kapacitás, hanem architektúraprobléma.\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nData-visual energy: the metric dominates the frame, everything else supports it. Cinematic lighting, slight grain, high contrast.\nNo people. No stock-photo clichés. No marketing buzzwords. One focal number.\nVoice style: technical builder — terminal/code/system-diagram accents, cool teal glow, monospace details.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/74b446fd31674711a148a7aea658a1c2.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 6,
+            "hungarian_text_quality": 4,
+            "scroll_stopping_score": 7,
+            "professional_score": 5,
+            "anti_pattern_flags": [
+              "garbled Hungarian text: 'zwenhan' is nonsense/hallucinated word in subtitle",
+              "watermark reads 'BLANSMOR' instead of 'PlanSmart'",
+              "competing focal elements: both header stat AND large '16 perc' fight for dominance",
+              "generic sci-fi grid aesthetic borders on generic AI-art look",
+              "'GIANT METRIC' and 'BAETRIC' are nonsense UI labels"
+            ],
+            "overall_score": 4.5,
+            "feedback": "A legerősebb probléma a hallucináció: a subtitle sorban 'zwenhan' értelmetlen szó, a watermark 'BLANSMOR'-t ír PlanSmart helyett — ezek brandkárosítók és azonnal diszkvalifikálják a posztot. A kettős fókusz (fejléc stat + óriás '16 perc') és a generikus teal-grid sci-fi look csökkenti a prémium érzetet; egyetlen, erős focal elemre és helyes márkaszövegre van szükség."
+          }
+        }
+      ],
+      "winner_variant": "B",
+      "winner_score": 7.2,
+      "total_cost": 0.128,
+      "post_id": "b80f4df7348a",
+      "content_type": "post",
+      "content": "Tegnap délután 4 órán át debuggoltam egy queue logikát amit azt hittem már kész van.\n\nA content pipeline-unk — ami figyeli a híreket, megskoráz mindent Claude-dal, majd posztot generál — 16 percenként pollolt. 16 perc. Minden egyes check között ott ült a rendszer és várt.\n\nÁtírtam async event-driven megközelítésre. Ha új item jön a queue-ba, azonnal feldolgozza. Nem vár semmire.\n\nPoll loop: 16 perc → 3,5 másodperc.\n\nNem teljesítmény-optimalizálás volt a cél. Csak rájöttem hogy rosszul gondoltam a problémát: nem azt kérdeztem, \"mikor nézzük meg újra?\" — hanem azt kellett kérdezni, \"mi történjen, ha valami változik?\" Ez más kérdés. Más architektúra is lett belőle.\n\nAmiért ezt megosztom:\n\nA KKV-knak nem több ember kell a legtöbb helyen. Jobb rendszer kell.\n\nAmikor egy cégnél valaki 12 órát tölt táblázatba másolt adatokkal hetente — az nem kapacitásprobléma. Az architektúraprobléma. A rendszer rossz kérdést tesz fel, rossz időben, rossz módon.\n\nA 16 perces poll loop az én verzióm volt ebből. Működött. Csak rosszul gondoltam a logikát.\n\nEz az, amit most ügyfeleknél is látok: rengeteg folyamat fut, de az alapkérdés rossz. Nem azt kell kérdezni, hogy \"kinek adjuk ezt a feladatot?\" — hanem hogy \"miért van ez a feladat egyáltalán embernek?\"",
+      "current_visual_url": null,
+      "expected_visual_elements": [
+        "dark bg #04060a",
+        "bold display type",
+        "monospace / code-diagram",
+        "stat: 16 perc",
+        "PlanSmart watermark"
+      ]
+    },
+    {
+      "voice": "adam",
+      "visual_text": {
+        "main_text": "NEM-FEJLESZTŐKNEK IS LEHETSÉGES",
+        "sub_text": "800.000 Ft fejlesztés helyett most kísérletezhetnek a kis csapatok",
+        "stat": "800.000 Ft"
+      },
+      "variants": [
+        {
+          "variant": "A",
+          "label": "produkciós (current)",
+          "prompt": "Dark #04060a background. Bold Bebas Neue / Neue Machina display typography.\n\nMAIN TEXT (huge, centered, white, Hungarian, all caps):\n\"NEM-FEJLESZTŐKNEK IS LEHETSÉGES\"\n\nSTAT (giant, teal glow): \"800.000 Ft\"\n\nSUBTEXT (smaller, grey, Hungarian):\n\"800.000 Ft fejlesztés helyett most kísérletezhetnek a kis csapatok\"\n\nBottom right: small PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nCinematic lighting, slight film grain, Soul Cinema aesthetic.\nHigh contrast, scroll-stopping, trending AI content creator style.\nNo people. No clutter. Single focal point. No marketing buzzwords.\nVoice style: strategist — financial-dashboard minimalism, warm gold or soft green metric accent, before/after framing.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/c5b1e15952bd4f7aad3c05c49846e59e.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 3,
+            "scroll_stopping_score": 7,
+            "professional_score": 5,
+            "anti_pattern_flags": [
+              "garbled Hungarian subtitle text — 'vezjesktés heljyztt most kíséjrletezhetken a kis sásjatok' is nonsense/hallucinated words",
+              "subtitle text is not readable or grammatically correct",
+              "hyphen in 'NEM-FEJLESZTŐKNEK' is non-standard Hungarian phrasing"
+            ],
+            "overall_score": 5.2,
+            "feedback": "A főcím és a 800.000 Ft focal stat vizuálisan erős és brand-konform, de a felirat sor teljesen olvashatatlan, értelmetlen szöveget tartalmaz — ez egy B2B kontextusban azonnal hitelességet rombol; a subtitle-t vagy el kell hagyni, vagy valós, korrekt magyar szöveggel kell helyettesíteni."
+          }
+        },
+        {
+          "variant": "B",
+          "label": "minimalista (kevesebb elem, nagyobb type)",
+          "prompt": "Dark #04060a near-black background, vast negative space. Bebas Neue / Neue Machina display typography, MASSIVE.\n\nONE focal line (huge, centered, white, Hungarian, all caps):\n\"NEM-FEJLESZTŐKNEK IS LEHETSÉGES\"\n\nTiny stat detail (monospace, low-key): \"800.000 Ft\"\nOptional tiny caption (Hungarian, small, grey, bottom): \"800.000 Ft fejlesztés helyett most kísérletezhetnek a kis csapatok\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nMinimalist, high contrast, a single idea. Cinematic but restrained.\nNo people. No stock-photo clichés. No marketing buzzwords. Absolutely no clutter — one element only.\nVoice style: strategist — financial-dashboard minimalism, warm gold or soft green metric accent, before/after framing.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/0cb75d6ada1648b5b7c70fcda642fdbf.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 6,
+            "hungarian_text_quality": 3,
+            "scroll_stopping_score": 7,
+            "professional_score": 4,
+            "anti_pattern_flags": [
+              "garbled subtitle text — 'rézjesktés helyzzt', 'téjesktés helyztt', 'sásatok' are hallucinated/nonsense Hungarian words",
+              "subtitle copy is unreadable and damages brand credibility",
+              "missing cinematic/film-grain aesthetic — flat black background only",
+              "no Soul Cinema lighting or visual focal element beyond typography",
+              "watermark present but very small and low-contrast"
+            ],
+            "overall_score": 4.2,
+            "feedback": "A headline hierachy and color contrast are on-brand and scroll-stopping, but the two subtitle lines contain severely garbled, AI-hallucinated Hungarian text ('rézjesktés helyzzt', 'sásatok') which is a critical brand credibility failure — remove or regenerate them entirely; also add subtle film grain and a light accent element to lift the flat aesthetic toward the Soul Cinema benchmark."
+          }
+        },
+        {
+          "variant": "C",
+          "label": "filmes (több grain, atmoszféra)",
+          "prompt": "Dark #04060a cinematic background with volumetric lighting, atmospheric haze, pronounced film grain and subtle lens vignette. Moody, depth-of-field bokeh.\n\nMAIN TEXT (large, centered, white, Hungarian, all caps):\n\"NEM-FEJLESZTŐKNEK IS LEHETSÉGES\"\n\nSTAT (glowing accent): \"800.000 Ft\"\nSUBTEXT (smaller, grey, Hungarian):\n\"800.000 Ft fejlesztés helyett most kísérletezhetnek a kis csapatok\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nStrong 'Soul Cinema' aesthetic: dramatic light, grain, high contrast, premium movie-poster feel.\nNo people. No stock-photo clichés. No marketing buzzwords. Single focal point.\nVoice style: strategist — financial-dashboard minimalism, warm gold or soft green metric accent, before/after framing.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/a139960b95134eda84142d484284da62.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 3,
+            "scroll_stopping_score": 7,
+            "professional_score": 5,
+            "anti_pattern_flags": [
+              "garbled Hungarian subtitle text ('éejésktés helyzett', 'kísérletezhetken', 'saytatok' — nonsense words)",
+              "hyphenated compound 'NEM-FEJLESZTŐKNEK' is grammatically awkward as a standalone label"
+            ],
+            "overall_score": 5.2,
+            "feedback": "A cinematic spotlight, dark background, and bold stat hierarchy are solid — but the subtitle body copy is heavily garbled AI hallucination ('éejésktés helyzett / most kísérletezhetken a kis saytatok'), which kills credibility instantly for any Hungarian-speaking viewer; the subtitle must be regenerated with correct, meaningful Hungarian text pulled directly from the post copy."
+          }
+        },
+        {
+          "variant": "D",
+          "label": "adat-fókuszú (szám dominál)",
+          "prompt": "Dark #04060a background, faint technical grid. The NUMBER is the hero.\n\nGIANT METRIC (dominant, centered, teal glow, monospace+display mix):\n\"800.000 Ft\"\n\nMAIN LABEL (Hungarian, all caps, above or below the number):\n\"NEM-FEJLESZTŐKNEK IS LEHETSÉGES\"\nSUBTEXT (small, grey, Hungarian):\n\"800.000 Ft fejlesztés helyett most kísérletezhetnek a kis csapatok\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nData-visual energy: the metric dominates the frame, everything else supports it. Cinematic lighting, slight grain, high contrast.\nNo people. No stock-photo clichés. No marketing buzzwords. One focal number.\nVoice style: strategist — financial-dashboard minimalism, warm gold or soft green metric accent, before/after framing.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/606d79f840fd4086a4e5e22b4f685eae.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 3,
+            "scroll_stopping_score": 7,
+            "professional_score": 5,
+            "anti_pattern_flags": [
+              "garbled subtitle text — '800.000 Ft véjjesktés helyezt most kíssérletezhetken a kis skápatok' is nonsense/hallucinated Hungarian",
+              "duplicate headline stacked twice creates minor clutter",
+              "generic HUD/dashboard UI overlay elements feel slightly AI-art-ish",
+              "corner labels (Almnesszai LC01I0b, L5ay 20I10D) are garbled filler text"
+            ],
+            "overall_score": 5.2,
+            "feedback": "The hero stat (800.000 Ft) and dark background nail the core aesthetic, but the subtitle body copy is completely garbled Hungarian — words like 'véjjesktés', 'kíssérletezhetken', 'skápatok' are AI hallucinations that would destroy brand credibility instantly if published; this text must be replaced with the actual post copy. Also remove the duplicated headline and clean up the nonsense corner labels."
+          }
+        }
+      ],
+      "winner_variant": "A",
+      "winner_score": 5.2,
+      "total_cost": 0.128,
+      "post_id": "a7ca5ea92b6f",
+      "content_type": "post",
+      "content": "A Bolt.new CEO-ja elmondta, hogy a felhasználóik többsége nem fejlesztő.\n\nEz az egy mondat megér egy misét.\n\nEric Simons 7 évet épített valamit, ami egy éjszaka alatt lett „overnight success\". A sztori ismert. Ami kevésbé ismert: a piac akiket elért, nem az akikre számítottak.\n\nNem a senior devek. Nem a tech startup alapítók.\nHanem azok, akiknek volt egy ötletük, de nem volt programozójuk.\n\nMagyar KKV kontextusban ez azt jelenti:\nAz a 12 fős e-commerce cég, akiknek kellene egy belső eszköz az ajánlatkérések kezelésére, de nem akarnak 6 hónapig fejlesztőt keresni — ma már megcsinálhatja maga.\n\nNem perfekten. Nem skálázhatóan.\nDe megcsinálhatja. Elindulhat. Megnézheti hogy működik-e.\n\nA kis csapatoknak ez hatalmas. Nem azért mert \"ingyen fejlesztő\". Hanem azért mert a kísérletezés ára drámaian lecsökkent.\n\nKorábban egy belső eszköz ötlete vagy 800.000 Ft-os fejlesztést jelentett, vagy elmaradt. Most az elmarad opció kevesebb értelmet kezd el kapni.\n\n0-ról 40M USD ARR-re jutottak — főleg azzal, hogy a nem-fejlesztők piacát fedezték fel.\n\nA kérdés amit felteszek magamnak, és neked is felteszek:\nA te céged hány döntésnél mondja azt, hogy \"kellene egy kis eszköz ehhez, de ki fogja megcsinálni\"?\n\nEzek azok a döntések amik most másképp néznek ki.",
+      "current_visual_url": "https://cdn.muapi.ai/outputs/generated/d48593aa11f14a05aef764e4c1eba003.png",
+      "expected_visual_elements": [
+        "dark bg #04060a",
+        "bold display type",
+        "metric / before-after chart",
+        "stat: 800.000 Ft",
+        "PlanSmart watermark"
+      ]
+    },
+    {
+      "voice": "plansmart",
+      "visual_text": {
+        "main_text": "NAPI 2 ÓRA ADMINISZTRÁCIÓ → 0",
+        "sub_text": "Automatizált időpontkezelés 24/7 foglalhatósággal, az első hónapban 34% munkaidőn kívüli foglalás",
+        "stat": "34%"
+      },
+      "variants": [
+        {
+          "variant": "A",
+          "label": "produkciós (current)",
+          "prompt": "Dark #04060a background. Bold Bebas Neue / Neue Machina display typography.\n\nMAIN TEXT (huge, centered, white, Hungarian, all caps):\n\"NAPI 2 ÓRA ADMINISZTRÁCIÓ → 0\"\n\nSTAT (giant, teal glow): \"34%\"\n\nSUBTEXT (smaller, grey, Hungarian):\n\"Automatizált időpontkezelés 24/7 foglalhatósággal, az első hónapban 34% munkaidőn kívüli foglalás\"\n\nBottom right: small PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nCinematic lighting, slight film grain, Soul Cinema aesthetic.\nHigh contrast, scroll-stopping, trending AI content creator style.\nNo people. No clutter. Single focal point. No marketing buzzwords.\nVoice style: premium SaaS brand — refined neutral accents, PlanSmart wordmark, trustworthy and official.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/d5f5cded42594cd4acaa35feff8911f4.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 6,
+            "scroll_stopping_score": 8,
+            "professional_score": 7,
+            "anti_pattern_flags": [
+              "placeholder watermark text visible ('BRAND LOGO') instead of actual client logo",
+              "subtitle text contains 'ersó' instead of correct 'első' (missing accent)",
+              "subtitle text 'fogalhatóság' likely should be 'foglalhatóság' (missing 'l')",
+              "'munkaidőn kívulei' is garbled — should be 'munkaidőn kívüli'"
+            ],
+            "overall_score": 6.2,
+            "feedback": "A focal hierarchy (34% → 0) is strong and scroll-stopping, and the dark background + cyan accent aligns well with brand DNA; however, the small-print subtitle block contains at least three Hungarian spelling/accent errors ('ersó', 'fogalhatóság', 'kívulei') which undermine credibility in a premium B2B context — fix these and replace the 'BRAND LOGO' placeholder before publishing."
+          }
+        },
+        {
+          "variant": "B",
+          "label": "minimalista (kevesebb elem, nagyobb type)",
+          "prompt": "Dark #04060a near-black background, vast negative space. Bebas Neue / Neue Machina display typography, MASSIVE.\n\nONE focal line (huge, centered, white, Hungarian, all caps):\n\"NAPI 2 ÓRA ADMINISZTRÁCIÓ → 0\"\n\nTiny stat detail (monospace, low-key): \"34%\"\nOptional tiny caption (Hungarian, small, grey, bottom): \"Automatizált időpontkezelés 24/7 foglalhatósággal, az első hónapban 34% munkaidőn kívüli foglalás\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nMinimalist, high contrast, a single idea. Cinematic but restrained.\nNo people. No stock-photo clichés. No marketing buzzwords. Absolutely no clutter — one element only.\nVoice style: premium SaaS brand — refined neutral accents, PlanSmart wordmark, trustworthy and official.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/69172d88f6894e70b62da12d24551d8d.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 6,
+            "scroll_stopping_score": 8,
+            "professional_score": 7,
+            "anti_pattern_flags": [
+              "subtitle text contains typo: 'érsó' instead of 'első'",
+              "'kivulsi' instead of 'kívüli' — missing accent",
+              "cinematic/film grain aesthetic absent — flat design only",
+              "background is #1a1a1a range, slightly lighter than brand spec #04060a"
+            ],
+            "overall_score": 6.8,
+            "feedback": "A főcím ('NAPI 2 ÓRA ADMINISZTRÁCIÓ → 0') erős és scroll-stopping, de az apró felirat két ékezeti hibát tartalmaz ('érsó hőnappen', 'kivulsi'), ami rontja a prémium megbízhatóság érzetét — ezeket kötelező javítani. A vizuál nyerne egy réteg cinematic grain-nel és mélyebb fekete háttérrel, hogy jobban illeszkedjen a Soul Cinema brand DNA-hoz."
+          }
+        },
+        {
+          "variant": "C",
+          "label": "filmes (több grain, atmoszféra)",
+          "prompt": "Dark #04060a cinematic background with volumetric lighting, atmospheric haze, pronounced film grain and subtle lens vignette. Moody, depth-of-field bokeh.\n\nMAIN TEXT (large, centered, white, Hungarian, all caps):\n\"NAPI 2 ÓRA ADMINISZTRÁCIÓ → 0\"\n\nSTAT (glowing accent): \"34%\"\nSUBTEXT (smaller, grey, Hungarian):\n\"Automatizált időpontkezelés 24/7 foglalhatósággal, az első hónapban 34% munkaidőn kívüli foglalás\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nStrong 'Soul Cinema' aesthetic: dramatic light, grain, high contrast, premium movie-poster feel.\nNo people. No stock-photo clichés. No marketing buzzwords. Single focal point.\nVoice style: premium SaaS brand — refined neutral accents, PlanSmart wordmark, trustworthy and official.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/3d84bfd804fe4f93b00844d9687fc961.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 5,
+            "scroll_stopping_score": 8,
+            "professional_score": 6,
+            "anti_pattern_flags": [
+              "garbled Hungarian text in subtitle: 'ersé hőnappen' instead of 'első hónapban', 'kivui' instead of 'kívül'",
+              "two competing focal elements: headline stat AND 34% neon number create visual hierarchy confusion"
+            ],
+            "overall_score": 6.2,
+            "feedback": "A cinematic spotlight + neon 34% kombináció erős scroll-stopping potenciált ad, de a kisebb alcím szövegben súlyos helyesírási/generálási hibák vannak ('ersé hőnappen', 'kivui'), amelyek egy prémium B2B brandnél azonnal hitelességvesztést okoznak — ezeket manuálisan kell javítani vagy újragenerálni. A vizuális hierarchia is tisztítható: a headline és a 34% neon egymással verseng, érdemes lenne az egyik elemet egyértelműen domináns főfókusszá emelni."
+          }
+        },
+        {
+          "variant": "D",
+          "label": "adat-fókuszú (szám dominál)",
+          "prompt": "Dark #04060a background, faint technical grid. The NUMBER is the hero.\n\nGIANT METRIC (dominant, centered, teal glow, monospace+display mix):\n\"34%\"\n\nMAIN LABEL (Hungarian, all caps, above or below the number):\n\"NAPI 2 ÓRA ADMINISZTRÁCIÓ → 0\"\nSUBTEXT (small, grey, Hungarian):\n\"Automatizált időpontkezelés 24/7 foglalhatósággal, az első hónapban 34% munkaidőn kívüli foglalás\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nData-visual energy: the metric dominates the frame, everything else supports it. Cinematic lighting, slight grain, high contrast.\nNo people. No stock-photo clichés. No marketing buzzwords. One focal number.\nVoice style: premium SaaS brand — refined neutral accents, PlanSmart wordmark, trustworthy and official.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/08abdfb666134b15b278c400706213f4.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 4,
+            "scroll_stopping_score": 8,
+            "professional_score": 5,
+            "anti_pattern_flags": [
+              "garbled Hungarian text in body copy ('foggalhatósággal' should be 'foglalhatósággal', 'érsé hönagben' is nonsensical — likely hallucinated AI text for 'első hónapban')",
+              "placeholder 'BRAND LOGO' text visible above PlanSmart wordmark — not a finished asset",
+              "duplicate headline treatment creates mild clutter (strikethrough line + cyan line competing)"
+            ],
+            "overall_score": 5.8,
+            "feedback": "The glowing 34% focal stat and dark cinematic background are strong brand-aligned choices, but the body copy contains clearly AI-hallucinated, unreadable Hungarian ('érsé hönagben') and a misspelling ('foggalhatósággal') that would destroy credibility in a professional B2B feed — fix the body text with the exact post copy before publishing. Also remove the 'BRAND LOGO' placeholder; the PlanSmart wordmark alone is sufficient."
+          }
+        }
+      ],
+      "winner_variant": "B",
+      "winner_score": 6.8,
+      "total_cost": 0.128,
+      "post_id": "6e2ad766f4d7",
+      "content_type": "case_study",
+      "content": "Egy budapesti mozgásterapeutás stúdió (8 fős csapat) napi 2 óráját vitte el az időpontkezelés.\n\nHelyzet:\nA recepciós minden nap telefonon és e-mailben egyeztette az időpontokat, manuálisan vezette a naptárt, és kézzel küldte ki a visszaigazolásokat. Ha valaki lemondott, azt is embernek kellett átvezetni — minden rendszerben külön. Hétvégén és esti időpontokban egyáltalán nem volt elérhető a foglalás.\n\nMegoldás:\nFelépítettünk egy automatizált rendszert, amelyben az ügyfél önállóan foglal a weboldalon, azonnali visszaigazoló e-mailt kap, az időpont automatikusan bekerül a stúdió Notion-alapú nyilvántartásába, és lemondás esetén a hely automatikusan újra elérhetővé válik.\n\nEredmény:\n• Napi 2 óra adminisztráció → 0 kézi munka\n• 24/7 foglalhatóság — hétvégén és este is\n• Az első hónapban a foglalások 34%-a munkaidőn kívül érkezett\n• A recepciós teljes munkaideje átcsoportosítható ügyfélkiszolgálásra\n\nEz nem egyedi eset. Sok kis- és középvállalkozásnál az időpontkezelés az egyik első folyamat, ahol az automatizálás azonnal mérhető hatást hoz — extra fejlesztés vagy IT-csapat nélkül.\n\nIsmerős a helyzet a cégedben? Oszd meg a kommentben, hogyan kezeli most a csapatod.",
+      "current_visual_url": null,
+      "expected_visual_elements": [
+        "dark bg #04060a",
+        "bold display type",
+        "PlanSmart wordmark",
+        "stat: 2 óra",
+        "PlanSmart watermark"
+      ]
+    },
+    {
+      "voice": "david",
+      "visual_text": {
+        "main_text": "AZ AGENT NEM EGY HÍVÁS",
+        "sub_text": "Hanem egy loop, amely maga dönti el mikor, mit, hány alkalommal fut — és mikor áll meg.",
+        "stat": null
+      },
+      "variants": [
+        {
+          "variant": "A",
+          "label": "produkciós (current)",
+          "prompt": "Dark #04060a background. Bold Bebas Neue / Neue Machina display typography.\n\nMAIN TEXT (huge, centered, white, Hungarian, all caps):\n\"AZ AGENT NEM EGY HÍVÁS\"\n\nSUBTEXT (smaller, grey, Hungarian):\n\"Hanem egy loop, amely maga dönti el mikor, mit, hány alkalommal fut — és mikor áll meg.\"\n\nBottom right: small PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nCinematic lighting, slight film grain, Soul Cinema aesthetic.\nHigh contrast, scroll-stopping, trending AI content creator style.\nNo people. No clutter. Single focal point. No marketing buzzwords.\nVoice style: technical builder — terminal/code/system-diagram accents, cool teal glow, monospace details.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/23d2e9334e854b51a7994d8b5c5817cf.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 4,
+            "scroll_stopping_score": 8,
+            "professional_score": 6,
+            "anti_pattern_flags": [
+              "garbled Hungarian text in subtitle — 'dőntii', 'akalommal', 'ásll' are AI hallucination artifacts",
+              "background UI elements feel generic AI-art HUD / nonsense interface overlay",
+              "multiple competing layers — background code panels + headline + subtitle create mild clutter"
+            ],
+            "overall_score": 5.8,
+            "feedback": "A főcím erős és figyelemfelkeltő, de az alcím szövege súlyos helyesírási/generálási hibákat tartalmaz ('dőntii', 'ásll', 'akalommal'), amelyek teljesen tönkreteszik a szakmai hitelességet — ez az egész posztot diszkvalifikálja production használatra; a háttér HUD-elemek generikus AI-art érzetet keltenek, cseréld le valódi terminal/monospace vizuálra vagy tiszta sötét tónusra."
+          }
+        },
+        {
+          "variant": "B",
+          "label": "minimalista (kevesebb elem, nagyobb type)",
+          "prompt": "Dark #04060a near-black background, vast negative space. Bebas Neue / Neue Machina display typography, MASSIVE.\n\nONE focal line (huge, centered, white, Hungarian, all caps):\n\"AZ AGENT NEM EGY HÍVÁS\"\nOptional tiny caption (Hungarian, small, grey, bottom): \"Hanem egy loop, amely maga dönti el mikor, mit, hány alkalommal fut — és mikor áll meg.\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nMinimalist, high contrast, a single idea. Cinematic but restrained.\nNo people. No stock-photo clichés. No marketing buzzwords. Absolutely no clutter — one element only.\nVoice style: technical builder — terminal/code/system-diagram accents, cool teal glow, monospace details.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/49660704c40a4ed0b7527764b3be015e.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 4,
+            "scroll_stopping_score": 8,
+            "professional_score": 5,
+            "anti_pattern_flags": [
+              "garbled background text — numerous nonsense/hallucinated strings visible in the HUD overlay",
+              "multiple competing text layers create clutter despite strong hero headline",
+              "background UI elements feel generic AI-art rather than purposeful terminal aesthetic"
+            ],
+            "overall_score": 5.8,
+            "feedback": "A főcím ('AZ AGENT NEM EGY HÍVÁS') erős és olvasható, jól illeszkedik a brand hanghoz — de a háttérben lévő összes szöveges HUD-elem értelmetlen, garbled karakterekből áll, ami azonnal amatőr benyomást kelt és rontja a szakmai hitelességet. A következő verzióban vagy valódi, értelmes terminálszöveget kell használni, vagy el kell hagyni a háttér-szöveges layert teljesen, és csak a fő üzenetre + a PlanSmart watermarkra koncentrálni."
+          }
+        },
+        {
+          "variant": "C",
+          "label": "filmes (több grain, atmoszféra)",
+          "prompt": "Dark #04060a cinematic background with volumetric lighting, atmospheric haze, pronounced film grain and subtle lens vignette. Moody, depth-of-field bokeh.\n\nMAIN TEXT (large, centered, white, Hungarian, all caps):\n\"AZ AGENT NEM EGY HÍVÁS\"\nSUBTEXT (smaller, grey, Hungarian):\n\"Hanem egy loop, amely maga dönti el mikor, mit, hány alkalommal fut — és mikor áll meg.\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nStrong 'Soul Cinema' aesthetic: dramatic light, grain, high contrast, premium movie-poster feel.\nNo people. No stock-photo clichés. No marketing buzzwords. Single focal point.\nVoice style: technical builder — terminal/code/system-diagram accents, cool teal glow, monospace details.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/bc32710c9ec849ff8bc312f93fce2c02.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 4,
+            "scroll_stopping_score": 7,
+            "professional_score": 6,
+            "anti_pattern_flags": [
+              "garbled background text (hallucinated/nonsense code lines in lower third)",
+              "subtitle contains corrupted characters: 'amell' instead of 'amely', 'dönti' rendered as 'dônti', 'śśll' is nonsensical",
+              "subtitle grammar issue: 'akalommal' instead of 'alkalommal'"
+            ],
+            "overall_score": 5.5,
+            "feedback": "A főcím ('AZ AGENT NEM EGY HÍVÁS') erős és vizuálisan jól megkomponált, a cinematic háttér és a PlanSmart watermark rendben van — de az alcím szövege több helyen súlyosan hibás (garbled ékezetek, 'amell', 'śśll', 'akalommal'), ami teljesen aláássa a professzionális hitelességet; az alacsony tónusú háttér-'kód' sorok szintén értelmetlen AI-generált szövegek, ami az anti-pattern listán szerepel, és egyetlen fix: a teljes szöveget vektoros eszközben kell raszterizálni, ne AI image generátorral renderelni."
+          }
+        },
+        {
+          "variant": "D",
+          "label": "adat-fókuszú (szám dominál)",
+          "prompt": "Dark #04060a background, faint technical grid. The NUMBER is the hero.\n\nGIANT METRIC (dominant, centered, teal glow, monospace+display mix):\n\"AZ AGENT NEM EGY HÍVÁS\"\n\nMAIN LABEL (Hungarian, all caps, above or below the number):\n\"AZ AGENT NEM EGY HÍVÁS\"\nSUBTEXT (small, grey, Hungarian):\n\"Hanem egy loop, amely maga dönti el mikor, mit, hány alkalommal fut — és mikor áll meg.\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nData-visual energy: the metric dominates the frame, everything else supports it. Cinematic lighting, slight grain, high contrast.\nNo people. No stock-photo clichés. No marketing buzzwords. One focal number.\nVoice style: technical builder — terminal/code/system-diagram accents, cool teal glow, monospace details.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/6a347183f203464ab88f4327b8449763.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 5,
+            "scroll_stopping_score": 8,
+            "professional_score": 6,
+            "anti_pattern_flags": [
+              "garbled or non-Hungarian text in body copy ('dônti' missing correct accent — should be 'dönti', 'ásll' is a hallucinated/garbled word instead of 'áll', 'akalommal' instead of 'alkalommal')",
+              "HUD/dashboard background creates mild visual clutter competing with focal number",
+              "'15;00' uses semicolon instead of colon — typographic error undermining credibility",
+              "generic AI-art HUD overlay feel in background panels"
+            ],
+            "overall_score": 5.8,
+            "feedback": "The glowing teal '15:00' number and dark background nail the cinematic focal-point concept, but the body copy contains critical Hungarian text errors ('ásll', 'dônti', 'akalommal') that immediately destroy professional credibility for a B2B audience — these must be corrected before publishing. Additionally, replace the semicolon in '15;00' with a proper colon and simplify or remove the HUD dashboard background to reduce clutter and avoid the generic AI-art anti-pattern."
+          }
+        }
+      ],
+      "winner_variant": "A",
+      "winner_score": 5.8,
+      "total_cost": 0.128,
+      "post_id": "df3684b0716b",
+      "content_type": "post",
+      "content": "Végre valaki rendesen megmagyarázta az AI agent loop-ok típusait.\n\nLenny's Newsletter-ben volt egy anyag erről — és ritkán látom ilyen tisztán leírva, hogy mi a különbség egy heartbeat, egy cron, egy goal-based loop és egy subagent orchestration között.\n\nMert én is sokáig azt hittem, hogy \"agent\" az, hogy Claude API-t hívok meg egyszer, kap egy promptot, visszaad valamit.\n\nNem. Az agent az, amikor a rendszer maga dönti el mikor, mit, hány alkalommal fut — és mikor áll meg.\n\nAmi a legjobban bevésődött:\n\n**Goal-based loop** — nem időre megy, hanem feltételre. Addig fut, amíg a cél nem teljesül. Ez az, ami igazán különbözik a sima scheduled job-tól. Erre épül egy jó PR review agent: nem 9-kor indul, hanem amikor pull request nyílt.\n\n**Subagent orchestration** — egy fő agent lebontja a feladatot, kiosztja részfeladatonként, összegyűjti az eredményt. Ezt most byggelem mi is egy ügyfélnél. Nem egyszerű, de skálázódik.\n\nAmi viszont hiányzik az ilyen anyagokból általában: mi van, ha az agent loop elsül? Ki fogja el a hibát? Hova logolódik?\n\nMert production-ben a loop design 30%-a. A maradék 70% error handling és observability.\n\nEzt tanultam meg az elmúlt 3 hónapban saját projekten — a kemény úton.",
+      "current_visual_url": "https://cdn.muapi.ai/outputs/generated/03d42377e6ef4f56b4545f30f887ff81.png",
+      "expected_visual_elements": [
+        "dark bg #04060a",
+        "bold display type",
+        "monospace / code-diagram",
+        "stat: 30%",
+        "PlanSmart watermark"
+      ]
+    },
+    {
+      "voice": "adam",
+      "visual_text": {
+        "main_text": "NEM AZ AI A PROBLÉMA",
+        "sub_text": "A dokumentált folyamat az. Előbb rendszerezz, utána automatizálj.",
+        "stat": null
+      },
+      "variants": [
+        {
+          "variant": "A",
+          "label": "produkciós (current)",
+          "prompt": "Dark #04060a background. Bold Bebas Neue / Neue Machina display typography.\n\nMAIN TEXT (huge, centered, white, Hungarian, all caps):\n\"NEM AZ AI A PROBLÉMA\"\n\nSUBTEXT (smaller, grey, Hungarian):\n\"A dokumentált folyamat az. Előbb rendszerezz, utána automatizálj.\"\n\nBottom right: small PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nCinematic lighting, slight film grain, Soul Cinema aesthetic.\nHigh contrast, scroll-stopping, trending AI content creator style.\nNo people. No clutter. Single focal point. No marketing buzzwords.\nVoice style: strategist — financial-dashboard minimalism, warm gold or soft green metric accent, before/after framing.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/c3bff1bd248d4b11bf18a5de876e907b.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 4,
+            "scroll_stopping_score": 8,
+            "professional_score": 6,
+            "anti_pattern_flags": [
+              "garbled Hungarian text: 'dokumentädt' (should be 'dokumentált'), 'rendsserezz' (double 's', should be 'rendszerezz'), 'utana' (should be 'utána')",
+              "missing accent/diacritic errors in body copy",
+              "body copy accent inconsistency undermines premium feel"
+            ],
+            "overall_score": 5.8,
+            "feedback": "A főcím erős és scroll-stopping, a dark bg + display type + watermark rendben van, de a body copy három súlyos magyar helyesírási/ékezeti hibát tartalmaz ('dokumentädt', 'rendsserezz', 'utana'), ami egy B2B prémium brandnél elfogadhatatlan — minden szöveget manuálisan kell ellenőrizni generálás után. Az arany border-frame dekoratív elem kissé generikus; cseréljük erősebb 'Soul Cinema' fénymotívumra (pl. egyirányú spotlight vagy adat-grid overlay) a vizuális prémiumszint emeléséhez."
+          }
+        },
+        {
+          "variant": "B",
+          "label": "minimalista (kevesebb elem, nagyobb type)",
+          "prompt": "Dark #04060a near-black background, vast negative space. Bebas Neue / Neue Machina display typography, MASSIVE.\n\nONE focal line (huge, centered, white, Hungarian, all caps):\n\"NEM AZ AI A PROBLÉMA\"\nOptional tiny caption (Hungarian, small, grey, bottom): \"A dokumentált folyamat az. Előbb rendszerezz, utána automatizálj.\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nMinimalist, high contrast, a single idea. Cinematic but restrained.\nNo people. No stock-photo clichés. No marketing buzzwords. Absolutely no clutter — one element only.\nVoice style: strategist — financial-dashboard minimalism, warm gold or soft green metric accent, before/after framing.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/5806da467891481db7818787699174ba.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 6,
+            "hungarian_text_quality": 3,
+            "scroll_stopping_score": 7,
+            "professional_score": 5,
+            "anti_pattern_flags": [
+              "garbled subtitle text: 'Badkiensé tőfnyarirezz' is nonsense Hungarian",
+              "garbled progress bar label text unreadable",
+              "'az. Badkiensé' contains hallucinated/corrupted words",
+              "background is dark grey not the specified near-black #04060a",
+              "missing cinematic film grain / Soul Cinema aesthetic",
+              "progress bar element adds clutter without clear purpose",
+              "NEM AZ.AI punctuation error — period after 'AZ' breaks readability"
+            ],
+            "overall_score": 4.2,
+            "feedback": "A főcím erős és üzenetileg pontos, de a feliratban teljesen értelmetlen, hallucinált magyar szöveg jelenik meg ('Badkiensé tőfnyarirezz'), ami professzionális kontextusban elfogadhatatlan és hitelrontó; a progress bar elem felesleges zajt visz a kompozícióba — töröld vagy tedd értelmessé, a subtitle szövegét pedig kézzel kell bevinni, nem AI-generált szövegként hagyni."
+          }
+        },
+        {
+          "variant": "C",
+          "label": "filmes (több grain, atmoszféra)",
+          "prompt": "Dark #04060a cinematic background with volumetric lighting, atmospheric haze, pronounced film grain and subtle lens vignette. Moody, depth-of-field bokeh.\n\nMAIN TEXT (large, centered, white, Hungarian, all caps):\n\"NEM AZ AI A PROBLÉMA\"\nSUBTEXT (smaller, grey, Hungarian):\n\"A dokumentált folyamat az. Előbb rendszerezz, utána automatizálj.\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nStrong 'Soul Cinema' aesthetic: dramatic light, grain, high contrast, premium movie-poster feel.\nNo people. No stock-photo clichés. No marketing buzzwords. Single focal point.\nVoice style: strategist — financial-dashboard minimalism, warm gold or soft green metric accent, before/after framing.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/7646b565f4f94812bc173beed737fcba.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 6,
+            "hungarian_text_quality": 4,
+            "scroll_stopping_score": 7,
+            "professional_score": 5,
+            "anti_pattern_flags": [
+              "garbled text: 'rrrzgzezz' instead of 'rögzíts'",
+              "wrong accent: 'Elöbb' instead of 'Előbb'",
+              "wrong accent: 'utana' instead of 'utána'",
+              "generic AI HUD/tech overlay frame feels over-rendered",
+              "redundant double PlanSmart label in watermark area"
+            ],
+            "overall_score": 4.8,
+            "feedback": "A szubtext sor súlyos AI-szöveggenerálási hibákat tartalmaz ('Elöbb rrrzgzezz, utana automatizálj') — ezek azonnal hiteltelenné teszik a posztot, javítandó: 'Előbb rögzíts, utána automatizálj'; a HUD-keret és a bokeh háttér generikus tech-vizuál benyomást kelt, cseréld minimal dark-grid vagy egyszerű spotlight megoldásra a valódi 'Soul Cinema' hatásért."
+          }
+        },
+        {
+          "variant": "D",
+          "label": "adat-fókuszú (szám dominál)",
+          "prompt": "Dark #04060a background, faint technical grid. The NUMBER is the hero.\n\nGIANT METRIC (dominant, centered, teal glow, monospace+display mix):\n\"NEM AZ AI A PROBLÉMA\"\n\nMAIN LABEL (Hungarian, all caps, above or below the number):\n\"NEM AZ AI A PROBLÉMA\"\nSUBTEXT (small, grey, Hungarian):\n\"A dokumentált folyamat az. Előbb rendszerezz, utána automatizálj.\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nData-visual energy: the metric dominates the frame, everything else supports it. Cinematic lighting, slight grain, high contrast.\nNo people. No stock-photo clichés. No marketing buzzwords. One focal number.\nVoice style: strategist — financial-dashboard minimalism, warm gold or soft green metric accent, before/after framing.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/526e0afe1d354cf28d6fba7853340f99.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 6,
+            "hungarian_text_quality": 5,
+            "scroll_stopping_score": 7,
+            "professional_score": 6,
+            "anti_pattern_flags": [
+              "repeated headline duplication (small yellow + large teal same text — clutter)",
+              "subtitle grammatical error: 'dokumentált folyakat' instead of 'dokumentálatlan folyamat'",
+              "subtitle missing accent: 'utana' instead of 'utána'",
+              "placeholder artifact visible: 'BRAND_LOGO' text rendered next to PlanSmart logo",
+              "background UI elements feel generic AI-art / nonsense HUD",
+              "typography is not Bebas Neue / Neue Machina — appears to be a softer rounded sans"
+            ],
+            "overall_score": 4.8,
+            "feedback": "A legkritikusabb probléma a feliratban van: 'A dokumentált folyakat az.' értelmetlen (hiányzik az 'atlan' rész és a szó el is romlik), 'utana' ékezet nélkül szerepel — ezek azonnal hitelességet rombolnak egy B2B közönség előtt; javítsd a másolatot ('A dokumentálatlan folyamat az. / Előbb rendszerezz, utána automatizálj.') és távolítsd el a BRAND_LOGO placeholder szöveget a végleges exportból."
+          }
+        }
+      ],
+      "winner_variant": "A",
+      "winner_score": 5.8,
+      "total_cost": 0.128,
+      "post_id": "c565209d581a",
+      "content_type": "post",
+      "content": "Általában azt látom, hogy egy KKV-s vezető megveszi a szoftvert, feliratkozik az AI eszközre, majd 3 hónap múlva azt mondja: \"nem vált be nálunk.\"\n\nNem az eszköz a probléma.\n\nEgy 40 fős könyvelő irodánál nemrég végigmentünk a napi munkafolyamatokon. Volt CRM, volt projektkezelő, volt automatizálási tool — mindegyikért fizettek. A csapat mégis Excelben vezette a határidőket, mert \"így megszokták\".\n\nAz AI bevezetése előtt megkérdeztem a tulajdonost: le tudja-e írni nekem 10 percben, hogy mi történik pontosan miután beérkezik egy új ügyfél-megkeresés? Ki mit csinál, miben, mennyi idő alatt?\n\nNem tudta leírni.\n\nÉs ez nem kritika — hanem a legtöbb KKV valósága. A folyamat a fejekben él, nem a rendszerekben. Mindenki tudja a saját részét, de az egész láthatatlan.\n\nEbbe az eszköz nem tud belépni. Nem azért mert gyenge — hanem mert nincs mire illeszkednie.\n\nA sorrend ez:\n1. Mi az a folyamat, amit ismétlünk hetente legalább 3-szor?\n2. Le tudja-e írni valaki úgy, hogy egy új kolléga is értse?\n3. Ha igen — akkor jön az eszköz.\n\nA legtöbb cég a 3. lépésnél kezd. Aztán csodálkozik hogy \"nem működik az AI\".\n\nNem az AI a szűk keresztmetszet.\nA dokumentált folyamat az.\n\nNálad melyik az a folyamat, ami mindenki fejében él, de sehol nincs leírva?",
+      "current_visual_url": null,
+      "expected_visual_elements": [
+        "dark bg #04060a",
+        "bold display type",
+        "metric / before-after chart",
+        "stat: 10 perc",
+        "PlanSmart watermark"
+      ]
+    },
+    {
+      "voice": "david",
+      "visual_text": {
+        "main_text": "CLAUDE OPUS 4.8",
+        "sub_text": "Long-running agentic tasks: kevesebb checkpoint, több consistency, gyorsabb futás.",
+        "stat": null
+      },
+      "variants": [
+        {
+          "variant": "A",
+          "label": "produkciós (current)",
+          "prompt": "Dark #04060a background. Bold Bebas Neue / Neue Machina display typography.\n\nMAIN TEXT (huge, centered, white, Hungarian, all caps):\n\"CLAUDE OPUS 4.8\"\n\nSUBTEXT (smaller, grey, Hungarian):\n\"Long-running agentic tasks: kevesebb checkpoint, több consistency, gyorsabb futás.\"\n\nBottom right: small PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nCinematic lighting, slight film grain, Soul Cinema aesthetic.\nHigh contrast, scroll-stopping, trending AI content creator style.\nNo people. No clutter. Single focal point. No marketing buzzwords.\nVoice style: technical builder — terminal/code/system-diagram accents, cool teal glow, monospace details.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/07acffb0dcf04aa59d9689af7ef4bce8.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 6,
+            "hungarian_text_quality": 2,
+            "scroll_stopping_score": 7,
+            "professional_score": 4,
+            "anti_pattern_flags": [
+              "garbled Hungarian text: 'kevessbb', 'tébb', 'cepsatecy', 'gyorsassb', 'fűtás' (should be 'futás') — multiple hallucinated/misspelled words",
+              "background clutter: node-graph overlay + binary/code text edges compete with focal element",
+              "generic AI-art background aesthetic (node graph, scattered code snippets)",
+              "mixed language body text undermines Hungarian-first brand voice"
+            ],
+            "overall_score": 4.2,
+            "feedback": "A főcím ('CLAUDE OPUS 4.8') erős és scroll-stopping, de a magyar alcímszöveg tele van AI-hallucináció okozta elírásokkal ('cepsatecy', 'gyorsassb', 'fűtás' stb.) — ez publikálhatatlanná teszi a posztot. A háttér node-gráf + széleken úszó kódszöveg vizuális zajt ad a cinematic/Soul Cinema célhoz képest; tisztább, sötétebb, film grain alapú megoldás hitelesebb lenne a Dávid-hangvételhez."
+          }
+        },
+        {
+          "variant": "B",
+          "label": "minimalista (kevesebb elem, nagyobb type)",
+          "prompt": "Dark #04060a near-black background, vast negative space. Bebas Neue / Neue Machina display typography, MASSIVE.\n\nONE focal line (huge, centered, white, Hungarian, all caps):\n\"CLAUDE OPUS 4.8\"\nOptional tiny caption (Hungarian, small, grey, bottom): \"Long-running agentic tasks: kevesebb checkpoint, több consistency, gyorsabb futás.\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nMinimalist, high contrast, a single idea. Cinematic but restrained.\nNo people. No stock-photo clichés. No marketing buzzwords. Absolutely no clutter — one element only.\nVoice style: technical builder — terminal/code/system-diagram accents, cool teal glow, monospace details.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/d25b65ae2b854136842eef2ea0728a59.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 6,
+            "hungarian_text_quality": 3,
+            "scroll_stopping_score": 7,
+            "professional_score": 5,
+            "anti_pattern_flags": [
+              "garbled or non-Hungarian text in subtitle line (mixed Hungarian-English hybrid, 'kevessbb'/'gyorsasbb' are misspelled Hungarian words)",
+              "generic AI-art look (nonsense UI overlays, unreadable HUD elements with garbled characters)",
+              "multiple competing elements / clutter (corner brackets, side panels, floating text blocks all fight for attention)",
+              "'Claude Opus 4.8' focal element not branded as PlanSmart insight — reads as Anthropic ad"
+            ],
+            "overall_score": 4.2,
+            "feedback": "A fő headline erős és scroll-stopping, de a subtitle sorban hibás a helyesírás ('kevessbb', 'gyorsasbb' helyett 'kevesebb', 'gyorsabb'), a HUD-elemek tele vannak olvashatatlan/értelmetlen karakterekkel, és az egész vizuál inkább egy generikus tech-demo érzetét kelti, mint egy prémium B2B brand tulajdonosi véleményét — a nonsense overlay elemeket el kell távolítani, és egyetlen clean subline-ra cserélni helyes magyar szöveggel."
+          }
+        },
+        {
+          "variant": "C",
+          "label": "filmes (több grain, atmoszféra)",
+          "prompt": "Dark #04060a cinematic background with volumetric lighting, atmospheric haze, pronounced film grain and subtle lens vignette. Moody, depth-of-field bokeh.\n\nMAIN TEXT (large, centered, white, Hungarian, all caps):\n\"CLAUDE OPUS 4.8\"\nSUBTEXT (smaller, grey, Hungarian):\n\"Long-running agentic tasks: kevesebb checkpoint, több consistency, gyorsabb futás.\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nStrong 'Soul Cinema' aesthetic: dramatic light, grain, high contrast, premium movie-poster feel.\nNo people. No stock-photo clichés. No marketing buzzwords. Single focal point.\nVoice style: technical builder — terminal/code/system-diagram accents, cool teal glow, monospace details.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/cf4ba836c77444c18fc859b199f93615.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 3,
+            "scroll_stopping_score": 7,
+            "professional_score": 6,
+            "anti_pattern_flags": [
+              "garbled or non-Hungarian text: 'kevessbb' (typo), 'tábbzéb' (garbled/nonsense word), 'gyorsasb' (typo) — subtitle contains multiple spelling errors",
+              "generic AI-art look: background filled with unreadable hallucinated code/UI elements",
+              "multiple competing elements: busy code/terminal background fragments distract from focal point"
+            ],
+            "overall_score": 5.2,
+            "feedback": "A főcím ('CLAUDE OPUS 4.8') erős és jól hierarchizált, de az alcím három helyesírási/értelmezési hibát tartalmaz ('kevessbb', 'tábbzéb', 'gyorsasb') ami szakmai hitelesség-romboló egy B2B kontextusban — ezeket azonnal javítani kell. A háttér túl zsúfolt és a kódos UI-elemek hallucinált/olvashatatlan karaktereket tartalmaznak, ami az 'AI-art' anti-pattern irányába tolja a képet; egyszerűbb, absztraktabb háttér jobban szolgálná a 'Soul Cinema' esztétikát."
+          }
+        },
+        {
+          "variant": "D",
+          "label": "adat-fókuszú (szám dominál)",
+          "prompt": "Dark #04060a background, faint technical grid. The NUMBER is the hero.\n\nGIANT METRIC (dominant, centered, teal glow, monospace+display mix):\n\"CLAUDE OPUS 4.8\"\n\nMAIN LABEL (Hungarian, all caps, above or below the number):\n\"CLAUDE OPUS 4.8\"\nSUBTEXT (small, grey, Hungarian):\n\"Long-running agentic tasks: kevesebb checkpoint, több consistency, gyorsabb futás.\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nData-visual energy: the metric dominates the frame, everything else supports it. Cinematic lighting, slight grain, high contrast.\nNo people. No stock-photo clichés. No marketing buzzwords. One focal number.\nVoice style: technical builder — terminal/code/system-diagram accents, cool teal glow, monospace details.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/8a330da0f054446096071725948d0d1a.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 5,
+            "hungarian_text_quality": 3,
+            "scroll_stopping_score": 6,
+            "professional_score": 4,
+            "anti_pattern_flags": [
+              "garbled Hungarian text: 'kevessbb' instead of 'kevesebb', 'checkpooit' instead of 'checkpoint', 'gyorsassb' instead of 'gyorsabb'",
+              "watermark not implemented — placeholder '[BRAND_LOGO]' text instead of actual PlanSmart mark",
+              "HUD/tech-frame overlay feels generic AI-art, not cinematic Soul Cinema",
+              "focal element duplicated: 'CLAUDE OPUS 4.8' appears twice competing with each other",
+              "mixed Hungarian/English subtitle reduces language clarity"
+            ],
+            "overall_score": 3.8,
+            "feedback": "A legkritikusabb hiba a garbled Hungarian szöveg ('kevessbb', 'checkpooit', 'gyorsassb') — ez azonnal hiteltelenné teszi a posztot production környezetben; a [BRAND_LOGO] placeholder szintén teljesen befejezetlen állapotot jelez. Javítandó: helyes magyar szöveg, valós PlanSmart watermark, és a duplikált fejléc eltávolítása a tiszta single-focal-element elvért."
+          }
+        }
+      ],
+      "winner_variant": "C",
+      "winner_score": 5.2,
+      "total_cost": 0.128,
+      "post_id": "238c5ef160b9",
+      "content_type": "post",
+      "content": "Az Anthropic kihozta a Claude Opus 4.8-at.\n\nAmit azonnal megnéztem: agentic tasks és long-running work teljesítmény.\n\nMert ez az a kettő ami nálunk production-ben a legtöbbet bottleneck.\n\nEddig az Opus 4-gyel az volt a tapasztalat, hogy ha egy workflow 10+ lépéses lett, elkezdett \"elfáradni\" — context vége felé romlik a döntésminőség, és néha visszalép már meghozott döntésekre.\n\nHa a 4.8 valóban hozza a \"consistency to handle long-running work\" ígéretet, az nem marketing szöveg — az azt jelenti, hogy az ügyfélnél futó PPC monitor pipeline-ból kivehetek 3 checkpoint-ot amit eddig csak azért raktam be, hogy a modell \"emlékezzen\" hol tart.\n\nKevesebb overhead, kevesebb token, gyorsabb futás.\n\nTesztelni fogom a héten élesben. Ha van érdemi különbség a 4-eshez képest long-context döntéshozatalban, megírom.\n\nAddig: az Opus tier drágább mint a Sonnet, szóval csak ott érdemes váltani ahol valóban kell a komplexitás. Ne frissíts reflexből.",
+      "current_visual_url": null,
+      "expected_visual_elements": [
+        "dark bg #04060a",
+        "bold display type",
+        "monospace / code-diagram",
+        "PlanSmart watermark"
+      ]
+    },
+    {
+      "voice": "adam",
+      "visual_text": {
+        "main_text": "A LEMARADÁS NEM AZ ÚJABB MODELLBEN VAN",
+        "sub_text": "Hanem abban, hogy még nem döntötted el, melyik folyamatod az első.",
+        "stat": null
+      },
+      "variants": [
+        {
+          "variant": "A",
+          "label": "produkciós (current)",
+          "prompt": "Dark #04060a background. Bold Bebas Neue / Neue Machina display typography.\n\nMAIN TEXT (huge, centered, white, Hungarian, all caps):\n\"A LEMARADÁS NEM AZ ÚJABB MODELLBEN VAN\"\n\nSUBTEXT (smaller, grey, Hungarian):\n\"Hanem abban, hogy még nem döntötted el, melyik folyamatod az első.\"\n\nBottom right: small PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nCinematic lighting, slight film grain, Soul Cinema aesthetic.\nHigh contrast, scroll-stopping, trending AI content creator style.\nNo people. No clutter. Single focal point. No marketing buzzwords.\nVoice style: strategist — financial-dashboard minimalism, warm gold or soft green metric accent, before/after framing.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/8df57f492dae4ebdb4b2867bb90eecd0.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 4,
+            "scroll_stopping_score": 8,
+            "professional_score": 6,
+            "anti_pattern_flags": [
+              "garbled Hungarian text in body copy: 'abdan' instead of 'abban', 'meyik' instead of 'melyik', 'ersó' instead of 'első'"
+            ],
+            "overall_score": 5.8,
+            "feedback": "A főcím tipográfiája és a dark background erős — vizuálisan megállítja a scrollt — de a body copy három súlyos helyesírási/AI-hallucináció hibát tartalmaz ('abdan', 'meyik', 'ersó'), amelyek teljesen tönkreteszik a professzionális hatást; ezeket mindenképpen javítani kell újragenerálással vagy utószerkesztéssel, mielőtt publikálásra kerül."
+          }
+        },
+        {
+          "variant": "B",
+          "label": "minimalista (kevesebb elem, nagyobb type)",
+          "prompt": "Dark #04060a near-black background, vast negative space. Bebas Neue / Neue Machina display typography, MASSIVE.\n\nONE focal line (huge, centered, white, Hungarian, all caps):\n\"A LEMARADÁS NEM AZ ÚJABB MODELLBEN VAN\"\nOptional tiny caption (Hungarian, small, grey, bottom): \"Hanem abban, hogy még nem döntötted el, melyik folyamatod az első.\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nMinimalist, high contrast, a single idea. Cinematic but restrained.\nNo people. No stock-photo clichés. No marketing buzzwords. Absolutely no clutter — one element only.\nVoice style: strategist — financial-dashboard minimalism, warm gold or soft green metric accent, before/after framing.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/397da7488b514249872e7b78f4b3e5fb.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 5,
+            "scroll_stopping_score": 7,
+            "professional_score": 6,
+            "anti_pattern_flags": [
+              "garbled subtitle text: 'Hanem abdan, hogy móg nem döntötted el, melyik folyakatod az eksó' — multiple spelling/accent errors (abdan→abban, móg→még, folyakatod→folyamatod, eksó→első)",
+              "subtitle font does not match bold display character — feels like a different design system",
+              "rectangular glow bar behind headline reads as generic AI-art UI element"
+            ],
+            "overall_score": 5.8,
+            "feedback": "A főcím szövege és tipográfiája erős és brand-konform, de az alcím súlyos helyesírási hibái (abdan, móg, folyakatod, eksó) azonnal rontják a hitelességet B2B közönség előtt — ezeket ki kell javítani mielőtt a poszt kimegy. A sárga-zöld glow-sáv a szöveg mögött generikus AI-art érzetet kelt; cseréld egy finomabb, metrika-stílusú accent elemre (pl. vékony arany vonal alul), hogy illeszkedjen az Ádám-féle financial-dashboard esztétikához."
+          }
+        },
+        {
+          "variant": "C",
+          "label": "filmes (több grain, atmoszféra)",
+          "prompt": "Dark #04060a cinematic background with volumetric lighting, atmospheric haze, pronounced film grain and subtle lens vignette. Moody, depth-of-field bokeh.\n\nMAIN TEXT (large, centered, white, Hungarian, all caps):\n\"A LEMARADÁS NEM AZ ÚJABB MODELLBEN VAN\"\nSUBTEXT (smaller, grey, Hungarian):\n\"Hanem abban, hogy még nem döntötted el, melyik folyamatod az első.\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nStrong 'Soul Cinema' aesthetic: dramatic light, grain, high contrast, premium movie-poster feel.\nNo people. No stock-photo clichés. No marketing buzzwords. Single focal point.\nVoice style: strategist — financial-dashboard minimalism, warm gold or soft green metric accent, before/after framing.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/75b516c2185c4bdb8429cb3c94a924aa.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 3,
+            "scroll_stopping_score": 7,
+            "professional_score": 5,
+            "anti_pattern_flags": [
+              "garbled Hungarian text in subtitle: 'abdan' (abban helyett), 'döntted' (döntötted helyett), 'méyik' (melyik helyett), 'éxső' (első helyett) — hallucinated/corrupted characters",
+              "subtitle text contains multiple spelling/accent errors rendering it unprofessional",
+              "background has slight generic AI-art dashboard feel"
+            ],
+            "overall_score": 4.5,
+            "feedback": "A főcím erős és olvasható, a cinematic alap és a PlanSmart watermark rendben van, de az alcím szövege súlyosan sérült — 'abdan', 'döntted', 'méyik', 'éxső' értelmetlen vagy helytelen formák, amelyek azonnal hiteltelenítenek egy B2B brandnél; az alcímet újra kell generálni tiszta, helyes magyar szöveggel, és a dashboard-háttér kevésbé generikus, inkább financiális-minimalista irányba kellene tolni az Ádám-voice-hoz illeszkedően."
+          }
+        },
+        {
+          "variant": "D",
+          "label": "adat-fókuszú (szám dominál)",
+          "prompt": "Dark #04060a background, faint technical grid. The NUMBER is the hero.\n\nGIANT METRIC (dominant, centered, teal glow, monospace+display mix):\n\"A LEMARADÁS NEM AZ ÚJABB MODELLBEN VAN\"\n\nMAIN LABEL (Hungarian, all caps, above or below the number):\n\"A LEMARADÁS NEM AZ ÚJABB MODELLBEN VAN\"\nSUBTEXT (small, grey, Hungarian):\n\"Hanem abban, hogy még nem döntötted el, melyik folyamatod az első.\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nData-visual energy: the metric dominates the frame, everything else supports it. Cinematic lighting, slight grain, high contrast.\nNo people. No stock-photo clichés. No marketing buzzwords. One focal number.\nVoice style: strategist — financial-dashboard minimalism, warm gold or soft green metric accent, before/after framing.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/fc9815aade844ab5abce65bfcead192a.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 6,
+            "scroll_stopping_score": 8,
+            "professional_score": 7,
+            "anti_pattern_flags": [
+              "generic AI-art look — teal grid floor and HUD overlays feel like over-rendered sci-fi template",
+              "side HUD panels contain garbled/unreadable pseudo-text noise",
+              "'42' stat lacks context unit — isolated number reads as random without supporting label",
+              "watermark labeled BRAND_LOGO instead of real PlanSmart identity"
+            ],
+            "overall_score": 6.8,
+            "feedback": "A '42' szám mint fókuszelem erős scroll-stopper, de a kontextusa hiányzik (42 mi? %), és a sci-fi rács + HUD panelek generikus AI-art érzetet keltenek, ami ellentmond a 'Soul Cinema / financial-dashboard' hangulat elvárásnak — cseréld le a padlórácsot sötét, szemcsés stúdióháttérre, a HUD zajokat töröld, és adj a számhoz egy egysoros magyar feliratot (pl. 'automatizálható folyamat')."
+          }
+        }
+      ],
+      "winner_variant": "D",
+      "winner_score": 6.8,
+      "total_cost": 0.128,
+      "post_id": "a9cb525f0ea0",
+      "content_type": "post",
+      "content": "Megjelent egy új Claude modell. A tizenegyedik idén.\n\nEgy 40 fős cég tulajdonosa kérdezte tőlem nemrég: \"Mikor állapodik meg ez az egész? Mikor lehet végre eldönteni, melyik eszközt használjuk?\"\n\nHonest válasz: nem fog. Legalábbis nem úgy, ahogy ő gondolta.\n\nDe itt van a félreértés: a versenynek nem kell követni. Egy jól felépített folyamat ma is ugyanúgy megéri magát, mint három hónap múlva — az \"alatta lévő motor\" frissülhet, a logika ugyanaz marad.\n\nAmi viszont változik: a benchmark-ok szépen emelkednek a kódolás és az agentic feladatok területén. Magyarra fordítva: az automatizált folyamatok, ahol az AI egymást követő lépéseket hajt végre felügyelet nélkül, egyre megbízhatóbbak lesznek. Ami fél évvel ezelőtt még kísérletnek számított, ma már éles rendszerben fut stabil cégeknél.\n\nEgy könyvelő iroda számára ez azt jelenti, hogy a hónap végi riport-összesítés, amit most ketten csinálnak 3 nap alatt, nem kétlépéses automatizálás lesz — hanem tíz. Megbízhatóan.\n\nA lemaradás nem abban van, hogy nem az újabb modellt használod.\nA lemaradás abban van, hogy még nem döntötted el, melyik folyamatod az első.",
+      "current_visual_url": null,
+      "expected_visual_elements": [
+        "dark bg #04060a",
+        "bold display type",
+        "metric / before-after chart",
+        "stat: 3 nap",
+        "PlanSmart watermark"
+      ]
+    }
+  ]
+}

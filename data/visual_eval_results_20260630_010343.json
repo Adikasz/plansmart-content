@@ -1,0 +1,167 @@
+{
+  "generated_at": "2026-06-30T01:03:43",
+  "dataset_size": 1,
+  "variants": [
+    "A",
+    "B",
+    "C",
+    "D"
+  ],
+  "images_generated": 4,
+  "total_cost": 0.128,
+  "aggregate": {
+    "per_variant_avg": {
+      "A": 5.8,
+      "B": 5.8,
+      "C": 5.8,
+      "D": 4.0
+    },
+    "per_variant_subscores": {
+      "A": {
+        "brand_alignment_score": 7.0,
+        "hungarian_text_quality": 4.0,
+        "scroll_stopping_score": 8.0,
+        "professional_score": 6.0
+      },
+      "B": {
+        "brand_alignment_score": 7.0,
+        "hungarian_text_quality": 4.0,
+        "scroll_stopping_score": 7.0,
+        "professional_score": 6.0
+      },
+      "C": {
+        "brand_alignment_score": 7.0,
+        "hungarian_text_quality": 5.0,
+        "scroll_stopping_score": 7.0,
+        "professional_score": 6.0
+      },
+      "D": {
+        "brand_alignment_score": 6.0,
+        "hungarian_text_quality": 3.0,
+        "scroll_stopping_score": 6.0,
+        "professional_score": 4.0
+      }
+    },
+    "per_voice_avg": {
+      "david": {
+        "A": 5.8,
+        "B": 5.8,
+        "C": 5.8,
+        "D": 4.0
+      }
+    },
+    "winner_overall": "A",
+    "winner_per_voice": {
+      "david": "A"
+    }
+  },
+  "posts": [
+    {
+      "voice": "david",
+      "visual_text": {
+        "main_text": "SAJÁT VS. KÉSZ ESZKÖZ",
+        "sub_text": "3 hét alatt saját PPC monitort építettünk, mert a kész megoldások 80%-a irreleváns volt",
+        "stat": "3 hét"
+      },
+      "variants": [
+        {
+          "variant": "A",
+          "label": "produkciós (current)",
+          "prompt": "Dark #04060a background. Bold Bebas Neue / Neue Machina display typography.\n\nMAIN TEXT (huge, centered, white, Hungarian, all caps):\n\"SAJÁT VS. KÉSZ ESZKÖZ\"\n\nSTAT (giant, teal glow): \"3 hét\"\n\nSUBTEXT (smaller, grey, Hungarian):\n\"3 hét alatt saját PPC monitort építettünk, mert a kész megoldások 80%-a irreleváns volt\"\n\nBottom right: small PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nCinematic lighting, slight film grain, Soul Cinema aesthetic.\nHigh contrast, scroll-stopping, trending AI content creator style.\nNo people. No clutter. Single focal point. No marketing buzzwords.\nVoice style: technical builder — terminal/code/system-diagram accents, cool teal glow, monospace details.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/c2c6d42a67ea4643aaba23934941f47e.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 4,
+            "scroll_stopping_score": 8,
+            "professional_score": 6,
+            "anti_pattern_flags": [
+              "garbled background code text (nonsense/hallucinated characters throughout)",
+              "subtitle contains typo: 'aldatt' instead of 'alatt', 'sáyat' instead of 'saját', 'épiketunk' instead of 'építettünk'",
+              "multiple competing background UI elements create mild clutter",
+              "no visible film grain / cinematic treatment"
+            ],
+            "overall_score": 5.8,
+            "feedback": "A főcím ('SAJÁT VS. KÉSZ ESZKÖZ') és a '3 hét' focal stat vizuálisan erős és scroll-stopping, de az alcím szövegben több súlyos helyesírási hiba van ('aldatt', 'sáyat', 'épiketunk') — ezek azonnal rombolják a szakmai hitelt; a háttér kódszöveg teljes egészében értelmetlen AI-hallucináció, amit egy valódi Python/terminal snippet válthatna fel a fejlesztői hitelesség érdekében."
+          }
+        },
+        {
+          "variant": "B",
+          "label": "minimalista (kevesebb elem, nagyobb type)",
+          "prompt": "Dark #04060a near-black background, vast negative space. Bebas Neue / Neue Machina display typography, MASSIVE.\n\nONE focal line (huge, centered, white, Hungarian, all caps):\n\"SAJÁT VS. KÉSZ ESZKÖZ\"\n\nTiny stat detail (monospace, low-key): \"3 hét\"\nOptional tiny caption (Hungarian, small, grey, bottom): \"3 hét alatt saját PPC monitort építettünk, mert a kész megoldások 80%-a irreleváns volt\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nMinimalist, high contrast, a single idea. Cinematic but restrained.\nNo people. No stock-photo clichés. No marketing buzzwords. Absolutely no clutter — one element only.\nVoice style: technical builder — terminal/code/system-diagram accents, cool teal glow, monospace details.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/5411e1750cc84566a87311a38e2cfb01.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 4,
+            "scroll_stopping_score": 7,
+            "professional_score": 6,
+            "anti_pattern_flags": [
+              "garbled subtitle text ('allath sasjät' — nonsense Hungarian, wrong accents, misspelled words)",
+              "watermark reads 'planmaro' instead of 'PlanSmart'",
+              "code-overlay background feels slightly generic AI-art UI"
+            ],
+            "overall_score": 5.8,
+            "feedback": "A főcím ('SAJÁT VS. KÉSZ ESZKÖZ') erős és jól szedett, de az alcím tele van hibás karakterekkel és értelmetlen szavakkal ('allath sasjät épizKétunk'), ami súlyosan rontja a hitelességet — ezt kötelező javítani; ráadásul a logó 'planmaro'-t mutat 'PlanSmart' helyett, ami alapvető branding hiba."
+          }
+        },
+        {
+          "variant": "C",
+          "label": "filmes (több grain, atmoszféra)",
+          "prompt": "Dark #04060a cinematic background with volumetric lighting, atmospheric haze, pronounced film grain and subtle lens vignette. Moody, depth-of-field bokeh.\n\nMAIN TEXT (large, centered, white, Hungarian, all caps):\n\"SAJÁT VS. KÉSZ ESZKÖZ\"\n\nSTAT (glowing accent): \"3 hét\"\nSUBTEXT (smaller, grey, Hungarian):\n\"3 hét alatt saját PPC monitort építettünk, mert a kész megoldások 80%-a irreleváns volt\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nStrong 'Soul Cinema' aesthetic: dramatic light, grain, high contrast, premium movie-poster feel.\nNo people. No stock-photo clichés. No marketing buzzwords. Single focal point.\nVoice style: technical builder — terminal/code/system-diagram accents, cool teal glow, monospace details.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/9377e14bf34c49608959d96c9ec96207.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 7,
+            "hungarian_text_quality": 5,
+            "scroll_stopping_score": 7,
+            "professional_score": 6,
+            "anti_pattern_flags": [
+              "garbled background UI text (nonsense dashboard/code fragments)",
+              "body copy contains grammatical errors: 'altatt' instead of 'alatt', 'vájat' instead of 'alatt épített', 'épikétunk' instead of 'építettünk', missing article before '80%'",
+              "multiple background elements competing with focal text",
+              "generic AI-art dashboard aesthetic"
+            ],
+            "overall_score": 5.8,
+            "feedback": "A headline hierarchy ('SAJÁT VS. KÉSZ ESZKÖZ' + '3 hét') is conceptually solid and the dark background / teal accent are on-brand, but the body copy contains multiple garbled Hungarian words ('altatt', 'vájat', 'épikétunk') that destroy credibility — fix the text generation pipeline before publishing. The background dashboard collage reads as generic AI-art; reduce it to a single, clean code or terminal element to sharpen the cinematic focus."
+          }
+        },
+        {
+          "variant": "D",
+          "label": "adat-fókuszú (szám dominál)",
+          "prompt": "Dark #04060a background, faint technical grid. The NUMBER is the hero.\n\nGIANT METRIC (dominant, centered, teal glow, monospace+display mix):\n\"3 hét\"\n\nMAIN LABEL (Hungarian, all caps, above or below the number):\n\"SAJÁT VS. KÉSZ ESZKÖZ\"\nSUBTEXT (small, grey, Hungarian):\n\"3 hét alatt saját PPC monitort építettünk, mert a kész megoldások 80%-a irreleváns volt\"\n\nBottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder).\nData-visual energy: the metric dominates the frame, everything else supports it. Cinematic lighting, slight grain, high contrast.\nNo people. No stock-photo clichés. No marketing buzzwords. One focal number.\nVoice style: technical builder — terminal/code/system-diagram accents, cool teal glow, monospace details.",
+          "image_url": "https://cdn.muapi.ai/outputs/generated/b19dd741b5af47ff8d4493eb7f4a28b0.png",
+          "cost": 0.032,
+          "scores": {
+            "brand_alignment_score": 6,
+            "hungarian_text_quality": 3,
+            "scroll_stopping_score": 6,
+            "professional_score": 4,
+            "anti_pattern_flags": [
+              "garbled Hungarian text in body copy ('3 hét alt atvarea', 'alaretégie', 'hsevés', 'syáát', 'épikétunk', 'megoldtások')",
+              "garbled/hallucinated code overlay text throughout borders",
+              "multiple competing UI/border elements create clutter",
+              "generic AI-art HUD/terminal border decoration feels over-rendered"
+            ],
+            "overall_score": 4.0,
+            "feedback": "A '3 hét' focal stat is strong and the dark background is on-brand, but the Hungarian body copy contains multiple hallucinated/nonsense words ('atvarea', 'alaretégie', 'syáát', 'épikétunk') that would destroy credibility with a professional Hungarian audience — all body text must be re-generated or set manually. The decorative HUD border and garbled pseudo-code overlays push it toward generic AI-art territory; strip them back to a minimal grid line or remove entirely to let the typography breathe."
+          }
+        }
+      ],
+      "winner_variant": "A",
+      "winner_score": 5.8,
+      "total_cost": 0.128,
+      "post_id": "16a7cb3a656c",
+      "content_type": "post",
+      "content": "3 hónapja volt egy érdekes döntési pontunk egy ügyfelünknél.\n\nA MyMins-nek kellett egy PPC monitor — figyelje a Google Ads kampányokat, jelezzen ha valami elcsúszik, adjon kontextust a változásokhoz.\n\nAz első kérdés amit Ádámmal feltettünk: vegyek-e kész eszközt, vagy építünk saját rendszert?\n\nMegnéztük a piacon lévő megoldásokat. Vannak jók. Drágák, de jók.\n\nDe aztán végigmentünk azon, hogy a MyMins pontosan mit akar látni — és rájöttünk, hogy a kész eszközök 80%-a olyan dolgot csinál, ami nekik irreleváns. A maradék 20% meg hiányzik belőlük.\n\nMegcsináltuk sajátként.\n\nPython, Supabase a háttérben, Railway-en fut, Claude API értelmezi a változásokat. Minden reggel 7-re kész egy összefoglaló: mi mozdult, mennyit, és mi lehet mögötte.\n\nAz építés kb. 3 hét volt. Nem 3 nap, nem 3 hónap — 3 hét.\n\nAmit ebből tanultam arról, hogy mikor éri meg KKV-knak saját rendszert építeni vs venni:\n\nVegyél kész eszközt ha:\n— A folyamat generikus (email, CRM, sima riport)\n— Nincs speciális kontextus amit a rendszernek értenie kell\n— Gyorsan kell, és a 80%-os megoldás is elég\n\nÉpíts sajátot ha:\n— A cég adatmodellje egyedi (MyMins-nél pl. a kampánystruktúra nem standard)\n— A \"mit jelent ez nekem\" kérdés nem megválaszolható template-tel\n— Hosszú távon skálázni akarod, és a vendor lock-in problémát okozna\n\nA valódi tanulság nem tech. Az az, hogy a legtöbb KKV nem teszi fel a kérdést elég pontosan: nem azt kérdezi, hogy \"mire van szükségem\", hanem hogy \"milyen eszközt vegyek\".\n\nEz a két kérdés nem ugyanaz.",
+      "current_visual_url": null,
+      "expected_visual_elements": [
+        "dark bg #04060a",
+        "bold display type",
+        "monospace / code-diagram",
+        "stat: 80%",
+        "PlanSmart watermark"
+      ]
+    }
+  ]
+}
