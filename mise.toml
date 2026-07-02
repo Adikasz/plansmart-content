@@ -1,0 +1,7 @@
+# mise config — Railway/RAILPACK build stage.
+# A precompiled python-build-standalone binárisok (mise core:python) egy részéhez
+# nincs GitHub artifact attestation, ami a build-et megállítja:
+#   "mise ERROR Failed to install core:python@3.12.8: No GitHub artifact attestations found"
+# Ezt az attestation-ellenőrzést kapcsoljuk ki (a Railway env var mellett övön-és-nadrágszíj).
+[settings]
+python.github_attestations = false
