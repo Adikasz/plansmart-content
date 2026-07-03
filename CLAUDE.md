@@ -160,13 +160,23 @@ python scripts/test_voice.py --feed-id <id>
 
 ## Deployment
 
-Railway-en 4 service fut:
-1. `web` — Telegram bot webhook + dashboard
-2. `worker-collector` — folyamatos forrás-gyűjtés
-3. `worker-pipeline` — szűrés + generálás
-4. `worker-publisher` — ütemezett posztolás
+Railway-en **egy monolit service** fut (`plansmart-content`), amit a
+`railway.toml` `startCommand`-je indít:
 
-Push `main`-re → auto-deploy mind a 4 service-re.
+```
+python -m src.workers.main
+```
+
+Ez egyetlen process, egy event loopban futtat mindent (lásd
+`src/workers/main.py`):
+- **APScheduler** cron jobok: collector / filter / breaking / morning
+- **Telegram approval bot** (aiogram)
+- **health szerver** (aiohttp, `:$PORT`, `/health`, `/status`)
+
+Nincs külön `web` / `worker-*` service — a régi „4 service" felállás
+sosem épült meg így. Push `main`-re → a Railway automatikusan
+újradeploy-olja ezt az egy service-t (RAILPACK builder, `restartPolicyType
+= ON_FAILURE`, max 10 retry).
 
 ## Amit NE csinálj
 
