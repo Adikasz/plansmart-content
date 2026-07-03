@@ -506,6 +506,43 @@ csak +1 gate-eval-be kerülnek.
 
 ---
 
+## Phase 14 — English conversion (all 3 voices) ✅ Complete
+
+**Cél:** Mind a 3 hang (Dávid/Ádám/PlanSmart) ANGOL kimenetre vált — presztízs/tekintély
+pozicionálás magyar KKV közönségnek. Vizuál overlay is angol. Eval-cél 9.0; a végleges
+produkciós ship-gate 8.5.
+
+**Status: ✅ Complete** (2026-07-03)
+- English conversion, all 3 voices (voice prompts, evaluator, visual overlay text extraction).
+- Új értékelő dimenzió: `english_native_quality` (universal); a magyar `hungarian_*` kód dormant
+  maradt (nem törölve — SCORE_KEYS_HU, _hunglish_flags).
+- Hossz-sáv: 1300-1900 karakter (determinisztikus flag + evaluator + improver enforcement).
+- Ship-gate: az eval a 9.0 célt tesztelte, de a végleges produkciós küszöb **8.5**
+  (`TEXT_SHIP_THRESHOLD=8.5`, `.env`) — ez a Phase 14 realisztikusan elérhető átlaga, így az
+  auto-improve loop nem pazarol iterációt egy elérhetetlen 9.0 célra. Az auto-improve MINDEN élő
+  posztot a 8.5 felé tol; az eval-dataset átlagát a 9.0 alatt (8.4-8.8) elfogadtuk (diminishing returns).
+
+### Eval eredmény (10 szcenárió, ~$6-7)
+| Voice | Átlag pontszám |
+|---|---|
+| Ádám | **8.8** |
+| Dávid | **8.78** |
+| PlanSmart | **8.43** |
+
+- **Elfogadva végleges átlagként a 9.0 alatt** — a tartalom minősége manuális review-val magas
+  (2 poszt 9.0+: Dávid build-log 9.2, Ádám „Kati" educational 9.0). A pontmennyezet oka egy
+  szigorú „aphoristic LinkedIn-guru one-liner" levonás, nem valódi minőségi hiány.
+- **Nyertes hook hangonként:** Ádám → NARRATIVE (3/3); Dávid → PAIN + NARRATIVE (production az
+  educationalnál); PlanSmart → NARRATIVE (case study) + PAIN (educational). **DATA/CONTRARIAN a
+  leggyengébb** — ez fordítva volt Phase 13-ban (magyar), az angol natív forrásanyag máshogy sül el.
+- A tanulságok a `prompts/voice_*.md` „Hook & text quality (eval-driven)" + „English-native
+  quality (CRITICAL)" szakaszaiba kerültek (győztes hook/content_type, tiltott angol jargon,
+  anti-aphorism szabály, győztes példa-hookok).
+- Riport: `data/text_eval_report_phase14_en.html`, nyers: `data/text_eval_phase14_results.json`.
+- Runner: `scripts/run_phase14_eval.py`, dataset: `data/text_eval_dataset.json` (10 EN szcenárió).
+
+---
+
 ## Mihez kell külső segítség / döntés
 
 - **LinkedIn API access** — manual apply, 1 hét

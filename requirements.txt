@@ -20,9 +20,15 @@ lxml==5.2.2
 anthropic==0.28.0
 
 # Vizuál: szöveg-overlay (Phase 12.5) — PIL render + woff2/variable font kezelés
-pillow==10.4.0
+# pillow 12.x (a rembg >=12.1 pillow-t követel); a teljes overlay+kompozit lánc tesztelve rajta.
+pillow==12.3.0
 fonttools==4.53.1
 Brotli==1.1.0
+
+# Vizuál: alapító-portré háttér-eltávolítás (Phase 13.5) — tiszta Python, ONNX (CPU), nincs GPU.
+# Az onnxruntime a rembg futásidejű backendje (a rembg[cpu] extra ezt húzza be).
+rembg==2.0.76
+onnxruntime==1.27.0
 
 # Telegram bot
 aiogram==3.13.0

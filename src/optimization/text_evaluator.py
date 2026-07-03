@@ -1,8 +1,10 @@
-"""Szöveg-minőség értékelő — magyar LinkedIn posztok pontozása Claude Sonnettel.
+"""Szöveg-minőség értékelő — ANGOL LinkedIn posztok pontozása Claude Sonnettel (Phase 14).
 
 A 2026-os algoritmus + engagement kritériumok szerint pontoz: hook erő, emberi érzet,
-magyar nyelvhelyesség, konkrét érték, voice-konzisztencia, engagement potenciál — plusz
-anti-pattern lista és (gyenge poszt esetén) teljes átírási javaslat.
+angol nyelvi minőség (english_quality), angol natívság (english_native_quality), konkrét érték,
+voice-konzisztencia, engagement potenciál — plusz anti-pattern lista és (gyenge poszt esetén)
+teljes átírási javaslat. A magyar dimenziók (hungarian_*) kódja dormant maradt (SCORE_KEYS_HU,
+SYSTEM_PROMPT_HU, _hunglish_flags) — jelenleg nem hívjuk.
 
 Önálló teszt:
     python -m src.optimization.text_evaluator
@@ -11,6 +13,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -26,22 +29,62 @@ load_dotenv(override=False)
 MODEL = "claude-sonnet-4-6"
 MAX_TOKENS = 1400
 
+# Phase 14: az aktív pipeline ANGOL. A nyelvi dimenzió: english_native_quality (univerzális,
+# mind a 3 voice). A hungarian_quality/hungarian_nativeness kódot NEM töröljük — dormant marad
+# (lásd SCORE_KEYS_HU + SYSTEM_PROMPT_HU lentebb), ha valaha újra kellene a magyar kimenet.
 SCORE_KEYS = (
-    "hook_strength", "human_feel", "hungarian_quality",
+    "hook_strength", "human_feel", "english_quality", "english_native_quality",
+    "concrete_value", "voice_consistency", "engagement_potential",
+)
+# Dormant (Phase 13.5 magyar pipeline) — jelenleg nem hívjuk, de megőrizzük.
+SCORE_KEYS_HU = (
+    "hook_strength", "human_feel", "hungarian_quality", "hungarian_nativeness",
     "concrete_value", "voice_consistency", "engagement_potential",
 )
 
-# Az értékelőnek átadott voice-elvárás.
+# Az értékelőnek átadott voice-elvárás (Phase 14: ANGOL kimenet, magyar KKV közönség).
 VOICE_EXPECTATION = {
-    "david": "Dávid — builder: közvetlen, technikai, konkrét; saját build-tapasztalat, kódrészletek, "
-             "buildlog hangulat. SOHA marketing-buzzword.",
-    "adam": "Ádám — stratéga: üzleti, érvelő, tulaj-tulajnak; ROI/idő számok, döntéshozói nézőpont. "
-            "SOHA technikai jargon, SOHA fentről-lefelé.",
-    "plansmart": "PlanSmart — brand: 'mi' forma, eredmény-orientált, számszerűsített, anonim "
-                 "ügyféleredmény. SOHA személyes vélemény vagy építői részlet.",
+    "david": "David — builder: direct, technical, concrete; first-hand build experience, real "
+             "tooling, buildlog feel. Confident native-level English, hands-on engineer (NOT "
+             "corporate). NEVER marketing buzzwords.",
+    "adam": "Adam — strategist: business, argumentative, owner-to-owner; ROI/time numbers, "
+            "decision-maker lens. Confident native-level English, a sharp operator (NOT a "
+            "management-consultant cliché). NEVER technical jargon, NEVER top-down.",
+    "plansmart": "PlanSmart — brand: 'we' voice, outcome-oriented, quantified, anonymized client "
+                 "results. Polished native-level English B2B voice. NEVER personal opinion or "
+                 "builder detail.",
 }
 
-# AI-tell-tale kifejezések, amiket flag-elni kell (a feladatból + bővítve).
+# ── Phase 14: ANGOL anti-pattern listák (aktív) ────────────────────────
+# AI-tell / stiff-connector kifejezések, amik "translated / ChatGPT" érzetet adnak angolul.
+ENGLISH_AI_TELLS = [
+    "it's important to note", "it is important to note", "in today's fast-paced world",
+    "in today's digital age", "at the end of the day", "when it comes to", "in conclusion",
+    "furthermore", "moreover", "delve into", "delve", "navigating the", "in the realm of",
+    "testament to", "tapestry", "ever-evolving", "ever-changing landscape", "needle in a haystack",
+    "let's dive in", "buckle up", "the bottom line is", "rest assured", "it goes without saying",
+]
+# Tiltott business-buzzword (a feladat listája + bővítve) — determinisztikus kapás.
+ENGLISH_BANNED: list[tuple[str, str]] = [
+    (r"\bleverage\b", "leverage → use / build on"),
+    (r"\brevolutioniz(?:e|es|ing|ed)\b", "revolutionize → banned hype"),
+    (r"\brevolutionary\b", "revolutionary → banned hype"),
+    (r"\bgame[- ]?chang(?:er|ing)\b", "game changer → banned entirely"),
+    (r"\bseamless(?:ly)?\b", "seamless → just say it works / describe it"),
+    (r"\bdisrupt(?:ive|ion|ing)?\b", "disruptive/disruption → banned buzzword"),
+    (r"\bcutting[- ]edge\b", "cutting-edge → banned buzzword"),
+    (r"\bunlock(?:ing)?\s+your\s+\w+", "unlock your potential → banned cliché"),
+    (r"\bsupercharge\b", "supercharge → banned hype"),
+    (r"\bsynerg(?:y|ies|istic)\b", "synergy → banned corporate-speak"),
+    (r"\bparadigm shift\b", "paradigm shift → banned cliché"),
+    (r"\bharness the power\b", "harness the power → banned cliché"),
+    (r"\bworld[- ]class\b", "world-class → empty superlative"),
+    (r"\bbest[- ]in[- ]class\b", "best-in-class → empty superlative"),
+    (r"\bmove the needle\b", "move the needle → tired idiom"),
+    (r"\blow[- ]hanging fruit\b", "low-hanging fruit → tired idiom"),
+]
+
+# ── Dormant (Phase 13.5 magyar pipeline) — megőrizve, jelenleg NEM hívjuk ──
 AI_TELLS = [
     "fontos megérteni", "kihasználva", "lehetőséget biztosítva", "kulcsfontosságú", "jelentős",
     "innovatív", "a mai rohanó világban", "nem szabad elfelejteni", "összességében",
@@ -49,34 +92,68 @@ AI_TELLS = [
 ]
 BUZZWORDS = ["forradalom", "forradalmi", "game changer", "diszruptív", "diszrupció", "paradigmaváltás"]
 
+# Hunglish: lefordítatlanul hagyott angol business-jargon (prompts/hungarian_native_guide.md).
+# (regex, magyar javaslat) — determinisztikus, kódból ellenőrizhető kapás; a strukturális
+# tükörfordításokat a Sonnet fogja külön (a keyword-lista csak az egyértelmű eseteket).
+HUNGLISH_JARGON: list[tuple[str, str]] = [
+    (r"\bleverage\b", "leverage → „kihasználni” / „építeni rá”"),
+    (r"\binsights?\b", "insights → „tanulságok” / „meglátások”"),
+    (r"\binzájt\w*", "inzájt → „tanulság” / „meglátás” (magyarosított angol)"),
+    (r"\bmindset\b", "mindset → „szemlélet” / „gondolkodásmód”"),
+    (r"\bonboarding\b", "onboarding → „bevezetés” / „beillesztés”"),
+    (r"\bdeep dive\b", "deep dive → „részletes elemzés”"),
+    (r"\btakeaway\b", "takeaway → „tanulság”"),
+    (r"\baction items?\b", "action items → „teendők” / „következő lépések”"),
+    (r"\bskáláz\w*", "skálázni → „növelni” / „bővíteni” (kivéve technikai dev közönség)"),
+    (r"\bscal(?:e|es|ing)\b", "scale/scaling → „növelni” / „bővíteni”"),
+]
+# „workflow” csak akkor Hunglish, ha NEM tool-specifikus (n8n/make/zapier/… workflow → OK).
+_WORKFLOW_RE = re.compile(r"\bworkflow\b", re.I)
+_WORKFLOW_TOOL_RE = re.compile(r"\b(?:n8n|make|zapier|airflow|github|ci/?cd|claude|langchain)\s+workflow\b", re.I)
+
+# Phase 14: ANGOL értékelő. A posztok ANGOL nyelvűek (magyar KKV közönség, presztízs-pozicionálás).
 SYSTEM_PROMPT = (
-    "Te egy magyar LinkedIn copywriting szakértő vagy, aki a 2026-os algoritmus és engagement "
-    "kritériumok szerint SZIGORÚAN pontoz egy posztot 1-10 skálán. Mindig EGYETLEN JSON objektummal "
-    "válaszolsz, körülötte semmi szöveg.\n\n"
-    "Pontozási kulcsok (egész 1-10):\n"
-    "  hook_strength        — megállítja a görgetést? Az első ~140 karakter contrarian/data/"
-    "narrative/pain/comparison hook-e, vagy lapos/általános?\n"
-    "  human_feel           — embernek hangzik vagy AI-generáltnak? Az AI-tell és sablonos "
-    "fordulatok rontják.\n"
-    "  hungarian_quality    — nyelvhelyesség, szórend, természetes folyás; angolból tükörfordított "
-    "szerkezetek rontják.\n"
-    "  concrete_value       — konkrét szám/név/példa van, vagy általános ('sokat', 'rengeteg', "
-    "'számos')? Üres közhely = alacsony.\n"
-    "  voice_consistency    — a megadott voice-hoz illik?\n"
-    "  engagement_potential — kommentelnének/mentenék? Valódi kérdés vagy insight, nem engagement-bait.\n\n"
-    "Amit KERESS és flag-elj az anti_patterns-ben (konkrétan idézd a problémás részt):\n"
-    f"  • AI-tell kifejezések: {', '.join(AI_TELLS)}\n"
-    f"  • Buzzword: {', '.join(BUZZWORDS)}\n"
-    "  • Általános mennyiség konkrét szám helyett ('sokat', 'rengeteg', 'számos', 'rengetegen')\n"
-    "  • Hiányzó emberi jel (nincs 'tegnap', 'ma reggel', 'az ügyfelünk', 'mi csináltuk', konkrét időpont)\n"
-    "  • Angolból tükörfordított szórend / esetlen mondat\n"
-    "  • Üres business-közhely / klisé\n"
-    "  • Rossz CTA: 'Egyetértesz?', engagement-bait, külső link, 'DM-ezz', 'foglalj időpontot'\n\n"
-    "Az overall_score holisztikus (nem a részpontok átlaga). Ha overall < 7, a rewrite_suggestion "
-    "egy TELJES, kész átírt poszt legyen (ugyanaz a voice, magyar, betűhű, hookkal). Ha >= 7, a "
-    "rewrite_suggestion legyen üres string.\n\n"
-    'Válasz CSAK ezzel a JSON-nal: {"hook_strength":int,"human_feel":int,"hungarian_quality":int,'
-    '"concrete_value":int,"voice_consistency":int,"engagement_potential":int,"anti_patterns":[...],'
+    "You are an elite English LinkedIn copywriting critic scoring a post STRICTLY on a 1-10 scale "
+    "against 2026 algorithm + engagement criteria. The posts are written in English for a Hungarian "
+    "SME-owner audience (English is used deliberately for authority/prestige). You always reply with "
+    "a SINGLE JSON object and nothing around it.\n\n"
+    "Scoring keys (integer 1-10):\n"
+    "  hook_strength         — does it stop the scroll? Is the first ~140 chars a real contrarian/"
+    "data/narrative/pain/comparison hook, or flat/generic?\n"
+    "  human_feel            — sounds like a real person, or AI-generated? AI-tells and templated "
+    "phrasing lower this.\n"
+    "  english_quality       — grammar, word choice, natural flow of the English. Awkward or "
+    "clearly-translated phrasing lowers this.\n"
+    "  english_native_quality — does it read like it was WRITTEN by a confident native English "
+    "business writer, not translated? Penalize: (1) banned corporate jargon/hype (leverage, "
+    "revolutionize, game changer, seamless, disruptive, cutting-edge, unlock your potential, "
+    "synergy, supercharge, paradigm shift); (2) stiff essay connectors (furthermore, moreover, "
+    "in conclusion, it's important to note, in today's fast-paced world) and ChatGPT-isms (delve, "
+    "tapestry, testament to, ever-evolving); (3) generic LinkedIn-guru rhythm (a wall of tiny "
+    "'punchy' one-line sentences with no substance). Reward specific, idiomatic, confident prose "
+    "that sounds like a smart operator talking, not a press release.\n"
+    "  concrete_value        — concrete number/name/example, or vague ('a lot', 'many', 'several')? "
+    "Empty platitudes = low.\n"
+    "  voice_consistency     — does it fit the given voice?\n"
+    "  engagement_potential  — would people comment/save? Real question or insight, not engagement-bait.\n\n"
+    "What to FIND and flag in anti_patterns (quote the exact problem span):\n"
+    f"  • AI-tell / stiff connectors: {', '.join(ENGLISH_AI_TELLS[:12])}, …\n"
+    "  • Banned buzzwords: leverage, revolutionize, game changer, seamless, disruptive, "
+    "cutting-edge, unlock your potential, synergy, supercharge, paradigm shift, world-class\n"
+    "  • Translated-from-Hungarian phrasing / awkward English word order\n"
+    "  • Generic 'LinkedIn guru' rhythm: many tiny punchy lines in a row with no substance\n"
+    "  • Vague quantity instead of a concrete number ('a lot', 'many', 'several', 'tons')\n"
+    "  • Missing human signal (no 'yesterday', 'last Tuesday', 'a client of ours', 'we shipped', a concrete time)\n"
+    "  • Empty business platitude / cliché\n"
+    "  • Bad CTA: 'Agree?', engagement-bait, external link, 'DM me', 'book a call'\n"
+    "  • Length outside the 1300-1900 character sweet spot (too short = thin, too long = loses "
+    "dwell/engagement) — a post far outside this range CANNOT score 9+ overall.\n\n"
+    "overall_score is holistic (NOT the average of sub-scores). If overall < 7, rewrite_suggestion "
+    "must be a COMPLETE, ready English post (same voice, strong hook). If >= 7, rewrite_suggestion "
+    "is an empty string.\n\n"
+    'Reply ONLY with this JSON: {"hook_strength":int,"human_feel":int,"english_quality":int,'
+    '"english_native_quality":int,"concrete_value":int,"voice_consistency":int,'
+    '"engagement_potential":int,"anti_patterns":[...],'
     '"overall_score":float,"rewrite_suggestion":"...","feedback":"..."}'
 )
 
@@ -95,35 +172,69 @@ def _clamp(value: Any, lo: int, hi: int, default: int) -> int:
         return default
 
 
-def _local_flags(text: str) -> list[str]:
-    """Determinisztikus, kódból ellenőrizhető anti-pattern jelek (a modelltől függetlenül)."""
-    low = (text or "").lower()
+def _english_flags(text: str) -> list[str]:
+    """Determinisztikus angol jargon/AI-tell kapás (Phase 14, aktív)."""
+    t = text or ""
+    low = t.lower()
     flags = []
-    for t in AI_TELLS:
-        if t in low:
-            flags.append(f"AI-tell: „{t}”")
-    for b in BUZZWORDS:
-        if b in low:
-            flags.append(f"buzzword: „{b}”")
-    for vague in ("sokat", "rengeteg", "számos", "rengetegen", "rengeteget"):
-        if vague in low:
-            flags.append(f"általános mennyiség: „{vague}” (konkrét szám kellene)")
-    if "egyetértesz" in low:
-        flags.append("engagement-bait CTA: „Egyetértesz?”")
+    for pat, msg in ENGLISH_BANNED:
+        if re.search(pat, t, re.I):
+            flags.append(f"banned buzzword: {msg}")
+    for tell in ENGLISH_AI_TELLS:
+        if tell in low:
+            flags.append(f"AI-tell / stiff connector: “{tell}”")
+    for vague in (" a lot of ", " lots of ", " many ", " several ", " tons of ", " numerous "):
+        if vague in f" {low} ":
+            flags.append(f"vague quantity: “{vague.strip()}” (use a concrete number)")
+    if "agree?" in low or "do you agree" in low:
+        flags.append("engagement-bait CTA: “Agree?”")
+    if "book a call" in low or "dm me" in low or "book a demo" in low:
+        flags.append("pushy CTA: “book a call” / “DM me” (Calendly is in bio only)")
     if "http://" in low or "https://" in low:
-        flags.append("külső link a posztban (-60% reach)")
+        flags.append("external link in post (-60% reach)")
     return flags
 
 
+def _hunglish_flags(text: str) -> list[str]:
+    """DORMANT (Phase 13.5): determinisztikus Hunglish-kapás. Jelenleg nem hívjuk a pipeline-ban."""
+    t = text or ""
+    flags = []
+    for pat, msg in HUNGLISH_JARGON:
+        if re.search(pat, t, re.I):
+            flags.append(f"Hunglish jargon: {msg}")
+    if _WORKFLOW_RE.search(t) and _WORKFLOW_RE.search(_WORKFLOW_TOOL_RE.sub("", t)):
+        flags.append("Hunglish jargon: workflow → „folyamat” (kivéve konkrét tool: „n8n workflow”)")
+    return flags
+
+
+# Cél hosszsáv (linkedin_optimization.md: 1300-1900 kar a sweet spot).
+CHAR_MIN, CHAR_MAX = 1300, 1900
+
+
+def _length_flags(text: str) -> list[str]:
+    """Determinisztikus hossz-ellenőrzés (a poszt legyen 1300-1900 karakter)."""
+    n = len(text or "")
+    if n < CHAR_MIN:
+        return [f"too short: {n} chars (target {CHAR_MIN}-{CHAR_MAX})"]
+    if n > CHAR_MAX:
+        return [f"too long: {n} chars (target {CHAR_MIN}-{CHAR_MAX}) — trim to the sweet spot"]
+    return []
+
+
+def _local_flags(text: str) -> list[str]:
+    """Determinisztikus, kódból ellenőrizhető anti-pattern jelek (Phase 14: ANGOL pipeline)."""
+    return _english_flags(text) + _length_flags(text)
+
+
 class TextEvaluator:
-    """Magyar LinkedIn posztokat pontoz a 2026 engagement-kritériumok szerint (Sonnet)."""
+    """Scores ENGLISH LinkedIn posts against 2026 engagement criteria (Sonnet). Phase 14."""
 
     async def evaluate_post(self, post_content: str, voice: str, content_type: str) -> dict[str, Any]:
         """Egy poszt értékelése. Hiba esetén overall_score=0 + a hiba a feedbackben."""
         expectation = VOICE_EXPECTATION.get(voice, "")
         user = (
-            f"VOICE: {voice}\nVOICE ELVÁRÁS: {expectation}\nCONTENT TYPE: {content_type}\n\n"
-            f"POSZT:\n{post_content}\n\nÉrtékeld a posztot. Csak a JSON-t add vissza."
+            f"VOICE: {voice}\nVOICE EXPECTATION: {expectation}\nCONTENT TYPE: {content_type}\n\n"
+            f"POST:\n{post_content}\n\nScore the post. Return only the JSON."
         )
         try:
             msg = await _client().messages.create(
@@ -141,6 +252,14 @@ class TextEvaluator:
     @staticmethod
     def _normalize(data: dict[str, Any], post_content: str) -> dict[str, Any]:
         scores = {k: _clamp(data.get(k), 1, 10, 5) for k in SCORE_KEYS}
+        # Determinisztikus angol-jargon büntetés: a banned-lista/AI-tell találatai lehúzzák az
+        # english_native_quality-t, akkor is, ha a modell elnézte (1 találat → max 6, 2+ → max 4).
+        # Csak a nyelvi (jargon/AI-tell) jeleket számoljuk, a link/CTA jelet nem.
+        n_jargon = sum(1 for f in _english_flags(post_content)
+                       if f.startswith("banned buzzword") or f.startswith("AI-tell"))
+        if n_jargon:
+            cap = 4 if n_jargon >= 2 else 6
+            scores["english_native_quality"] = min(scores["english_native_quality"], cap)
         flags = [str(f) for f in (data.get("anti_patterns") or []) if str(f).strip()]
         for lf in _local_flags(post_content):
             if lf not in flags:
@@ -165,8 +284,8 @@ class TextEvaluator:
 
 
 async def _demo() -> int:
-    sample = ("Az AI forradalom korában fontos megérteni, hogy a vállalatok számára "
-              "kulcsfontosságú a digitalizáció. Számos lehetőséget biztosít. Egyetértesz?")
+    sample = ("In today's fast-paced world, it's important to note that businesses must leverage "
+              "cutting-edge AI to revolutionize their workflows. This is a real game changer. Agree?")
     out = await TextEvaluator().evaluate_post(sample, "adam", "ai_news")
     print(json.dumps(out, ensure_ascii=False, indent=2))
     return 0

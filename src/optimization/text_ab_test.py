@@ -35,16 +35,17 @@ VOICE_PROMPTS = {
 
 # Variáns → hook stratégia (A = produkciós, bias nélkül).
 HOOK_STRATEGY = {"A": None, "B": "contrarian", "C": "data", "D": "narrative", "E": "pain"}
-HOOK_LABEL = {"A": "produkciós", "B": "contrarian", "C": "data", "D": "narrative", "E": "pain"}
+HOOK_LABEL = {"A": "production", "B": "contrarian", "C": "data", "D": "narrative", "E": "pain"}
+# Phase 14: angol hook-direktívák (a "EN:" hook példák a viral_hooks_library.md-ből).
 HOOK_DIRECTIVE = {
-    "contrarian": "HOOK STRATÉGIA — CONTRARIAN: az első mondat kérdőjelezzen meg egy elterjedt "
-                  "közhiedelmet a témában (pl. „Ne automatizálj. Először gondolkodj.”).",
-    "data": "HOOK STRATÉGIA — DATA: az első mondat egy konkrét, meglepő számmal/aránnyal nyisson, "
-            "ami egy sztorit sejtet (pl. „68 magyar KKV-vezetővel beszéltem. Egy dolog közös volt.”).",
-    "narrative": "HOOK STRATÉGIA — NARRATIVE: kezdj egy sztori KÖZEPÉN, konkrét időponttal "
-                 "(pl. „Tegnap egy ügyfelünk kiakadt. Igaza volt.”).",
-    "pain": "HOOK STRATÉGIA — PAIN POINT: nyiss egy őszinte, sebezhető beismeréssel vagy a közönség "
-            "fájdalmával (pl. „Az első AI projektünket 2 héttel később adtuk át. Ezt tanultam.”).",
+    "contrarian": "HOOK STRATEGY — CONTRARIAN: the first line challenges a widely held belief on "
+                  "the topic (e.g. \"Don't automate. Think first.\").",
+    "data": "HOOK STRATEGY — DATA: open with a concrete, surprising number/ratio that implies a "
+            "story (e.g. \"I talked to 68 SME owners this year. One thing was the same for all of them.\").",
+    "narrative": "HOOK STRATEGY — NARRATIVE: start in the MIDDLE of a story, with a concrete time "
+                 "(e.g. \"Yesterday a client of ours snapped. They were right.\").",
+    "pain": "HOOK STRATEGY — PAIN POINT: open with an honest, vulnerable admission or the audience's "
+            "pain (e.g. \"We shipped our first AI project 2 weeks late. Here's what I learned.\").",
 }
 
 
@@ -61,8 +62,8 @@ def _manual(scenario: dict, hook: str | None) -> dict:
     voice, ctype = scenario["voice"], scenario["content_type"]
     if scenario.get("kind") == "ai_news":
         f = scenario["feed"]
-        base = (f"Reagálj erre az AI-hírre a saját hangodon (ne ismételd, hozz saját szöget): "
-                f"CÍM: {f.get('title')}\nÖSSZEFOGLALÓ: {(f.get('summary') or '')[:600]}")
+        base = (f"React to this AI news in your own voice (don't repeat it, bring your own angle): "
+                f"TITLE: {f.get('title')}\nSUMMARY: {(f.get('summary') or '')[:600]}")
     else:
         base = scenario.get("instruction", "")
     if hook:

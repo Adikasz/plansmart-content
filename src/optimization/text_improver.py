@@ -48,32 +48,60 @@ def _hooks() -> str:
     return _read("prompts/viral_hooks_library.md")
 
 
+@lru_cache(maxsize=1)
+def _native_guide() -> str:
+    # Phase 14: angol natívsági segédlet (a magyar guide dormant maradt a repóban).
+    return _read("prompts/english_native_guide.md")
+
+
 def _rewrite_system(voice: str) -> str:
     voice_md = _read(VOICE_PROMPTS.get(voice, ""))
     return (
-        "Te egy magyar LinkedIn copywriter vagy. A feladatod egy meglévő poszt ÁTÍRÁSA úgy, hogy "
-        "erősebb legyen: ütős hook (lásd a hook-könyvtárat), emberi hang, konkrét szám/példa, "
-        "nyelvileg hibátlan magyar, az adott voice-ban. NE találj ki hamis adatot — ha nincs konkrét "
-        "szám a forrásban, használj hihető, a tartalomból következő konkrétumot, de ne hazudj tényt.\n\n"
-        "Kerüld: AI-tell fordulatok (fontos megérteni, kulcsfontosságú, kihasználva, jelentős, "
-        "innovatív), buzzword (forradalom, game changer, diszruptív), általános mennyiség (sokat, "
-        "rengeteg, számos), engagement-bait ('Egyetértesz?'), külső link.\n\n"
-        f"=== VOICE PROMPT ===\n{voice_md}\n\n=== HOOK KÖNYVTÁR ===\n{_hooks()}\n\n"
-        "KIZÁRÓLAG a kész, átírt magyar posztot add vissza — sem magyarázat, sem JSON, sem idézőjel, "
-        "sem cím. Csak a poszt szövege (a hashtagekkel a végén, ha kellenek)."
+        "You are an elite English LinkedIn copywriter. Your job is to REWRITE an existing post so "
+        "it is stronger: a scroll-stopping hook (see the hook library), a human voice, a concrete "
+        "number/example, flawless AND native-level English (NOT translated from Hungarian — see the "
+        "native guide), in the given voice. Do NOT invent false data — if the source has no concrete "
+        "number, use a believable specific that follows from the content, but never lie about a fact.\n\n"
+        "TOP PRIORITY — native English: remove every banned buzzword/hype (leverage, revolutionize, "
+        "game changer, seamless, disruptive, cutting-edge, unlock your potential, synergy, "
+        "supercharge, paradigm shift) and every stiff AI-tell connector (furthermore, moreover, "
+        "in conclusion, it's important to note, in today's fast-paced world, delve, tapestry). "
+        "Do not write in translated-from-Hungarian word order, and do not fall into generic "
+        "LinkedIn-guru cadence (a wall of tiny punchy one-liners). Sound like a real, confident "
+        "operator talking.\n\n"
+        "Also avoid: vague quantity ('a lot', 'many', 'several'), engagement-bait ('Agree?'), "
+        "pushy CTA ('book a call', 'DM me'), external links.\n"
+        "Target length: 1300-1900 characters.\n\n"
+        f"=== ENGLISH-NATIVE GUIDE ===\n{_native_guide()}\n\n"
+        f"=== VOICE PROMPT ===\n{voice_md}\n\n=== HOOK LIBRARY ===\n{_hooks()}\n\n"
+        "Return ONLY the finished, rewritten English post — no explanation, no JSON, no quotes, "
+        "no title. Just the post text (with hashtags at the end if needed)."
     )
 
 
 async def _rewrite(post: str, voice: str, content_type: str, scores: dict) -> str:
+    nativeness = scores.get("english_native_quality")
+    native_line = (
+        f"ENGLISH-NATIVE score: {nativeness}/10 — if below 9, this is the MOST important thing to "
+        "fix (remove banned buzzwords + AI-tell connectors + translated/guru rhythm).\n\n"
+        if nativeness is not None else ""
+    )
+    n = len(post or "")
+    len_line = ""
+    if n > 1900:
+        len_line = f"LENGTH: {n} chars — TOO LONG. Cut it to 1300-1900 chars (tighten, drop weakest points).\n\n"
+    elif n < 1300:
+        len_line = f"LENGTH: {n} chars — TOO SHORT. Expand to 1300-1900 chars with concrete detail.\n\n"
     user = (
         f"CONTENT TYPE: {content_type}\n\n"
-        f"JELENLEGI POSZT (overall {scores.get('overall_score')}):\n{post}\n\n"
-        f"AZ ÉRTÉKELŐ VISSZAJELZÉSE:\n{scores.get('feedback', '')}\n\n"
-        f"KONKRÉT PROBLÉMÁK:\n- " + "\n- ".join(scores.get("anti_patterns") or ["—"]) + "\n\n"
+        f"CURRENT POST ({n} chars, overall {scores.get('overall_score')}):\n{post}\n\n"
+        f"{len_line}{native_line}"
+        f"EVALUATOR FEEDBACK:\n{scores.get('feedback', '')}\n\n"
+        f"SPECIFIC PROBLEMS:\n- " + "\n- ".join(scores.get("anti_patterns") or ["—"]) + "\n\n"
     )
     if scores.get("rewrite_suggestion"):
-        user += f"AZ ÉRTÉKELŐ ÁTÍRÁSI JAVASLATA (inspiráció, nem kötelező):\n{scores['rewrite_suggestion']}\n\n"
-    user += "Írd át a posztot most, a fenti hibákat javítva. Csak a kész posztot add vissza."
+        user += f"EVALUATOR'S REWRITE SUGGESTION (inspiration, not mandatory):\n{scores['rewrite_suggestion']}\n\n"
+    user += "Rewrite the post now, fixing the issues above. Return only the finished post."
 
     msg = await _client().messages.create(
         model=MODEL, max_tokens=MAX_TOKENS, system=_rewrite_system(voice),
@@ -90,8 +118,8 @@ async def improve_post(
     raw_post: str,
     voice: str,
     content_type: str,
-    target_score: float = 8.0,
-    max_iterations: int = 3,
+    target_score: float = 9.0,
+    max_iterations: int = 5,
     evaluator: TextEvaluator | None = None,
 ) -> dict[str, Any]:
     """Iteratívan javítja a posztot a cél-pontszámig vagy a max iterációig.
@@ -140,9 +168,9 @@ async def improve_post(
 async def _demo() -> int:
     import json
 
-    sample = ("Az AI forradalom korában fontos megérteni, hogy a magyar KKV-knak rengeteg "
-              "lehetőséget biztosít az automatizáció. Egyetértesz?")
-    out = await improve_post(sample, "adam", "ai_news", target_score=8.0, max_iterations=2)
+    sample = ("In today's fast-paced world, businesses must leverage cutting-edge AI to "
+              "revolutionize their workflows. It's a real game changer for SMEs. Agree?")
+    out = await improve_post(sample, "adam", "ai_news", target_score=9.0, max_iterations=3)
     print("initial:", out["initial_score"], "→ final:", out["final_score"], f"(Δ{out['improvement']})")
     print("\nFINAL POST:\n", out["final_post"])
     print("\niterations:", [round(i["scores"].get("overall_score", 0), 1) for i in out["iterations"]])

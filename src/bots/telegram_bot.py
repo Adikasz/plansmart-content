@@ -71,11 +71,12 @@ VOICE_PROMPTS = {
 PLATFORMS = {"linkedin", "twitter"}
 CREATE_USAGE = (
     "Használat:\n"
-    "<code>/create &lt;voice&gt; &lt;platform&gt;</code>\n"
+    "<code>/create &lt;voice&gt; &lt;platform&gt; [--portrait]</code>\n"
     "&lt;többsoros instrukció&gt;\n\n"
-    "voice: david | adam | plansmart  •  platform: linkedin | twitter (plansmart: csak linkedin)\n\n"
+    "voice: david | adam | plansmart  •  platform: linkedin | twitter (plansmart: csak linkedin)\n"
+    "--portrait: kényszerített alapító-portré a vizuálon (csak david/adam)\n\n"
     "Példa:\n"
-    "<code>/create david linkedin\n"
+    "<code>/create david linkedin --portrait\n"
     "Téma: Múlt héten egy ügyfélnél bevezettünk egy n8n workflow-t.\n"
     "Mit szeretnék elmondani: A KKV-knak megéri kis lépésekben kezdeni.</code>"
 )
@@ -236,6 +237,8 @@ def _result_to_post(result: dict, voice: str, platform: str) -> dict:
 async def create_cmd(message: Message, command: CommandObject, bot: Bot) -> None:
     first_line, _, instruction = (command.args or "").partition("\n")
     tokens = first_line.split()
+    force_portrait = any(t.lower() == "--portrait" for t in tokens)
+    tokens = [t for t in tokens if not t.startswith("--")]  # flagek levágása
     instruction = instruction.strip()
     if len(tokens) < 2 or not instruction:
         await message.answer(CREATE_USAGE)
@@ -264,6 +267,8 @@ async def create_cmd(message: Message, command: CommandObject, bot: Bot) -> None
         return
 
     post = _result_to_post(result, voice, platform)
+    if force_portrait:
+        post["portrait"] = True  # kézi kényszerítés (a _resolve_portrait csak david/adam-ra hat)
     if not post["content"].strip():
         await message.answer(f"❌ A modell nem adott vissza tartalmat a(z) {platform} platformra.")
         return

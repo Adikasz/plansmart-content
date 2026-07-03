@@ -177,7 +177,8 @@ def _build_payload(feed_item: FeedItem | dict[str, Any]) -> str:
 
 
 AUTO_IMPROVE = os.environ.get("TEXT_AUTO_IMPROVE", "false").lower() == "true"
-SHIP_THRESHOLD = float(os.environ.get("TEXT_SHIP_THRESHOLD", "7.5"))
+# Phase 14: az angol-natív minőségnek kevesebb a mentsége mint a magyar adaptációnak → 9.0 gate.
+SHIP_THRESHOLD = float(os.environ.get("TEXT_SHIP_THRESHOLD", "9.0"))
 
 
 async def generate(
@@ -252,7 +253,7 @@ async def _auto_improve(data: dict[str, Any], feed_item: FeedItem | dict[str, An
     try:
         from src.optimization.text_improver import improve_post
 
-        result = await improve_post(post_text, voice, ctype, target_score=SHIP_THRESHOLD, max_iterations=2)
+        result = await improve_post(post_text, voice, ctype, target_score=SHIP_THRESHOLD, max_iterations=3)
     except Exception as exc:
         logger.warning("[auto-improve] %s hiba: %s", stem, str(exc)[:120])
         return

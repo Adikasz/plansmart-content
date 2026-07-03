@@ -36,23 +36,23 @@ MAX_TOKENS = 600
 
 VOICES = {"david", "adam", "plansmart"}
 
-# A magyar overlay-szöveg kinyerése a poszt tartalmából (Haiku).
+# Phase 14: az overlay-szöveg ANGOL (a poszt is angol) — mind a 3 voice.
 EXTRACT_SYSTEM = (
-    "Te egy art director asszisztense vagy. A bemenet egy magyar LinkedIn poszt. "
-    "Kinyered a vizuálra kerülő MAGYAR szöveget három mezőbe:\n"
-    "• main_text: a fő üzenet 3-5 szóban, NAGYBETŰSEN (ütős display szöveg). Ha van domináns "
-    "szám (pl. 73%), AZ legyen a main_text.\n"
-    "• sub_text: másodlagos magyarázó szöveg, kb. 10-15 szó.\n"
-    "• stat: a legfontosabb konkrét szám/metrika ha van (pl. '73%', '4 óra', '800.000 Ft'), "
-    "egyébként null.\n\n"
-    "Szabályok: a szöveg MINDIG magyar, a poszt SAJÁT szavaiból. Ne találj ki új adatot.\n\n"
-    "Példák:\n"
-    '  „Megtanultad a Claude-ot. Mi jön utána?" → '
-    '{"main_text":"MEGTANULTAD A CLAUDE-OT.","sub_text":"Mi jön utána?","stat":null}\n'
-    '  „73% a magyar KKV-knak heti 4+ órát ismétlődő manuális munkával tölt" → '
-    '{"main_text":"73%","sub_text":"heti 4+ óra ismétlődő manuális munka","stat":"73%"}\n\n'
-    "KIZÁRÓLAG ezt a JSON-t add vissza:\n"
-    '{"main_text":"NAGYBETŰS FŐSZÖVEG","sub_text":"alszöveg","stat":"konkrét szám vagy null"}'
+    "You are an art director's assistant. The input is an English LinkedIn post. "
+    "Extract the ENGLISH text that goes on the visual into three fields:\n"
+    "• main_text: the core message in 3-5 words, ALL CAPS (punchy display text). If there is a "
+    "dominant number (e.g. 73%), THAT is the main_text.\n"
+    "• sub_text: secondary explanatory text, about 8-14 words.\n"
+    "• stat: the single most important concrete number/metric if any (e.g. '73%', '4 hours', "
+    "'$5k'), otherwise null.\n\n"
+    "Rules: the text is ALWAYS English, taken from the post's OWN words. Do not invent new data.\n\n"
+    "Examples:\n"
+    '  "You learned Claude. What comes next?" → '
+    '{"main_text":"YOU LEARNED CLAUDE.","sub_text":"What comes next?","stat":null}\n'
+    '  "73% of SMEs still lose 4+ hours a week to repetitive manual work" → '
+    '{"main_text":"73%","sub_text":"4+ hours a week lost to manual work","stat":"73%"}\n\n'
+    "Return ONLY this JSON:\n"
+    '{"main_text":"ALL-CAPS HEADLINE","sub_text":"subtext","stat":"a concrete number or null"}'
 )
 
 # Közös brand DNS — a docs/BRAND.md "Közös vizuális DNS" szakaszával összhangban.
@@ -60,8 +60,8 @@ BRAND_DNA = (
     "Brand: PlanSmart — 'Az autonóm cég operációs rendszere'. "
     "Mandatory dark background #04060a (near-black). "
     "Brand font character: geometric grotesque display + monospace metric accents. "
-    "Include a subtle PlanSmart logo watermark in a corner — use the placeholder token "
-    "[BRAND_LOGO] (no real logo asset is uploaded yet). "
+    "Do NOT render any logo, watermark, or brand text — the real PlanSmart logo is "
+    "composited in later via PIL (never draw it in the image). "
     "If the post has a concrete number/metric, make it the visual focal point. "
     "Never render marketing buzzwords (no 'AI Revolution', no 'transform your business'). "
     "No stock-photo clichés (no handshakes, no generic glowing tech networks). "
@@ -89,7 +89,7 @@ EVAL_WINNER_DIRECTION = {
 
 # Phase 12 top-3 fix a prompt-evalból (garbled magyar szöveg, szürke háttér, HUD-zsúfoltság).
 EVAL_HARDENING = (
-    "Render ONLY the exact Hungarian text given above, letter-perfect — do NOT invent, translate, "
+    "Render ONLY the exact English text given above, letter-perfect — do NOT invent, translate, "
     "or add any other text, captions, code, numbers, or UI labels.\n"
     "TRUE near-black #04060a background (not grey). Ban HUD panels, pseudo-code, UI chrome, "
     "decorative charts, and any secondary text clusters.\n"
@@ -174,10 +174,10 @@ async def write_muapi_prompt(post: dict[str, Any], visual_text: dict[str, Any] |
 
     return (
         "Dark #04060a background. Bold Bebas Neue / Neue Machina display typography.\n\n"
-        f'MAIN TEXT (huge, centered, white, Hungarian, all caps):\n"{main_text}"\n\n'
+        f'MAIN TEXT (huge, centered, white, English, all caps):\n"{main_text}"\n\n'
         f"{stat_line}"
-        f'SUBTEXT (smaller, grey, Hungarian):\n"{sub_text}"\n\n'
-        "Bottom-right: a small, subtle, low-opacity PlanSmart wordmark watermark.\n"
+        f'SUBTEXT (smaller, grey, English):\n"{sub_text}"\n\n'
+        "Do NOT render any logo/watermark — the real PlanSmart logo is composited later via PIL.\n"
         "Cinematic lighting, slight film grain, Soul Cinema aesthetic.\n"
         "High contrast, scroll-stopping, trending AI content creator style.\n"
         f"{EVAL_HARDENING}\n"
@@ -308,14 +308,19 @@ async def compose_visual(post: dict[str, Any]) -> dict[str, Any]:
     prompt = build_textfree_prompt(post, visual_text)
     result = await muapi_client.generate(prompt, model=model, aspect_ratio=aspect_ratio)
     base_url = result.image_url
-    logger.info("[%s] szöveg-mentes alapkép kész | overlay: '%s'", voice, visual_text.get("main_text", ""))
+
+    portrait_path = _resolve_portrait(post, voice)
+    logger.info(
+        "[%s] szöveg-mentes alapkép kész | overlay: '%s' | portré: %s",
+        voice, visual_text.get("main_text", ""), "igen" if portrait_path else "nem",
+    )
 
     pid = post.get("id") or uuid.uuid4().hex[:12]
     out_path = str((Path(__file__).resolve().parents[2] / "assets" / "generated" / f"visual_{pid}.png"))
     composer = _composer()
     composed_path = await asyncio.to_thread(
         composer.compose, base_url, visual_text.get("main_text", ""),
-        visual_text.get("sub_text"), visual_text.get("stat"), voice, out_path,
+        visual_text.get("sub_text"), visual_text.get("stat"), voice, out_path, portrait_path,
     )
     final_url = await asyncio.to_thread(upload_visual, composed_path, f"visual_{pid}.png")
 
@@ -328,9 +333,34 @@ async def compose_visual(post: dict[str, Any]) -> dict[str, Any]:
         "local_path": composed_path,
         "visual_prompt": prompt,
         "visual_text": visual_text,
+        "portrait_used": bool(portrait_path),
         "model_used": result.model,
         "cost_usd": result.cost_usd,
     }
+
+
+def _resolve_portrait(post: dict[str, Any], voice: str) -> str | None:
+    """Eldönti, kell-e alapító-portré ehhez a poszthoz, és visszaadja a kivágat útját (vagy None).
+
+    A `post["portrait"]` kézi felülírás (a /create --portrait flag): True → kényszerít, False →
+    tilt. Egyébként a gyakoriság-logika dönt (minden 3-4. david/adam poszt). plansmart SOHA.
+    """
+    from src.visuals import portrait as portrait_mod
+
+    forced = post.get("portrait")
+    if forced is False:
+        return None
+    if voice not in portrait_mod.PORTRAIT_VOICES:
+        return None
+    include = portrait_mod.should_include_portrait(voice, force=bool(forced))
+    if not include:
+        return None
+    try:
+        cutout = portrait_mod.get_cutout(voice)
+        return str(cutout) if cutout else None
+    except Exception as exc:  # rembg/onnx hiba ne törje meg a vizuál-generálást
+        logger.warning("[%s] portré kivágás kihagyva: %s", voice, str(exc)[:120])
+        return None
 
 
 def _record_cost_safe(post_id: str, result: muapi_client.GenerationResult) -> None:

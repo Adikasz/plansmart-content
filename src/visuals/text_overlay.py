@@ -16,7 +16,7 @@ from functools import lru_cache
 from pathlib import Path
 
 import httpx
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter, ImageFont
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +24,16 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 FONTS_DIR = PROJECT_ROOT / "assets" / "fonts"
 TTF_DIR = FONTS_DIR / "ttf"
 GENERATED_DIR = PROJECT_ROOT / "assets" / "generated"
+BRAND_DIR = PROJECT_ROOT / "assets" / "brand"
+
+# Valódi logó-jel (Phase 13.5): a teal áramköri „P" ikon, átlátszó háttérrel — ezt
+# komponáljuk minden képre jobb-alsó watermarkként (a régi [BRAND_LOGO] szöveg-token
+# helyett, amit a Flux betűként rajzolt ki — Phase 12.5 bug). A wordmark verziók
+# (Logo2/Logo3/Logo4) NEM alkalmasak kis sarok-watermarknak, csak a mark.
+LOGO_MARK_FILE = BRAND_DIR / "Logo main.png"
+LOGO_WIDTH_FRAC = 0.08   # a vászon szélességének ~8%-a
+LOGO_PADDING_PX = 32     # jobb/alsó széltől (1024px-re hangolva, s-sel skálázva)
+LOGO_OPACITY = 0.65      # 65% átlátszatlanság
 
 # Teljes lefedettségű TTF-ek (Google Fonts) — a repo .woff2 fájljai unicode-range SUBSETek
 # (a latin-ext csak a kiterjesztett jeleket tartalmazza, az alap latint NEM), így boxokat
@@ -83,7 +93,26 @@ class TextOverlayComposer:
         self.fonts_dir = FONTS_DIR
         self._ttf = _ensure_ttf()
         self._cov = self._build_coverage()
+        self._logo = self._load_logo()
         GENERATED_DIR.mkdir(parents=True, exist_ok=True)
+
+    @staticmethod
+    def _load_logo() -> Image.Image | None:
+        """A valódi logó-jel betöltése egyszer (átlátszó-margó levágva). None, ha hiányzik."""
+        try:
+            logo = Image.open(LOGO_MARK_FILE).convert("RGBA")
+        except Exception as exc:
+            logger.warning("[overlay] logó betöltés hiba (%s): %s", LOGO_MARK_FILE.name, str(exc)[:100])
+            return None
+        # Neon-a-feketén jel: a bepékelt sötét glow félig-átlátszó, sötét pixeleket hagy (halvány
+        # doboz a sarokban). Az alphát a pixel fényességével skálázzuk → a sötét részek eltűnnek,
+        # csak a világító „P" marad, és a sötét #04060a háttéren fényként ül meg (nem dobozként).
+        alpha = ImageChops.multiply(logo.getchannel("A"), logo.convert("L"))
+        logo.putalpha(alpha)
+        bbox = alpha.getbbox()  # a nagy átlátszó keret levágása
+        if bbox:
+            logo = logo.crop(bbox)
+        return logo
 
     def _build_coverage(self) -> dict[str, set[int]]:
         """face → a font által lefedett unicode kódpontok (a glyph-fallbackhez)."""
@@ -225,8 +254,14 @@ class TextOverlayComposer:
         stat: str | None = None,
         voice: str = "david",
         output_path: str | None = None,
+        portrait_path: str | None = None,
     ) -> str:
-        """Letölti az alapképet, ráírja a magyar szöveget, menti, és visszaadja a lokális utat."""
+        """Letölti az alapképet, ráírja a magyar szöveget, menti, és visszaadja a lokális utat.
+
+        portrait_path (Phase 13.5): ha meg van adva, az alapító kivágott (háttér nélküli)
+        portréját a bal-alsó harmadba komponáljuk a szöveg ELŐTT; ilyenkor a fő szöveg a
+        kép TETEJÉRE kerül, hogy ne ütközzön a portréval. A logó mindig jobb-alsó sarok.
+        """
         # BUG2 fix: ne rajzoljuk ki kétszer ugyanazt a számot. Ha a stat megegyezik a
         # main_text-tel (kis/nagybetűtől függetlenül), vagy a main_text már tartalmazza,
         # akkor a stat-ot elhagyjuk — egyszer jelenik meg, a main pozícióban.
@@ -247,12 +282,19 @@ class TextOverlayComposer:
         }.get(voice, lambda: self._gradient(img.size, bottom=0.8))
         img = Image.alpha_composite(img, layer_fn())
 
+        # Portré a szöveg ELŐTT (bal-alsó), ha van — plansmart sosem kap portrét.
+        has_portrait = bool(portrait_path) and voice in {"david", "adam"}
+        if has_portrait:
+            self._place_portrait(img, portrait_path, s)
+
         if voice == "david":
-            self._layout_david(img, main_text, sub_text, stat, s)
+            self._layout_david(img, main_text, sub_text, stat, s, portrait=has_portrait)
         elif voice == "adam":
-            self._layout_adam(img, main_text, sub_text, stat, s)
+            self._layout_adam(img, main_text, sub_text, stat, s, portrait=has_portrait)
         else:
             self._layout_plansmart(img, main_text, sub_text, s)
+
+        self._paste_logo(img, s)  # valódi logó-jel minden képre, jobb-alsó sarok
 
         out = Path(output_path) if output_path else (GENERATED_DIR / "overlay_tmp.png")
         out.parent.mkdir(parents=True, exist_ok=True)
@@ -299,19 +341,39 @@ class TextOverlayComposer:
         return y
 
     # ── Voice layoutok ─────────────────────────────────────────────────
-    def _layout_david(self, img, main_text, sub_text, stat, s):
+    def _layout_david(self, img, main_text, sub_text, stat, s, portrait=False):
         draw = ImageDraw.Draw(img)
         w, h = img.size
         margin = int(70 * s)
         main_font, main_lines = self._fit_lines("bebas", (main_text or "").upper(), int(120 * s), w - 2 * margin)
         sub_font = self._font("inter", int(32 * s))
         sub_lines = self._wrap(draw, sub_text or "", sub_font, w - 2 * margin) if sub_text else []
-        # Blokk-magasság a bal-alsó pozícionáláshoz
+        # Blokk-magasság a pozícionáláshoz
         ma, md = main_font.getmetrics()
         sa, sd = sub_font.getmetrics()
         main_lh = int((ma + md) * 1.04)
         sub_lh = int((sa + sd) * 1.2)
         block_h = len(main_lines) * main_lh + (len(sub_lines) * sub_lh if sub_lines else 0)
+        if portrait:
+            # A portré a bal-alsót foglalja → MINDEN szöveg a felső sávba, bal-oldalt, FÜGGŐLEGESEN
+            # egymásra pakolva (stat → main → sub). Így a stat nem ütközik a fő szöveggel.
+            y = margin
+            if stat:
+                stat_font = self._fit_font("fragment", stat, int(120 * s), w - 2 * margin)
+                sfa, sfd = stat_font.getmetrics()
+                stat_lh = int((sfa + sfd) * 1.02)
+                self._shadow(img, [stat], stat_font, (margin, y), "la", stat_lh, blur=int(12 * s))
+                ImageDraw.Draw(img).text((margin, y), stat, font=stat_font, fill=TEAL, anchor="la")
+                y += stat_lh + int(10 * s)
+            y = self._text_with_glow(img, main_lines, main_font, (margin, y), WHITE, "la", TEAL, int(14 * s), line_gap=1.04)
+            if sub_lines:
+                self._shadow(img, sub_lines, sub_font, (margin, y), "la", sub_lh, blur=int(8 * s))
+                draw = ImageDraw.Draw(img)
+                for ln in sub_lines:
+                    draw.text((margin, y), ln, font=sub_font, fill=LIGHT_GREY, anchor="la")
+                    y += sub_lh
+            return
+        # Portré NÉLKÜL: fő szöveg bal-alsó, a stat jobb-felső (külön zóna, nincs ütközés).
         y = h - margin - block_h
         y = self._text_with_glow(img, main_lines, main_font, (margin, y), WHITE, "la", TEAL, int(14 * s), line_gap=1.04)
         if sub_lines:
@@ -321,12 +383,11 @@ class TextOverlayComposer:
                 draw.text((margin, y), ln, font=sub_font, fill=LIGHT_GREY, anchor="la")
                 y += sub_lh
         if stat:
-            stat_font = self._fit_font("fragment", stat, int(160 * s), int(w * 0.5))
+            stat_font = self._fit_font("fragment", stat, int(160 * s), int(w * 0.45))
             self._shadow(img, [stat], stat_font, (w - margin, margin), "ra", int(160 * s), blur=int(12 * s))
             ImageDraw.Draw(img).text((w - margin, margin), stat, font=stat_font, fill=TEAL, anchor="ra")
-        self._watermark(img, s, where="br")
 
-    def _layout_adam(self, img, main_text, sub_text, stat, s):
+    def _layout_adam(self, img, main_text, sub_text, stat, s, portrait=False):
         draw = ImageDraw.Draw(img)
         w, h = img.size
         margin = int(70 * s)
@@ -339,7 +400,13 @@ class TextOverlayComposer:
         main_lh = int((ma + md) * 1.06)
         sub_lh = int((sa + sd) * 1.2)
         block_h = len(main_lines) * main_lh + (len(sub_lines) * sub_lh + int(24 * s) if sub_lines else 0)
-        y = (h - block_h) // 2 + int(h * 0.06)
+        # A stat (ha van) a felső sávban ül; a szöveg-blokk alapból középen, portré esetén feljebb
+        # (a felső harmadba), hogy a bal-alsó portré ne takarja.
+        stat_reserve = int(200 * s + margin) if stat else 0
+        if portrait:
+            y = stat_reserve + margin
+        else:
+            y = (h - block_h) // 2 + int(h * 0.06)
         cx = w // 2
         self._shadow(img, main_lines, main_font, (cx, y), "ma", main_lh, blur=int(16 * s), alpha=170)
         for ln in main_lines:
@@ -355,7 +422,6 @@ class TextOverlayComposer:
             stat_font = self._fit_font("fragment", stat, int(200 * s), int(w * 0.84))
             self._shadow(img, [stat], stat_font, (cx, margin), "ma", int(200 * s), blur=int(14 * s))
             draw.text((cx, margin), stat, font=stat_font, fill=AMBER, anchor="ma")
-        self._watermark(img, s, where="br")
 
     def _layout_plansmart(self, img, main_text, sub_text, s):
         draw = ImageDraw.Draw(img)
@@ -382,19 +448,79 @@ class TextOverlayComposer:
             for ln in sub_lines:
                 draw.text((cx, y), ln, font=sub_font, fill=LIGHT_GREY, anchor="ma")
                 y += sub_lh
-        # PlanSmart wordmark alul középen
-        self._watermark(img, s, where="bc", text="PlanSmart", size=40, opacity=204)
+        # A PlanSmart brandet a valódi logó-jel adja (jobb-alsó), a compose() teszi rá.
 
-    def _watermark(self, img, s, where="br", text="PlanSmart", size=24, opacity=153):
-        draw = ImageDraw.Draw(img)
+    # ── Valódi logó-jel watermark (Phase 13.5) ─────────────────────────
+    def _paste_logo(self, img, s) -> None:
+        """A valódi teal „P" logó-jel a jobb-alsó sarokba: ~8% szélesség, 32px padding, 65% opacity."""
+        if self._logo is None:
+            return
         w, h = img.size
-        font = self._font("inter", int(size * s), weight="SemiBold")
-        fill = (255, 255, 255, opacity)
-        margin = int(48 * s)
-        if where == "bc":
-            draw.text((w // 2, h - margin), text, font=font, fill=fill, anchor="md")
-        else:  # bottom-right
-            draw.text((w - margin, h - margin), text, font=font, fill=fill, anchor="rd")
+        target_w = max(1, int(w * LOGO_WIDTH_FRAC))
+        ratio = target_w / self._logo.width
+        target_h = max(1, int(round(self._logo.height * ratio)))
+        logo = self._logo.resize((target_w, target_h), Image.LANCZOS)
+        if LOGO_OPACITY < 1.0:  # globális átlátszatlanság a meglévő alpha-ra
+            logo.putalpha(logo.getchannel("A").point(lambda p: int(p * LOGO_OPACITY)))
+        pad = int(LOGO_PADDING_PX * s)
+        img.alpha_composite(logo, (w - target_w - pad, h - target_h - pad))
+
+    # ── Alapító-portré komponálás (Phase 13.5) ─────────────────────────
+    def _place_portrait(self, img, portrait_path, s) -> None:
+        """Kivágott (háttér nélküli) portré a bal-alsó harmadba, filmes illesztéssel.
+
+        A portré a szöveg ELŐTT kerül a képre. Lépések: bbox-crop → méretezés (~40% magasság) →
+        deszaturáció + kontraszt + grain (filmes illesztés) → grounding árnyék → beillesztés.
+        """
+        try:
+            cut = Image.open(portrait_path).convert("RGBA")
+        except Exception as exc:
+            logger.warning("[overlay] portré betöltés hiba (%s): %s", portrait_path, str(exc)[:100])
+            return
+        bbox = cut.getchannel("A").getbbox()
+        if bbox:
+            cut = cut.crop(bbox)
+        w, h = img.size
+        target_h = int(h * 0.40)  # a vászon magasságának ~40%-a
+        ratio = target_h / cut.height
+        target_w = int(cut.width * ratio)
+        max_w = int(w * 0.46)  # ne lógjon át a jobb oldalra (bal harmad + kicsit)
+        if target_w > max_w:
+            ratio = max_w / cut.width
+            target_w, target_h = max_w, int(cut.height * ratio)
+        cut = cut.resize((target_w, target_h), Image.LANCZOS)
+        cut = self._match_cinematic(cut)
+
+        px = int(40 * s)          # bal padding
+        py = h - target_h          # alsó élre ültetve (a személy a keretből "emelkedik ki")
+        self._portrait_backing(img, cut.getchannel("A"), (px, py), s)
+        img.alpha_composite(cut, (px, py))
+
+    @staticmethod
+    def _match_cinematic(cut: Image.Image) -> Image.Image:
+        """Deszaturáció ~15%, enyhe kontraszt/sötétítés + finom grain — a filmes alapképhez illesztve."""
+        alpha = cut.getchannel("A")
+        rgb = cut.convert("RGB")
+        rgb = ImageEnhance.Color(rgb).enhance(0.85)      # -15% telítettség
+        rgb = ImageEnhance.Contrast(rgb).enhance(1.05)
+        rgb = ImageEnhance.Brightness(rgb).enhance(0.94)  # kicsit sötétebb, hogy beüljön a #04060a-ba
+        out = rgb.convert("RGBA")
+        out.putalpha(alpha)
+        # Kodak Portra-szerű grain: szürke zaj, csak a portré maszkján belül, alacsony opacitással.
+        noise = Image.effect_noise(out.size, 22).convert("L")
+        grain = Image.merge("RGBA", (noise, noise, noise, alpha.point(lambda p: int(p * 0.10))))
+        return Image.alpha_composite(out, grain)
+
+    def _portrait_backing(self, img, alpha: Image.Image, pos, s) -> None:
+        """Grounding: elmosott sötét sziluett a portré mögé (drop shadow + beolvasztás a sötét háttérbe)."""
+        px, py = pos
+        layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
+        # Kissé kinagyított, eltolt fekete sziluett → lágy dobott árnyék + elválasztás a háttértől.
+        soft = alpha.point(lambda p: int(p * 0.60))
+        black = Image.new("RGBA", alpha.size, (0, 0, 0, 255))
+        layer.paste(black, (px + int(8 * s), py + int(12 * s)), mask=soft)
+        layer = layer.filter(ImageFilter.GaussianBlur(int(20 * s)))
+        img.alpha_composite(layer)
 
 
 def _demo(url: str, voice: str) -> int:

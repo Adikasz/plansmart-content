@@ -35,7 +35,7 @@ VARIANT_LABELS = {
 }
 DEFAULT_VARIANTS = ["A", "B", "C", "D"]
 
-_WATERMARK = "Bottom right: small, subtle PlanSmart logo watermark ([BRAND_LOGO] placeholder)."
+_WATERMARK = "Do NOT render any logo or watermark — the real PlanSmart logo is composited later via PIL."
 _NO_PEOPLE = "No people. No stock-photo clichés. No marketing buzzwords."
 
 

@@ -1,28 +1,22 @@
 [
   {
-    "id": "news_9709a51c",
+    "id": "news_gemini_free",
     "voice": "adam",
     "content_type": "ai_news",
     "kind": "ai_news",
     "label": "ai_news",
     "feed": {
       "id": "9709a51c192649d4",
-      "title": "You can build you next AI App with Gemini, for free, in less than 90 seconds...",
-      "summary": "You can get 1,500,000,000 tokes for free everyday with the Gemini API and Google AI Studio. Get started at https://aistudio.google.com, get your API key in 3 clicks, and then head to the Gemini API docs: https://ai.google.dev/gemini-api/docs to explore pricing, rate limits, more verbose examples for some of our key features and more. \n\nThere has never been a better time to build with Gemini. If you run into any issues or have questions, email me: lkilpatrick@google.com or send me a DM on Twitter: https://twitter.com/OfficialLoganK\n\nIt's time to build!",
+      "title": "You can build your next AI app with Gemini, for free, in under 90 seconds",
+      "summary": "You can get 1.5B tokens for free every day with the Gemini API and Google AI Studio. Get your API key in 3 clicks, then explore the docs for pricing, rate limits, and examples. There has never been a cheaper time to build with AI.",
       "url": "https://www.youtube.com/watch?v=r-YSE4Y27Hw",
       "source": "Logan Kilpatrick - YouTube",
       "score": 10,
-      "tags": [
-        "gemini_api",
-        "free_tier",
-        "ai_development",
-        "quick_start",
-        "cost_reduction"
-      ]
+      "tags": ["gemini_api", "free_tier", "ai_development", "cost_reduction"]
     }
   },
   {
-    "id": "news_6864ae7b",
+    "id": "news_agent_loops",
     "voice": "david",
     "content_type": "ai_news",
     "kind": "ai_news",
@@ -30,44 +24,31 @@
     "feed": {
       "id": "6864ae7b2a969a7c",
       "title": "How to design AI agent loops: schedules, goals, and subagents in Claude Code and Codex",
-      "summary": "Watch now | &#127897;&#65039;Every loop type explained: heartbeats, crons, goals, and subagents. Plus two live Claude Code and Codex builds that run autonomously so you never manually babysit a PR again",
+      "summary": "Every loop type explained: heartbeats, crons, goals, and subagents. Plus two live Claude Code and Codex builds that run autonomously so you never manually babysit a PR again.",
       "url": "https://www.lennysnewsletter.com/p/how-to-design-ai-agent-loops-schedules",
       "source": "Lenny's Newsletter",
       "score": 10,
-      "tags": [
-        "AI agents",
-        "Claude API",
-        "automation loops",
-        "developer tooling",
-        "autonomous workflows"
-      ]
+      "tags": ["AI agents", "Claude API", "automation loops", "autonomous workflows"]
     }
   },
   {
-    "id": "news_aab71206",
+    "id": "news_tool_use",
     "voice": "adam",
     "content_type": "ai_news",
     "kind": "ai_news",
     "label": "ai_news",
     "feed": {
       "id": "aab71206d223bb67",
-      "title": "Anthropic Unveils Tool Use Capability for Claude 3, Enhancing AI Interactions",
-      "summary": "<p>As reported on by Anthropic in a recent email communication, the artificial intelligence sector is poised for a significant leap forward with the introduction of tool use capabilities to the Claude 3 model family. This new feature, now available in beta to all customers through the Anthropic Messages API, marks a groundbreaking development in Claude&#8230;&#160;<a class=\"\" href=\"https://news.futuretools.io/anthropic-unveils-tool-use-capability-for-claude-3-enhancing-ai-interactions/\" rel=\"bookmark\">Read More &#187;<span class=\"screen-reader-text\">Anthropic Unveils Tool Use Capability for Cl",
-      "url": "https://news.futuretools.io/anthropic-unveils-tool-use-capability-for-claude-3-enhancing-ai-interactions/",
-      "source": "Matt Wolfe - Future Tools Blog",
+      "title": "Anthropic ships tool use for Claude, letting models call external functions",
+      "summary": "Tool use (function calling) is now available to all customers through the Anthropic Messages API. Claude can now call external functions, opening the door to more capable automations and agentic workflows for real business processes.",
+      "url": "https://news.futuretools.io/anthropic-unveils-tool-use-capability-for-claude-3/",
+      "source": "Future Tools Blog",
       "score": 9,
-      "tags": [
-        "Claude 3 tool use",
-        "function calling",
-        "API development",
-        "AI automation",
-        "workflow integration",
-        "KKV AI adoption"
-      ]
+      "tags": ["tool use", "function calling", "AI automation", "SME AI adoption"]
     }
   },
   {
-    "id": "news_a9e769ee",
+    "id": "news_ai_native_org",
     "voice": "david",
     "content_type": "ai_news",
     "kind": "ai_news",
@@ -75,65 +56,59 @@
     "feed": {
       "id": "a9e769ee771e4bf2",
       "title": "The anatomy of an AI-native org",
-      "summary": "<p>Article URL: <a href=\"https://ajeygore.in/content/the-anatomy-of-an-ai-native-org\">https://ajeygore.in/content/the-anatomy-of-an-ai-native-org</a></p>\n<p>Comments URL: <a href=\"https://news.ycombinator.com/item?id=48622815\">https://news.ycombinator.com/item?id=48622815</a></p>\n<p>Points: 32</p>\n<p># Comments: 35</p>",
+      "summary": "A breakdown of how AI-native organizations structure their teams, operations, and decision-making differently from traditional companies, and what smaller companies can copy from it.",
       "url": "https://ajeygore.in/content/the-anatomy-of-an-ai-native-org",
-      "source": "Hacker News (AI keyword)",
+      "source": "Hacker News",
       "score": 7,
-      "tags": [
-        "AI-native organization",
-        "operational structure",
-        "team composition",
-        "KKV digital transformation",
-        "leadership strategy"
-      ]
+      "tags": ["AI-native organization", "operational structure", "SME digital transformation"]
     }
   },
   {
-    "id": "educational_5 jel hogy autom",
+    "id": "edu_5_signs_david",
     "voice": "david",
     "content_type": "educational",
     "kind": "seed",
     "label": "educational",
-    "instruction": "Content type: oktató (educational) poszt.\nTéma: 5 jel hogy automatizálni kellene egy folyamatot\nKategória: process_audit\nÍrj egy tanító, lépésről lépésre posztot erről a témáról a saját hangodon."
+    "instruction": "Content type: educational post.\nTopic: 5 signs a process at your company should be automated.\nCategory: process_audit\nWrite a teaching, step-by-step post on this topic in your own builder voice, with a concrete example from a real build."
   },
   {
-    "id": "educational_5 jel hogy autom",
+    "id": "edu_when_not_adam",
     "voice": "adam",
     "content_type": "educational",
     "kind": "seed",
     "label": "educational",
-    "instruction": "Content type: oktató (educational) poszt.\nTéma: 5 jel hogy automatizálni kellene egy folyamatot\nKategória: process_audit\nÍrj egy tanító, lépésről lépésre posztot erről a témáról a saját hangodon."
+    "instruction": "Content type: educational post.\nTopic: when NOT to automate a process yet — the cases where automation costs more than it saves.\nCategory: decision_framework\nWrite a teaching post from the owner's perspective, with a concrete number-based example of a bad automation decision."
   },
   {
-    "id": "case_study_Mozgató Központ",
+    "id": "case_booking_plansmart",
     "voice": "plansmart",
     "content_type": "case_study",
     "kind": "seed",
     "label": "case_study",
-    "instruction": "Content type: esettanulmány (case_study).\nÜgyfél (anonimizált): Mozgató Központ\nProbléma: Manuális időpontfoglalás napi 2 órát vitt el\nMegoldás: Automatizált foglalás + email értesítés + Notion sync\nEredmény: 0 kézi munka, 24/7 elérhetőség\nÍrj egy konkrét, számokkal alátámasztott esettanulmány posztot."
+    "instruction": "Content type: case study.\nClient (anonymized): a movement-therapy studio, ~8 people.\nProblem: manual appointment booking took 2 hours a day; leads that came in on weekends and after hours only got a reply on Monday morning.\nSolution: automated booking + instant confirmation email + Notion calendar sync + 24h reminder.\nResult: 0 manual booking work, 24/7 availability, 3 after-hours bookings recovered in week one.\nWrite a concrete, number-backed case study post in the brand 'we' voice."
   },
   {
-    "id": "case_study_PR ügynökség",
+    "id": "case_pr_agency_plansmart",
     "voice": "plansmart",
     "content_type": "case_study",
     "kind": "seed",
     "label": "case_study",
-    "instruction": "Content type: esettanulmány (case_study).\nÜgyfél (anonimizált): PR ügynökség\nProbléma: 10 különálló AI tool használata szinkronizálatlanul\nMegoldás: 10 modulos AI komplexum egyetlen rendszerben\nEredmény: 5 fázisra bontott bevezetés, működő rendszer\nÍrj egy konkrét, számokkal alátámasztott esettanulmány posztot."
+    "instruction": "Content type: case study.\nClient (anonymized): a PR agency.\nProblem: they used 10 separate AI tools with no sync between them; context was lost between steps.\nSolution: a single system with 10 modules, rolled out in 5 phases.\nResult: one working system instead of 10 disconnected tools, staged adoption the team could keep up with.\nWrite a concrete, number-backed case study post in the brand 'we' voice."
   },
   {
-    "id": "consultant_builder_1",
+    "id": "edu_start_small_plansmart",
+    "voice": "plansmart",
+    "content_type": "educational",
+    "kind": "seed",
+    "label": "educational",
+    "instruction": "Content type: educational post.\nTopic: how a 30-person company should pick its FIRST internal process to automate.\nCategory: getting_started\nWrite a teaching post in the brand 'we' voice, with a concrete before/after number from client work."
+  },
+  {
+    "id": "consultant_builder_n8n_david",
     "voice": "david",
     "content_type": "educational",
     "kind": "seed",
     "label": "consultant_builder",
-    "instruction": "Consultant/builder poszt: oszd meg egy konkrét buildlog-tanulságot arról, hogyan vezettél be egy automatizálást egy ügyfélnél — mi tört el, mit tanultál. Konkrét időpont, konkrét szám, saját hang."
-  },
-  {
-    "id": "consultant_builder_2",
-    "voice": "david",
-    "content_type": "educational",
-    "kind": "seed",
-    "label": "consultant_builder",
-    "instruction": "Consultant/builder poszt: 'így csináltuk' sztori egy n8n vagy Python pipeline-ról, amit egy KKV-nak építettél — a döntési pont, a buktató, a végeredmény számokban."
+    "instruction": "Consultant/builder post: a 'here's how we did it' story about a Python or n8n pipeline you built for an SME client — the decision point, the thing that broke, the end result in numbers. Concrete time, concrete number, your own voice."
   }
 ]

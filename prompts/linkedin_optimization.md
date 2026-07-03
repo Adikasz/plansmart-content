@@ -14,27 +14,27 @@
 
 ### A) CONTRARIAN
 Structure: Challenge widely held belief
-Example: "Ne automatizálj. Először gondolkodj."
+Example: "Don't automate. Think first."
 When: When you have differentiated opinion
 
 ### B) CURIOSITY GAP
 Structure: Mention outcome, hide method
-Example: "3 nap alatt eltüntettünk 14 órás heti manuális munkát. Így."
+Example: "We erased 14 hours of weekly manual work in 3 days. Here's how."
 When: Case study, behind-the-scenes
 
 ### C) DATA/SPECIFIC NUMBER
 Structure: Lead with surprising statistic
-Example: "73% a magyar KKV-knak heti 4+ órát ismétlődő manuális munkával tölt."
+Example: "73% of SMEs still lose 4+ hours a week to repetitive manual work."
 When: Educational, market insight
 
 ### D) PERSONAL STORY
 Structure: Vulnerable moment, lesson
-Example: "Múlt héten egy ügyfél visszaküldte a számlát. Igaza volt."
+Example: "Last week a client sent the invoice back. They were right."
 When: Lessons learned, mistakes, growth
 
 ### E) PRACTICAL PROMISE
 Structure: Specific outcome + timeframe
-Example: "5 jel hogy automatizálni kell egy folyamatot a cégedben."
+Example: "5 signs a process at your company should be automated."
 When: How-to, framework, checklist
 
 ## Post structure formula
@@ -55,30 +55,32 @@ LINE 7+ (INSIGHT/VALUE):
 - 2-3 concrete points
 - Use bullet points for scannability
 - Specific numbers, examples, not generic advice
-- "Mi csináltuk", "Az ügyfelünknél", "Tegnap láttam" → human signals
+- "We built", "at our client", "yesterday I saw" → human signals
 
 LAST PARAGRAPH (TAKEAWAY/QUESTION):
 - 1 sentence summary OR
-- Genuine question that invites comment (not "Egyetértesz?")
+- Genuine question that invites comment (not "Agree?")
 - NO external link
-- NO "DM-ezz" push
+- NO "DM me" push
 
 HASHTAGS:
 - 3-5 max, all relevant
-- Magyar + angol mix OK
+- English (Hungarian hashtags OK if the term is a proper noun)
 - Place at very end
 
-## Hungarian LinkedIn cultural notes
-- "Te"-zés default (not "Ön") — friendly-pro tone
-- Avoid corporate-speak: "leverage", "synergy", "ecosystem"
-- Specific Hungarian context: KKV nehézségek, magyar piac sajátosságok
-- Konkrét forint összegek néha jobban működnek mint százalékok
+## Audience / register notes (Phase 14: English output)
+- Posts are in English, for a Hungarian SME-owner audience (authority/prestige positioning)
+- Friendly-professional tone, owner-to-owner — never top-down or corporate
+- Avoid corporate-speak: "leverage", "synergy", "ecosystem", "seamless", "cutting-edge"
+- Concrete context still Hungarian-market-aware (SME pains, local market realities)
+- Concrete money/time amounts often beat percentages
 
 ## Anti-patterns (NEVER do these)
-- "Egyetértesz? Komment!" → engagement bait, penalty
+- "Agree? Comment below!" → engagement bait, penalty
 - Wall of text without paragraphs → -30% engagement
 - More than 5 hashtags → spam signal
-- Generic AI buzzwords: "forradalom", "game changer", "diszruptív"
+- Generic AI buzzwords: "revolutionize", "game changer", "disruptive", "seamless"
+- Stiff AI-tell connectors: "furthermore", "moreover", "in today's fast-paced world"
 - External links in post → -60% reach
-- "Foglalj időpontot" → pushy, low conversion
+- "Book a call" → pushy, low conversion
 - Emoji wall → -47% reach signal
