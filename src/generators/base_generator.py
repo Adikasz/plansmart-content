@@ -240,7 +240,12 @@ async def generate(
 
 
 async def _auto_improve(data: dict[str, Any], feed_item: FeedItem | dict[str, Any], stem: str) -> None:
-    """Phase 13 ship-gate: ha a poszt pontszáma < SHIP_THRESHOLD, a jobb átírt verziót használjuk.
+    """Phase 13 ship-gate + Phase 16 fabrikáció hard gate.
+
+    - Ha a poszt pontszáma < SHIP_THRESHOLD, a jobb átírt verziót használjuk.
+    - Ha fabrication_risk igaz, az improve_post akkor is átírat legalább egyszer, ha a pontszám már
+      elérte a küszöböt (hard gate — az improve_post._needs_more kényszeríti), és a fabrikáció-mentes
+      verziót fogadjuk el akkor is, ha a pontszáma nem nőtt.
 
     Lazy import (a text_improver → text_evaluator → base_generator kör elkerülésére).
     """
@@ -250,19 +255,46 @@ async def _auto_improve(data: dict[str, Any], feed_item: FeedItem | dict[str, An
         return
     voice = stem.replace("voice_", "")
     ctype = (feed_item.get("content_type") if isinstance(feed_item, dict) else None) or "ai_news"
+    # Sourced-e a konkrétum? CSAK a valódi /create manual_instruction számít forrásnak (a szerző
+    # maga írta le a konkrét, valós dolgot). A stratégia-seed (educational/workshop topic) is
+    # type=manual_instruction, DE van seed_key-e — az csak egy TÉMA, nem valós forrás, tehát NEM
+    # engedi a kitalált konkrétumot (a fabrikáció-gate rá is vonatkozik). A case_study seedet az
+    # evaluator content_type=='case_study' ága kezeli (a case_studies.yml a forrás).
+    has_manual_source = (
+        isinstance(feed_item, dict)
+        and feed_item.get("type") == "manual_instruction"
+        and not feed_item.get("seed_key")
+    )
     try:
         from src.optimization.text_improver import improve_post
 
-        result = await improve_post(post_text, voice, ctype, target_score=SHIP_THRESHOLD, max_iterations=3)
+        result = await improve_post(
+            post_text, voice, ctype, target_score=SHIP_THRESHOLD, max_iterations=3,
+            has_manual_source=has_manual_source,
+        )
     except Exception as exc:
         logger.warning("[auto-improve] %s hiba: %s", stem, str(exc)[:120])
         return
-    data["text_quality"] = {"initial": result["initial_score"], "final": result["final_score"],
-                            "improvement": result["improvement"]}
-    if result["final_score"] > result["initial_score"]:
+    init_scores = result.get("initial_scores") or {}
+    final_scores = result.get("final_scores") or {}
+    init_fab = bool(init_scores.get("fabrication_risk"))
+    final_fab = bool(final_scores.get("fabrication_risk"))
+    data["text_quality"] = {
+        "initial": result["initial_score"], "final": result["final_score"],
+        "improvement": result["improvement"],
+        "fabrication_initial": init_fab, "fabrication_final": final_fab,
+        "fabrication_reason": final_scores.get("fabrication_reason") or init_scores.get("fabrication_reason") or "",
+    }
+    # Elfogadjuk az átírt verziót, ha jobb pontszám VAGY ha eltüntette a fabrikációt.
+    fixed_fabrication = init_fab and not final_fab
+    if result["final_score"] > result["initial_score"] or fixed_fabrication:
         li["content"] = result["final_post"]
         data["linkedin"] = li
-        logger.info("[auto-improve] %s %.1f → %.1f", stem, result["initial_score"], result["final_score"])
+        logger.info("[auto-improve] %s %.1f → %.1f (fab %s→%s)", stem,
+                    result["initial_score"], result["final_score"], init_fab, final_fab)
+    if final_fab:
+        logger.warning("[auto-improve] %s: fabrikáció-kockázat MEGMARADT az átírás után — %s",
+                       stem, final_scores.get("fabrication_reason", ""))
 
 
 async def generate_hook_variants(post_text: str) -> dict[str, Any] | None:

@@ -151,10 +151,30 @@ SYSTEM_PROMPT = (
     "overall_score is holistic (NOT the average of sub-scores). If overall < 7, rewrite_suggestion "
     "must be a COMPLETE, ready English post (same voice, strong hook). If >= 7, rewrite_suggestion "
     "is an empty string.\n\n"
+    "FABRICATION CHECK (hard, BINARY — set fabrication_risk true or false):\n"
+    "A specific factual claim is legitimate ONLY if it is SOURCED. Valid sources: (1) a vetted case "
+    "study (CONTENT TYPE == 'case_study'), (2) a manual_instruction the author wrote themselves "
+    "(HAS_MANUAL_SOURCE == true), (3) real third-party facts about the subject of the news/feed_item "
+    "(CONTENT TYPE == 'ai_news'). Set fabrication_risk = TRUE when the post makes an UNSOURCED, "
+    "specific, FIRST-PERSON factual claim: an invented client story (\"we had a client who…\", \"one "
+    "of our customers…\", \"at our client…\"), a named person/company presented as a real client, a "
+    "dollar figure / headcount / timeframe tied to \"we / our client\" as a real result, or a fake "
+    "specific date (\"last Tuesday\", \"three weeks ago\") on an invented event. Rules by content type:\n"
+    "  • case_study → specific anonymized client claims are EXPECTED → fabrication_risk = false "
+    "(only true if it invents a NAMED real person/company beyond the anonymized seed).\n"
+    "  • ai_news → third-party facts about the news subject are fine; a first-person \"our client…\" "
+    "result NOT backed by HAS_MANUAL_SOURCE → fabrication_risk = true.\n"
+    "  • educational / consultant_builder / workshop_promo → ANY specific first-person client "
+    "anecdote → fabrication_risk = true UNLESS HAS_MANUAL_SOURCE == true.\n"
+    "NOT fabrication: general honest patterns (\"what we often see on small teams…\"), clearly-"
+    "hypothetical framing (\"imagine a 30-person firm…\"), and conceptual explanation. When "
+    "fabrication_risk is true, fabrication_reason must QUOTE the exact fabricated span and say why; "
+    "when false, fabrication_reason is an empty string.\n\n"
     'Reply ONLY with this JSON: {"hook_strength":int,"human_feel":int,"english_quality":int,'
     '"english_native_quality":int,"concrete_value":int,"voice_consistency":int,'
     '"engagement_potential":int,"anti_patterns":[...],'
-    '"overall_score":float,"rewrite_suggestion":"...","feedback":"..."}'
+    '"overall_score":float,"fabrication_risk":true|false,"fabrication_reason":"...",'
+    '"rewrite_suggestion":"...","feedback":"..."}'
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -229,11 +249,18 @@ def _local_flags(text: str) -> list[str]:
 class TextEvaluator:
     """Scores ENGLISH LinkedIn posts against 2026 engagement criteria (Sonnet). Phase 14."""
 
-    async def evaluate_post(self, post_content: str, voice: str, content_type: str) -> dict[str, Any]:
-        """Egy poszt értékelése. Hiba esetén overall_score=0 + a hiba a feedbackben."""
+    async def evaluate_post(
+        self, post_content: str, voice: str, content_type: str, *, has_manual_source: bool = False
+    ) -> dict[str, Any]:
+        """Egy poszt értékelése. Hiba esetén overall_score=0 + a hiba a feedbackben.
+
+        has_manual_source: True, ha a poszt forrása egy /create manual_instruction volt (a szerző
+        maga írta le a konkrétumot) — ilyenkor a specifikus állítás sourced, nem fabrikáció.
+        """
         expectation = VOICE_EXPECTATION.get(voice, "")
         user = (
-            f"VOICE: {voice}\nVOICE EXPECTATION: {expectation}\nCONTENT TYPE: {content_type}\n\n"
+            f"VOICE: {voice}\nVOICE EXPECTATION: {expectation}\nCONTENT TYPE: {content_type}\n"
+            f"HAS_MANUAL_SOURCE: {str(bool(has_manual_source)).lower()}\n\n"
             f"POST:\n{post_content}\n\nScore the post. Return only the JSON."
         )
         try:
@@ -269,8 +296,13 @@ class TextEvaluator:
         except (TypeError, ValueError):
             overall = sum(scores.values()) / len(scores)
         overall = max(1.0, min(10.0, round(overall, 2)))
+        fabrication_risk = bool(data.get("fabrication_risk"))
+        fabrication_reason = str(data.get("fabrication_reason") or "").strip()
+        if fabrication_risk and not fabrication_reason:
+            fabrication_reason = "unsourced first-person specific claim (model flagged, no span given)"
         return {
             **scores, "anti_patterns": flags, "overall_score": overall,
+            "fabrication_risk": fabrication_risk, "fabrication_reason": fabrication_reason,
             "rewrite_suggestion": str(data.get("rewrite_suggestion") or "").strip(),
             "feedback": str(data.get("feedback") or "").strip(),
         }
@@ -279,7 +311,8 @@ class TextEvaluator:
     def _error(reason: str) -> dict[str, Any]:
         return {
             **{k: 0 for k in SCORE_KEYS}, "anti_patterns": ["eval_error"],
-            "overall_score": 0.0, "rewrite_suggestion": "", "feedback": reason, "error": True,
+            "overall_score": 0.0, "fabrication_risk": False, "fabrication_reason": "",
+            "rewrite_suggestion": "", "feedback": reason, "error": True,
         }
 
 
