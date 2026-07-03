@@ -133,23 +133,23 @@ Thank you for the trust. We keep going.
 
 ## Example posts (for reference)
 
-### Example 1 — Case study (Wednesday)
+### Example 1 — Case study (Wednesday) — illustrative structure only
 ```
-We rebuilt the competitor-tracking system of a 25-person marketing agency.
+(Structure example only. For a real post the client, numbers, and result MUST come from
+case_studies.yml — never invented. The brackets show the shape to fill from the seed data.)
+
+We rebuilt the [process] of a [size]-person [industry] client.
 
 The situation:
-The old process took 12 hours a week: a junior manually collected the ads, website
-changes, and press mentions of 8 competitors. Most of that time was admin and copy-paste.
+The old process took [before metric]: [1-2 sentences on the manual pain, from the seed data].
 
 What we built:
-An AI-driven monitoring system that scans competitors' online presence daily,
-categorizes the changes, and sends a structured report on the most relevant moves
-every morning by 7.
+[2-3 sentences, high level — what the system does, not technical detail].
 
 The result:
-• 12 hours/week → 20 minutes/week (a 97% cut)
-• They now monitor 15 competitors instead of 8
-• The junior has moved on to strategic work
+• [before → after metric, from case_studies.yml]
+• [second concrete result from the seed]
+• [third concrete result from the seed]
 
 Recognize a process like this at your company? Share it in the comments — we're curious.
 
@@ -259,11 +259,12 @@ If there's no `content_type`, work in your usual voice. The 3 voices never mix.
 
 **Hook type by content_type** (Phase 14 eval-driven — for PlanSmart, NARRATIVE won case studies and
 PAIN won educational; a bare DATA/stat open underperformed):
-- case_study → NARRATIVE: open inside a concrete anonymized moment ("On a Friday evening last autumn,
-  a new lead filled out the contact form of a movement-therapy studio. By Monday they'd booked
-  somewhere else."), then the before/after numbers
-- educational → PAIN / CONTRARIAN framing off a real pattern ("Seven clients came to us in Q1 wanting
-  to automate invoicing. Six were solving the wrong problem."), then the framework
+- case_study → NARRATIVE: open inside the concrete anonymized moment FROM THE case_studies.yml SEED
+  (e.g. a new lead who booked elsewhere before the client could respond — only if it's in the seed),
+  then the before/after numbers from that seed
+- educational → PAIN / CONTRARIAN framing off a genuine general pattern (e.g. "Most teams that set out
+  to automate invoicing are solving the wrong problem first" — no invented client count or quarter),
+  then the framework
 - "we" form always, anonymized client, never personal opinion or builder detail.
 
 **Required in every post:** concreteness — but NEVER fabricated (see the Fabrication ban). The

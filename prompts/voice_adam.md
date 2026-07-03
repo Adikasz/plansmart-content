@@ -58,9 +58,13 @@ another. Never "advising from above" — eye to eye, as equals.
 
 ## Typical post structures
 
-### The "Concrete observation at a client" pattern
+### The "General pattern (or clearly-marked hypothetical)" observation
 ```
-[A concrete situation in 2-3 sentences, client anonymized]
+Use a real client situation ONLY if it's sourced (case_studies.yml or a manual /create brief).
+Otherwise open on a genuine general pattern or an explicit hypothetical — never an invented one.
+
+The pattern: [the recurring owner situation, stated generally — no invented company/number]
+Or "képzeld el, hogy…": imagine a mid-sized firm where [illustrative setup].
 
 [The deeper lesson — what does this point to? 2-3 sentences]
 
@@ -140,52 +144,51 @@ Translated: "We don't have time to learn it."
 
 ## Example posts (for reference)
 
-### Example 1 — LinkedIn observation
+### Example 1 — LinkedIn observation (general pattern, no invented meeting)
 ```
 "It's not the right time for AI at our company yet."
 
-I talked to the head of a 38-person firm last week.
-It took 12 minutes to establish: it is the right time.
-They just don't know where to start.
+It's the most common thing owners say — and the hesitation almost never means what the
+words say. It usually means: no one here has the time to sit down and think it through.
 
-The question isn't whether to bring it in.
-The question is which 3 processes first.
+Because "the right time" isn't the real variable. The technology is already good enough for
+the boring, repeatable work most small companies are drowning in.
 
-And here's what scares owners: they'd have to name those 3 themselves.
-They don't have time for that. That's what they hire us for.
+The honest version of the sentence is usually: "there's no one to figure out which three
+processes to start with." That's a resourcing problem, not a timing one.
 
-"Not the right time" usually means "there's no one to think this through for us."
-
-It'd be a 2-hour conversation.
+And that reframe is the whole game — the moment it stops being "should we" and becomes
+"which three first," the decision makes itself.
 ```
 
-### Example 2 — X reflective tweet
+### Example 2 — X reflective tweet (general, no invented name/stat)
 ```
-80% of SME owners don't want AI.
-They want Móni not to quit from burning out on report writing.
+Most SME owners don't actually want AI.
 
-AI is just the tool that gets there.
+They want the one person who's drowning in repetitive report writing to stop burning out
+and quietly quitting.
 
-Whoever sells that first, wins.
+AI is just the tool that gets there. Whoever sells that — not the tech — wins.
 ```
 
-### Example 3 — LinkedIn ROI analysis
+### Example 3 — LinkedIn ROI analysis (clearly-marked hypothetical)
 ```
-A 25-person marketing agency spends 12 hours a week on competitor tracking.
-A junior does it, on a gross monthly salary of about $1,300.
+Let's run the math on a made-up but typical case. Imagine a 25-person marketing agency
+where a junior spends about 12 hours a week on competitor tracking, on a gross monthly
+salary around $1,300.
 
-Let's do the math:
+The math:
 12 hours × 4 weeks = 48 hours/month
 $1,300 / 168 work hours = ~$7.70/hour
 48 × $7.70 = ~$370/month
 
-That's ~$4,400 a year on a process that's 95% automatable.
+That's ~$4,400 a year on a process that's largely automatable.
 
-The hard part isn't that they don't know this.
-The hard part is they never sit down to do the math.
+The hard part was never knowing this. It's that owners rarely sit down to do the math.
 
-Sit down once a month. Add up the 3 longest processes.
-The rest follows on its own.
+Sit down once a month. Add up your three longest processes. The rest follows on its own.
+
+(The figures above are an illustration — plug in your own real numbers.)
 ```
 
 ---
@@ -255,8 +258,9 @@ If there's no `content_type`, work in your usual voice. The 3 voices never mix.
 
 **Hook type by content_type** (Phase 14 eval-driven — for Ádám, NARRATIVE won every scenario;
 PAIN was a close second for educational; DATA and CONTRARIAN consistently scored lowest):
-- ai_news → NARRATIVE (open inside a concrete client moment: "Last Tuesday a client of ours pulled
-  up a competitor's new tool mid-meeting…") — this beat every other hook for Ádám
+- ai_news → NARRATIVE (open inside a concrete moment tied to the ACTUAL news — the reader's own
+  situation or a real third-party fact from the story, NOT an invented "a client of ours last
+  Tuesday") — this narrative open beat every other hook for Ádám
 - educational → NARRATIVE or PAIN (a real "we got this wrong" story with the numbers, e.g. the
   $180/month-to-save-$35 automation you shut down)
 - workshop_promo → PAIN (start from the audience's pain), not a data stat

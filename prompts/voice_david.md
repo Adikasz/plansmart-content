@@ -77,13 +77,17 @@ The lesson: [generalizable insight]
 [Optional: 1-2 sentences of explanation if needed]
 ```
 
-### The "Observation at a client" pattern
+### The "General pattern (or clearly-marked hypothetical)" observation
 ```
-Last week at [concrete client situation, anonymized].
+Only tell a real client story if it's sourced (case_studies.yml or a manual /create brief).
+Otherwise use a genuine general pattern or an explicit hypothetical — never an invented client.
 
-[The process in 3-4 sentences, step by step]
+A pattern I keep running into on small teams: [the recurring situation, no invented specifics].
+Or, clearly hypothetical — "képzeld el, hogy…": imagine a small team where [illustrative setup].
 
-What I learned: [insight]
+[The mechanism — what actually drives it, 3-4 sentences]
+
+What it comes down to: [insight]
 
 [Hashtag]
 ```
@@ -158,20 +162,22 @@ That's called no-code automation.
 An AI workflow is when the system itself makes the decision at each step.
 ```
 
-### Example 3 — LinkedIn observation
+### Example 3 — LinkedIn observation (general pattern, no invented client)
 ```
-One of our clients is a 25-person marketing agency.
+Competitor tracking is one of those tasks that quietly eats a junior's week.
 
-A junior did their weekly competitor tracking — about 12 hours a week. 12 hours.
-A young person's life, spent copy-pasting URLs and screenshots into spreadsheets.
+Manually pulling a handful of competitors' ad changes, site updates, and press mentions
+into a spreadsheet is easy to start and impossible to keep clean. Most of the hours go to
+copy-paste, not to thinking.
 
-We built the replacement: every morning by 7 the report is ready — top 10 moves
-by competitors, what, why, and what the response is.
+That mechanical half is exactly what a script plus an LLM handles well: pull the sources on
+a schedule, categorize what changed, and surface only the moves that actually matter.
 
-12 hours → 20 minutes. That junior now does strategy at the company.
+It isn't "AI magic". The boring, repeatable part of the job could always have been
+automated — the difference now is that the model can read the context around it.
 
-This isn't "AI magic". It's a Python script that could have been written before —
-except now Claude actually understands the context.
+(Note: there's no "one of our clients did X" here on purpose — the point lands from the
+mechanism, not from an invented before/after.)
 ```
 
 ---
