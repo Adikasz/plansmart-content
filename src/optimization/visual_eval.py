@@ -34,8 +34,8 @@ FETCH_TIMEOUT_S = 30.0
 VOICE_EXPECTATION = {
     "david": "Dávid — technikai builder: terminal/kód/rendszerdiagram hangulat, hűvös teal/kék "
              "accent, monospace részletek. Fejlesztői hitelesség.",
-    "adam": "Ádám — üzleti stratéga: financial-dashboard minimalizmus, meleg arany vagy lágy zöld "
-            "metrika-accent, before/after keretezés. Tulaj-tulajnak hangulat.",
+    "adam": "Ádám — üzleti stratéga: financial-dashboard minimalizmus, HŰVÖS acél / lágy kék "
+            "metrika-accent (NEM meleg arany — Phase 17), before/after keretezés. Tulaj-tulajnak hangulat.",
     "plansmart": "PlanSmart — hivatalos brand: prémium SaaS, letisztult semleges accentek, látható de "
                  "nem domináns PlanSmart wordmark, megbízható és hivatalos.",
 }
@@ -49,8 +49,9 @@ SYSTEM_PROMPT = (
     "PlanSmart brand DNA the image SHOULD meet:\n"
     "• Dark near-black #04060a background\n"
     "• Bold display typography (Bebas Neue / Neue Machina character)\n"
-    "• Hungarian overlay text that is readable AND grammatically correct (watch for garbled/"
-    "hallucinated letters, wrong accents, nonsense words — common in AI image text)\n"
+    "• ENGLISH overlay text that is readable AND grammatically correct (Phase 14: the posts are in "
+    "English; the text is composited by PIL so it is letter-perfect — watch only for genuinely "
+    "awkward/incomplete phrasing, not for it being English)\n"
     "• Exactly ONE clear focal element (a number, stat, or short statement) — not cluttered\n"
     "• Cinematic / 'Soul Cinema' aesthetic: lighting, slight film grain, high contrast\n"
     "• A subtle (visible but not dominant) PlanSmart watermark\n\n"
@@ -58,10 +59,11 @@ SYSTEM_PROMPT = (
     "• stock-photo feel (handshakes, generic offices, smiling people)\n"
     "• generic AI-art look (melted shapes, nonsense UI, over-rendered)\n"
     "• multiple competing elements / clutter\n"
-    "• garbled or non-Hungarian text\n\n"
+    "• garbled or nonsensical text (do NOT penalize correct English text for being English)\n\n"
     "Scoring keys (all integers 1-10):\n"
     "  brand_alignment_score   — dark bg + display type + watermark + overall fit\n"
-    "  hungarian_text_quality  — is the Hungarian text correct, readable, well-set?\n"
+    # A kulcs neve történelmi (hungarian_text_quality), de Phase 14 óta az ANGOL szöveget pontozza.
+    "  hungarian_text_quality  — is the ENGLISH overlay text correct, readable, well-set, complete?\n"
     "  scroll_stopping_score   — would it stop the thumb in a LinkedIn feed?\n"
     "  professional_score      — does it look like a real, premium company made it?\n"
     "Then:\n"

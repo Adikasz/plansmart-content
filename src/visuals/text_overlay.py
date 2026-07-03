@@ -18,6 +18,8 @@ from pathlib import Path
 import httpx
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter, ImageFont
 
+from src.visuals import layout_templates as lt
+
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -51,8 +53,23 @@ LIGHT_GREY = (205, 213, 222, 255)
 GREY = (150, 165, 180, 255)
 TEAL = (45, 212, 191, 255)
 AMBER = (245, 179, 66, 255)
+COOL_STEEL = (150, 172, 198, 255)
+
+# Phase 17: voice-onkénti DEFAULT accent (ha nincs mood-accent megadva). david → teal
+# (a validált 8.5 baseline), adam → cool steel (a mood-rendszer defaultja, NEM a régi amber),
+# plansmart → light grey (a legvisszafogottabb).
+DEFAULT_ACCENT = {"david": TEAL, "adam": COOL_STEEL, "plansmart": LIGHT_GREY}
 
 DOWNLOAD_TIMEOUT_S = 30.0
+
+
+def _rgba(color) -> tuple[int, int, int, int] | None:
+    """(r,g,b) vagy (r,g,b,a) → RGBA 4-es. None → None."""
+    if color is None:
+        return None
+    if len(color) == 4:
+        return (int(color[0]), int(color[1]), int(color[2]), int(color[3]))
+    return (int(color[0]), int(color[1]), int(color[2]), 255)
 
 
 def _valid_ttf(path: Path) -> bool:
@@ -255,12 +272,19 @@ class TextOverlayComposer:
         voice: str = "david",
         output_path: str | None = None,
         portrait_path: str | None = None,
+        template: str = lt.STAT_CARD,
+        accent=None,
     ) -> str:
         """Letölti az alapképet, ráírja a magyar szöveget, menti, és visszaadja a lokális utat.
 
         portrait_path (Phase 13.5): ha meg van adva, az alapító kivágott (háttér nélküli)
         portréját a bal-alsó harmadba komponáljuk a szöveg ELŐTT; ilyenkor a fő szöveg a
         kép TETEJÉRE kerül, hogy ne ütközzön a portréval. A logó mindig jobb-alsó sarok.
+
+        template (Phase 17): STAT_CARD (baseline) | QUOTE_STYLE | SPLIT_COMPARISON |
+        MINIMAL_TYPOGRAPHIC — a kompozíciós struktúra. accent: a mood accent-színe (RGB);
+        None → voice default. Ha portré van, MINDIG a STAT_CARD (portré-tudatos) elrendezés fut,
+        hogy ne regresszáljunk a bevált portré-layoutról.
         """
         # BUG2 fix: ne rajzoljuk ki kétszer ugyanazt a számot. Ha a stat megegyezik a
         # main_text-tel (kis/nagybetűtől függetlenül), vagy a main_text már tartalmazza,
@@ -275,24 +299,44 @@ class TextOverlayComposer:
         w, h = img.size
         s = w / 1024.0  # méretskála (a pt értékek 1024px-re vannak hangolva)
 
-        layer_fn = {
-            "david": lambda: self._gradient(img.size, bottom=0.85),
-            "adam": lambda: self._gradient(img.size, top=0.7, bottom=0.8),
-            "plansmart": lambda: self._gradient(img.size, full=0.6),
-        }.get(voice, lambda: self._gradient(img.size, bottom=0.8))
-        img = Image.alpha_composite(img, layer_fn())
+        acc = _rgba(accent) or DEFAULT_ACCENT.get(voice, TEAL)
 
         # Portré a szöveg ELŐTT (bal-alsó), ha van — plansmart sosem kap portrét.
         has_portrait = bool(portrait_path) and voice in {"david", "adam"}
+        # Portré esetén a bevált STAT_CARD (portré-tudatos) elrendezésre esünk vissza.
+        layout = lt.STAT_CARD if has_portrait else (template if lt.is_template(template) else lt.STAT_CARD)
+
+        # Gradiens: STAT_CARD → a bevált per-voice; a többi template → saját, olvashatóság-barát wash.
+        if layout == lt.STAT_CARD:
+            layer_fn = {
+                "david": lambda: self._gradient(img.size, bottom=0.85),
+                "adam": lambda: self._gradient(img.size, top=0.7, bottom=0.8),
+                "plansmart": lambda: self._gradient(img.size, full=0.6),
+            }.get(voice, lambda: self._gradient(img.size, bottom=0.8))
+        elif layout == lt.QUOTE_STYLE:
+            layer_fn = lambda: self._gradient(img.size, full=0.5, bottom=0.35)
+        elif layout == lt.SPLIT_COMPARISON:
+            layer_fn = lambda: self._gradient(img.size, full=0.58)
+        else:  # MINIMAL_TYPOGRAPHIC
+            layer_fn = lambda: self._gradient(img.size, full=0.5)
+        img = Image.alpha_composite(img, layer_fn())
+
         if has_portrait:
             self._place_portrait(img, portrait_path, s)
 
-        if voice == "david":
-            self._layout_david(img, main_text, sub_text, stat, s, portrait=has_portrait)
-        elif voice == "adam":
-            self._layout_adam(img, main_text, sub_text, stat, s, portrait=has_portrait)
-        else:
-            self._layout_plansmart(img, main_text, sub_text, s)
+        if layout == lt.STAT_CARD:
+            if voice == "david":
+                self._layout_david(img, main_text, sub_text, stat, s, acc, portrait=has_portrait)
+            elif voice == "adam":
+                self._layout_adam(img, main_text, sub_text, stat, s, acc, portrait=has_portrait)
+            else:
+                self._layout_plansmart(img, main_text, sub_text, s, acc)
+        elif layout == lt.QUOTE_STYLE:
+            self._layout_quote(img, main_text, sub_text, stat, s, voice, acc)
+        elif layout == lt.SPLIT_COMPARISON:
+            self._layout_split(img, main_text, sub_text, stat, s, voice, acc)
+        else:  # MINIMAL_TYPOGRAPHIC
+            self._layout_minimal(img, main_text, sub_text, stat, s, voice, acc)
 
         self._paste_logo(img, s)  # valódi logó-jel minden képre, jobb-alsó sarok
 
@@ -341,7 +385,7 @@ class TextOverlayComposer:
         return y
 
     # ── Voice layoutok ─────────────────────────────────────────────────
-    def _layout_david(self, img, main_text, sub_text, stat, s, portrait=False):
+    def _layout_david(self, img, main_text, sub_text, stat, s, accent=TEAL, portrait=False):
         draw = ImageDraw.Draw(img)
         w, h = img.size
         margin = int(70 * s)
@@ -363,9 +407,9 @@ class TextOverlayComposer:
                 sfa, sfd = stat_font.getmetrics()
                 stat_lh = int((sfa + sfd) * 1.02)
                 self._shadow(img, [stat], stat_font, (margin, y), "la", stat_lh, blur=int(12 * s))
-                ImageDraw.Draw(img).text((margin, y), stat, font=stat_font, fill=TEAL, anchor="la")
+                ImageDraw.Draw(img).text((margin, y), stat, font=stat_font, fill=accent, anchor="la")
                 y += stat_lh + int(10 * s)
-            y = self._text_with_glow(img, main_lines, main_font, (margin, y), WHITE, "la", TEAL, int(14 * s), line_gap=1.04)
+            y = self._text_with_glow(img, main_lines, main_font, (margin, y), WHITE, "la", accent, int(14 * s), line_gap=1.04)
             if sub_lines:
                 self._shadow(img, sub_lines, sub_font, (margin, y), "la", sub_lh, blur=int(8 * s))
                 draw = ImageDraw.Draw(img)
@@ -375,7 +419,7 @@ class TextOverlayComposer:
             return
         # Portré NÉLKÜL: fő szöveg bal-alsó, a stat jobb-felső (külön zóna, nincs ütközés).
         y = h - margin - block_h
-        y = self._text_with_glow(img, main_lines, main_font, (margin, y), WHITE, "la", TEAL, int(14 * s), line_gap=1.04)
+        y = self._text_with_glow(img, main_lines, main_font, (margin, y), WHITE, "la", accent, int(14 * s), line_gap=1.04)
         if sub_lines:
             self._shadow(img, sub_lines, sub_font, (margin, y), "la", sub_lh, blur=int(8 * s))
             draw = ImageDraw.Draw(img)
@@ -385,9 +429,9 @@ class TextOverlayComposer:
         if stat:
             stat_font = self._fit_font("fragment", stat, int(160 * s), int(w * 0.45))
             self._shadow(img, [stat], stat_font, (w - margin, margin), "ra", int(160 * s), blur=int(12 * s))
-            ImageDraw.Draw(img).text((w - margin, margin), stat, font=stat_font, fill=TEAL, anchor="ra")
+            ImageDraw.Draw(img).text((w - margin, margin), stat, font=stat_font, fill=accent, anchor="ra")
 
-    def _layout_adam(self, img, main_text, sub_text, stat, s, portrait=False):
+    def _layout_adam(self, img, main_text, sub_text, stat, s, accent=COOL_STEEL, portrait=False):
         draw = ImageDraw.Draw(img)
         w, h = img.size
         margin = int(70 * s)
@@ -421,9 +465,9 @@ class TextOverlayComposer:
         if stat:
             stat_font = self._fit_font("fragment", stat, int(200 * s), int(w * 0.84))
             self._shadow(img, [stat], stat_font, (cx, margin), "ma", int(200 * s), blur=int(14 * s))
-            draw.text((cx, margin), stat, font=stat_font, fill=AMBER, anchor="ma")
+            draw.text((cx, margin), stat, font=stat_font, fill=accent, anchor="ma")
 
-    def _layout_plansmart(self, img, main_text, sub_text, s):
+    def _layout_plansmart(self, img, main_text, sub_text, s, accent=LIGHT_GREY):
         draw = ImageDraw.Draw(img)
         w, h = img.size
         margin = int(70 * s)
@@ -446,9 +490,153 @@ class TextOverlayComposer:
             y += int(24 * s)
             self._shadow(img, sub_lines, sub_font, (cx, y), "ma", sub_lh, blur=int(8 * s))
             for ln in sub_lines:
-                draw.text((cx, y), ln, font=sub_font, fill=LIGHT_GREY, anchor="ma")
+                draw.text((cx, y), ln, font=sub_font, fill=accent, anchor="ma")
                 y += sub_lh
         # A PlanSmart brandet a valódi logó-jel adja (jobb-alsó), a compose() teszi rá.
+
+    # ── Phase 17 template-elrendezések (STAT_CARD-on túl) ──────────────
+    def _layout_quote(self, img, main_text, sub_text, stat, s, voice, accent):
+        """QUOTE_STYLE — editorial pull-quote: nagy idézőjel-accent, bal-igazított aszimmetrikus
+        fő szöveg (pull-quote), az al-szöveg kicsi, attribúció-jellegű."""
+        w, h = img.size
+        margin = int(80 * s)
+        # Nagy stilizált idézőjel (accent), bal-felső — az Inter fedi a „ (U+201C) glyphet.
+        qfont = self._font("inter", int(300 * s), "ExtraBold")
+        self._shadow(img, ["“"], qfont, (margin - int(10 * s), int(10 * s)), "la", int(300 * s), blur=int(10 * s))
+        ImageDraw.Draw(img).text((margin - int(10 * s), int(10 * s)), "“", font=qfont, fill=accent, anchor="la")
+
+        quote_text = (main_text or "").strip().strip('"“”')
+        max_w = int(w * 0.82)
+        main_font, main_lines = self._fit_lines("bebas", quote_text.upper(), int(112 * s), max_w,
+                                                min_ratio=0.5, max_lines=4)
+        ma, md = main_font.getmetrics()
+        main_lh = int((ma + md) * 1.02)
+        block_h = len(main_lines) * main_lh
+        y = int(h * 0.32)
+        if y + block_h > h - int(170 * s):  # ne fusson bele az alsó attribúció-sávba
+            y = max(int(h * 0.20), h - int(170 * s) - block_h)
+        y = self._text_with_glow(img, main_lines, main_font, (margin, y), WHITE, "la", accent, int(12 * s), line_gap=1.02)
+        if sub_text:
+            sub_font = self._font("inter", int(30 * s), "SemiBold")
+            attr_lines = self._wrap(ImageDraw.Draw(img), f"— {sub_text.strip()}", sub_font, max_w)
+            sa, sd = sub_font.getmetrics()
+            sub_lh = int((sa + sd) * 1.2)
+            y += int(18 * s)
+            self._shadow(img, attr_lines, sub_font, (margin, y), "la", sub_lh, blur=int(6 * s))
+            draw = ImageDraw.Draw(img)
+            for ln in attr_lines:
+                draw.text((margin, y), ln, font=sub_font, fill=accent, anchor="la")
+                y += sub_lh
+
+    def _split_pair(self, main_text, stat) -> tuple[str, str]:
+        """(bal, jobb) szétbontás: elválasztó (→ / -> / vs) a stat-ban vagy main-ben; különben
+        a stat vs. main, végső esetben a main szavai félbe."""
+        for src in (stat, main_text):
+            if not src:
+                continue
+            for sep in ("→", "->", " VS ", " vs ", " versus "):
+                if sep in src:
+                    a, b = src.split(sep, 1)
+                    if a.strip() and b.strip():
+                        return a.strip(), b.strip()
+        if stat and main_text and stat.strip().lower() not in main_text.strip().lower():
+            return stat.strip(), main_text.strip()
+        words = (main_text or "").split()
+        if len(words) >= 2:
+            mid = len(words) // 2
+            return " ".join(words[:mid]), " ".join(words[mid:])
+        return (main_text or stat or "").strip(), ""
+
+    def _divider(self, img, cx, y0, y1, s, accent) -> None:
+        """Függőleges elválasztó vonal accent-színnel + lágy glow (SPLIT_COMPARISON)."""
+        layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
+        d = ImageDraw.Draw(layer)
+        lw = max(2, int(4 * s))
+        d.line([(cx, y0), (cx, y1)], fill=accent, width=lw)
+        img.alpha_composite(layer.filter(ImageFilter.GaussianBlur(int(6 * s))))  # glow
+        img.alpha_composite(layer)  # éles vonal felül
+
+    def _layout_split(self, img, main_text, sub_text, stat, s, voice, accent):
+        """SPLIT_COMPARISON — függőleges divider, bal/jobb (before → after / kontraszt) keret."""
+        w, h = img.size
+        margin = int(60 * s)
+        left, right = self._split_pair(main_text, stat)
+        cx = w // 2
+        self._divider(img, cx, int(h * 0.20), int(h * 0.80), s, accent)
+        half_w = int(w * 0.5 - margin * 1.4)
+
+        def draw_side(text, center_x):
+            if not text:
+                return
+            font, lines = self._fit_lines("inter", text.upper(), int(100 * s), half_w,
+                                          weight="ExtraBold", min_ratio=0.45, max_lines=3)
+            a, dsc = font.getmetrics()
+            lh = int((a + dsc) * 1.05)
+            bh = len(lines) * lh
+            yy = (h - bh) // 2 - int(h * 0.02)
+            self._shadow(img, lines, font, (center_x, yy), "ma", lh, blur=int(12 * s), alpha=175)
+            dd = ImageDraw.Draw(img)
+            for ln in lines:
+                dd.text((center_x, yy), ln, font=font, fill=WHITE, anchor="ma")
+                yy += lh
+
+        draw_side(left, w // 4)
+        draw_side(right, 3 * w // 4)
+        if sub_text:
+            sub_font = self._font("inter", int(30 * s))
+            sub_lines = self._wrap(ImageDraw.Draw(img), sub_text, sub_font, int(w * 0.86))
+            sa, sd = sub_font.getmetrics()
+            sub_lh = int((sa + sd) * 1.2)
+            yy = h - margin - len(sub_lines) * sub_lh
+            self._shadow(img, sub_lines, sub_font, (cx, yy), "ma", sub_lh, blur=int(6 * s))
+            dd = ImageDraw.Draw(img)
+            for ln in sub_lines:
+                dd.text((cx, yy), ln, font=sub_font, fill=LIGHT_GREY, anchor="ma")
+                yy += sub_lh
+
+    def _layout_minimal(self, img, main_text, sub_text, stat, s, voice, accent):
+        """MINIMAL_TYPOGRAPHIC — egyetlen óriási szó/rövid frázis középen, maximális negatív tér,
+        legnagyobb kontraszt (erős accent-glow). Alig-alig más szöveg."""
+        w, h = img.size
+        margin = int(50 * s)
+        # Egy RÖVID, de TELJES egység: rövid stat (pl. "73%", "16 MIN"), különben a teljes
+        # headline (a main_text már 3-5 szavas display-szöveg). NEM vágunk 2 szóra (az csonka
+        # frázist adott: "CHECKPOINT LONG"). Csak nagyon hosszúnál (>5 szó) az első 3 szó.
+        stat_s = (stat or "").strip()
+        main_s = (main_text or "").strip()
+        if stat_s and len(stat_s) <= 12:
+            text = stat_s
+        else:
+            text = main_s or stat_s
+            words = text.split()
+            if len(words) > 5:
+                text = " ".join(words[:3])
+        # Méret: illeszkedjen SZÉLESSÉGRE ÉS MAGASSÁGRA is (a hosszabb frázis kisebb lesz, de
+        # teljesen látszik — nem lóg ki fent/lent). Marad a nagy negatív tér.
+        avail_h = int(h * 0.60)
+        size = int(280 * s)
+        while True:
+            main_font, main_lines = self._fit_lines("bebas", text.upper(), size, w - 2 * margin,
+                                                    min_ratio=0.98, max_lines=4)
+            ma, md = main_font.getmetrics()
+            main_lh = int((ma + md) * 0.98)
+            if not main_lines or len(main_lines) * main_lh <= avail_h or size <= int(80 * s):
+                break
+            size = int(size * 0.9)
+        block_h = len(main_lines) * main_lh
+        y = max(int(h * 0.14), (h - block_h) // 2)
+        cx = w // 2
+        self._text_with_glow(img, main_lines, main_font, (cx, y), WHITE, "ma", accent, int(22 * s), line_gap=0.98)
+        if sub_text:  # csak egy halvány sor legalul
+            sub_font = self._font("inter", int(26 * s), "SemiBold")
+            sub_lines = self._wrap(ImageDraw.Draw(img), sub_text, sub_font, int(w * 0.7))[:1]
+            sa, sd = sub_font.getmetrics()
+            sub_lh = int((sa + sd) * 1.2)
+            yy = h - margin - sub_lh
+            self._shadow(img, sub_lines, sub_font, (cx, yy), "ma", sub_lh, blur=int(5 * s))
+            dd = ImageDraw.Draw(img)
+            for ln in sub_lines:
+                dd.text((cx, yy), ln, font=sub_font, fill=GREY, anchor="ma")
 
     # ── Valódi logó-jel watermark (Phase 13.5) ─────────────────────────
     def _paste_logo(self, img, s) -> None:

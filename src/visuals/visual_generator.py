@@ -22,6 +22,7 @@ from anthropic import AsyncAnthropic
 from dotenv import load_dotenv
 
 from src.generators.base_generator import _repair_and_parse
+from src.visuals import layout_templates as lt
 from src.visuals import muapi_client
 
 logger = logging.getLogger(__name__)
@@ -238,9 +239,9 @@ TEXTFREE_COMMON = (
     "Photographic, not illustrated. Not digital art. Not concept art. Not 3D render. "
     "ABSOLUTELY NO text, NO letters, NO words, NO numbers, NO typography, NO UI elements, "
     "NO HUD, NO code overlays, NO screens, NO floating panels, NO holographic interfaces, "
-    "NO charts, NO logos, NO people. "
-    "Reserve negative space: keep the BOTTOM-LEFT 30% and TOP-RIGHT 20% simple and dark "
-    "(for text overlay added later)."
+    "NO charts, NO logos, NO people."
+    # Phase 17: a negatív-tér irányt a template adja (build_textfree_prompt fűzi hozzá),
+    # mert template-enként más (pl. QUOTE bal-oldalt, SPLIT középen divider, MINIMAL üres közép).
 )
 
 # Voice-specifikus EGY-objektumos jelenet (a régi absztrakt 'dashboard/terminal' helyett).
@@ -270,16 +271,24 @@ VOICE_SCENE = {
 }
 
 
-def build_textfree_prompt(post: dict[str, Any], visual_text: dict[str, Any] | None = None) -> str:
-    """Szöveg-NÉLKÜLI Muapi prompt (Phase 12.6): fotó-technikai irány + EGY objektum.
+def build_textfree_prompt(
+    post: dict[str, Any],
+    visual_text: dict[str, Any] | None = None,
+    template: str | None = None,
+    mood_bg: str | None = None,
+) -> str:
+    """Szöveg-NÉLKÜLI Muapi prompt (Phase 12.6 + 17): fotó-technikai irány + EGY objektum,
+    a template-hez illő negatív-tér-kompozícióval és a mood szín-irányával.
 
     A magyar szöveget NEM a Flux rendereli (halandzsa lenne) — azt PIL teszi rá utólag.
-    A konkrét film/megvilágítás/DOF irány + a screen/UI/kód teljes tiltása a "generic AI-art" /
-    "pseudo-code panel" panaszokat célozza.
+    A template (STAT_CARD/QUOTE/SPLIT/MINIMAL) a háttér negatív-terét szabja (hova kerül a
+    szöveg), a mood a fény/szín-irányt — így a feed vizuálisan változatos, de brand-hű marad.
     """
     voice = post.get("voice", "")
     scene = VOICE_SCENE.get(voice, "Pure abstract dark gradient with film grain, no objects. ONE focal element.")
-    return f"{scene}\n{TEXTFREE_COMMON}"
+    template_bg = lt.template_bg(template) if template and lt.is_template(template) else lt.template_bg(lt.STAT_CARD)
+    mood_line = f"\nColor / light direction: {mood_bg}." if mood_bg else ""
+    return f"{scene}\n{TEXTFREE_COMMON}\n{template_bg}{mood_line}"
 
 
 @lru_cache(maxsize=1)
@@ -304,15 +313,26 @@ async def compose_visual(post: dict[str, Any]) -> dict[str, Any]:
     model = post.get("visual_model") or muapi_client.DEFAULT_MODEL
     aspect_ratio = post.get("aspect_ratio") or "1:1"
 
+    # Phase 17: template + mood kiválasztás. Explicit post override (teszt), különben rotáció
+    # (no-immediate-repeat, Supabase state — visual_variety.next_variant).
+    if post.get("template") and post.get("mood"):
+        template, mood = post["template"], post["mood"]
+        accent = post.get("accent") or lt.accent_for(voice, mood)
+    else:
+        from src.visuals import visual_variety
+
+        variant = visual_variety.next_variant(voice)
+        template, mood, accent = variant["template"], variant["mood"], variant["accent"]
+
     visual_text = await extract_visual_text(_post_text(post))
-    prompt = build_textfree_prompt(post, visual_text)
+    prompt = build_textfree_prompt(post, visual_text, template=template, mood_bg=lt.mood_bg(voice, mood))
     result = await muapi_client.generate(prompt, model=model, aspect_ratio=aspect_ratio)
     base_url = result.image_url
 
     portrait_path = _resolve_portrait(post, voice)
     logger.info(
-        "[%s] szöveg-mentes alapkép kész | overlay: '%s' | portré: %s",
-        voice, visual_text.get("main_text", ""), "igen" if portrait_path else "nem",
+        "[%s] szöveg-mentes alapkép kész | template=%s mood=%s | overlay: '%s' | portré: %s",
+        voice, template, mood, visual_text.get("main_text", ""), "igen" if portrait_path else "nem",
     )
 
     pid = post.get("id") or uuid.uuid4().hex[:12]
@@ -321,6 +341,7 @@ async def compose_visual(post: dict[str, Any]) -> dict[str, Any]:
     composed_path = await asyncio.to_thread(
         composer.compose, base_url, visual_text.get("main_text", ""),
         visual_text.get("sub_text"), visual_text.get("stat"), voice, out_path, portrait_path,
+        template, accent,
     )
     final_url = await asyncio.to_thread(upload_visual, composed_path, f"visual_{pid}.png")
 
@@ -333,6 +354,8 @@ async def compose_visual(post: dict[str, Any]) -> dict[str, Any]:
         "local_path": composed_path,
         "visual_prompt": prompt,
         "visual_text": visual_text,
+        "template": template,
+        "mood": mood,
         "portrait_used": bool(portrait_path),
         "model_used": result.model,
         "cost_usd": result.cost_usd,
