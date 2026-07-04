@@ -30,6 +30,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from dotenv import load_dotenv
 
+from src.bots import prospect_review
 from src.bots import telegram_bot as tb
 from src.workers import health
 from src.workers.breaking_news_worker import run_breaking_check
@@ -164,6 +165,11 @@ async def _amain() -> None:
     logger.info("Orchestrator elindult — SIGINT/SIGTERM a leállításhoz.\n")
 
     dp = Dispatcher()
+    # A prospect router ELŐBB fut, mint a posts router: a posts botnak van egy privát-chat
+    # catch-all handlere (dm_edit_reply), ami különben elnyelné a /prospects, /mark_sent stb.
+    # parancsokat DM-ben. A prospect routernek nincs catch-all-ja, így a nem-prospect DM-ek
+    # rendben átesnek rajta a posts routerhez.
+    dp.include_router(prospect_review.router)
     dp.include_router(tb.router)
 
     stop = asyncio.Event()
