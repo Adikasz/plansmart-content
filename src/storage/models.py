@@ -6,27 +6,20 @@
 """
 from __future__ import annotations
 
-import hashlib
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from typing import Any
 
 from pydantic import BaseModel, Field
+
+# make_id / _utcnow_iso a src.utils.ids-ben lakik; itt re-exportáljuk, hogy a történeti
+# `from src.storage.models import make_id` importok (collectors) érintetlenül maradjanak.
+from src.utils.ids import _utcnow_iso, make_id  # noqa: F401
 
 # Statusz cimkek
 OK = "OK"
 FIXED = "FIXED"
 STILL_FAILING = "STILL_FAILING"
 DISABLED = "DISABLED"
-
-
-def make_id(url: str) -> str:
-    """URL -> determinisztikus rovid hash (sha256 elso 16 karakter)."""
-    return hashlib.sha256(url.encode("utf-8")).hexdigest()[:16]
-
-
-def _utcnow_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
 
 
 class FeedItem(BaseModel):

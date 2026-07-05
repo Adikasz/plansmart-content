@@ -10,11 +10,10 @@ A content_type-ok: educational | workshop_promo | case_study | ai_news.
 from __future__ import annotations
 
 import logging
-from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-import yaml
+from src.config import loaders
 
 logger = logging.getLogger(__name__)
 
@@ -31,18 +30,14 @@ TYPE_LABEL = {
 }
 
 
-@lru_cache(maxsize=1)
 def load_strategy() -> dict[str, Any]:
-    return yaml.safe_load(CONFIG.read_text(encoding="utf-8")) or {}
+    """content_strategy.yml betöltése (a közös, cache-elt config.loaders-en át)."""
+    return loaders.load_content_strategy()
 
 
-@lru_cache(maxsize=8)
 def _load_yaml(path: str, key: str) -> list[dict]:
-    p = Path(path)
-    if not p.is_absolute():
-        p = PROJECT_ROOT / p
-    data = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
-    return data.get(key, [])
+    """Egy prompts/config YAML adott kulcsú listája (a közös, cache-elt betöltőn át)."""
+    return loaders.load_yaml(path).get(key, [])
 
 
 def target_distribution(account: str) -> dict[str, float]:

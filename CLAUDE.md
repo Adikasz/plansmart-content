@@ -158,6 +158,29 @@ python scripts/test_full_pipeline.py --dry-run
 python scripts/test_voice.py --feed-id <id>
 ```
 
+## Config, utils és tesztek (production hardening)
+
+Moduláris config- és segéd-réteg + valódi offline teszt-suite:
+
+- **`src/config/`** — tipizált konfiguráció:
+  - `settings.py` — `Settings` (Pydantic) az összes env változóhoz, `get_settings()` cache-elve.
+    Új kód INNEN olvasson env-et (a régi `os.environ.get` fokozatosan migrálható). A titkok
+    Optional-ök: az import sosem bukik hiányzó kulcson (a lazy `@lru_cache` kliensekhez illeszkedve).
+  - `loaders.py` — cache-elt YAML betöltők (`load_yaml`, `load_scoring`, `load_content_strategy`, …);
+    a szétszórt `yaml.safe_load` EGY helyen (a `keyword_filter` és `content_strategy` már ezt hívja).
+- **`src/utils/`** — kereszt-metsző segédek, projekt-belső (src.*) függőség NÉLKÜL:
+  - `ids.py` (`make_id`, `utcnow_iso`), `json_repair.py` (LLM-JSON repair állapotgép), `logging.py` (`setup_logging`).
+  - A történeti helyeken (`storage.models`, `generators.base_generator`) **re-export marad** — a régi
+    `from src.storage.models import make_id` / `from src.generators.base_generator import _repair_and_parse`
+    importok érintetlenek. Ne a régi helyre írj új logikát — a kanonikus otthon a `utils/`.
+- **`schemas.py` a domainekben** — a külső határok Pydantic validációja:
+  `generators/schemas.py` (`GeneratedPost` — az LLM kimenet, a legkockázatosabb határ),
+  `filters/schemas.py` (`RelevanceScore` 0–10), `publishers/schemas.py`, `visuals/schemas.py`.
+- **`tests/`** — valódi **zero-network** pytest suite (`.venv/Scripts/python -m pytest`): SEMMILYEN
+  hálózat / Supabase / Anthropic / Muapi / Telegram. A `conftest.py` adja a fixtúrákat (FeedItem gyár,
+  fake Anthropic üzenet, fluent fake Supabase, dummy env). ⚠️ A `scripts/test_*.py` továbbra is
+  **manuális, ÉLES smoke script** (valódi API-t + pénzt hív) — az NEM CI-teszt.
+
 ## Deployment
 
 Railway-en **egy monolit service** fut (`plansmart-content`), amit a

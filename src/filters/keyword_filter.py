@@ -8,12 +8,10 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-import yaml
-
+from src.config import loaders
 from src.storage.models import FeedItem
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -31,11 +29,9 @@ class KeywordResult:
     boost: int = 0
 
 
-@lru_cache(maxsize=1)
 def load_scoring_config(path: Path = SCORING_FILE) -> dict[str, Any]:
-    """scoring.yml betoltese (cache-elve)."""
-    with path.open(encoding="utf-8") as fh:
-        return yaml.safe_load(fh) or {}
+    """scoring.yml betoltese (a közös, cache-elt config.loaders.load_yaml-en át)."""
+    return loaders.load_yaml(path)
 
 
 def _matches(text: str, keyword: str) -> bool:

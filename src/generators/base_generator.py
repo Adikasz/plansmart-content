@@ -9,7 +9,6 @@ from __future__ import annotations
 import json
 import logging
 import os
-import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -17,7 +16,17 @@ from typing import Any
 from anthropic import AsyncAnthropic
 from dotenv import load_dotenv
 
+from src.generators.schemas import validate_generated
 from src.storage.models import FeedItem
+
+# A JSON parse/repair a src.utils.json_repair-ben lakik; itt re-exportáljuk, hogy a történeti
+# `from src.generators.base_generator import _repair_and_parse` importok (optimization, outreach,
+# visuals — 5 modul) érintetlenül maradjanak.
+from src.utils.json_repair import (  # noqa: F401
+    _escape_inner_quotes,
+    _repair_and_parse,
+    _strip_fences,
+)
 
 logger = logging.getLogger(__name__)
 load_dotenv(override=False)
@@ -28,8 +37,6 @@ MODEL = "claude-sonnet-4-6"  # ADR-008: voice generálás minőségi modellje
 MAX_TOKENS = 2000  # 1500 -> 2000: a hosszabb (pl. educational) tartalom ne vágódjon el JSON közben
 HOOK_MAX_TOKENS = 700  # a 3 hook-variáns + scoring kompakt válasza
 SUMMARY_CHAR_CAP = 2000
-
-_TRAILING_COMMA_RE = re.compile(r",(\s*[}\]])")
 
 # 3-2-1 hook framework — 3 variáns (különböző A-E típus), majd Claude pontoz és kiválaszt 1-et.
 HOOK_TYPES_REF = (
@@ -61,93 +68,6 @@ def _load_prompt(voice_prompt_path: str) -> str:
 @lru_cache(maxsize=1)
 def _client() -> AsyncAnthropic:
     return AsyncAnthropic()  # az ANTHROPIC_API_KEY-t a környezetből olvassa
-
-
-def _strip_fences(text: str) -> str:
-    """Markdown ```json ... ``` fence eltávolítása."""
-    t = (text or "").strip()
-    if t.startswith("```"):
-        t = t.strip("`")
-        if t.lower().startswith("json"):
-            t = t[4:]
-        t = t.strip()
-    return t
-
-
-def _escape_inner_quotes(s: str) -> str:
-    """A string-értékeken belüli, nem-escape-elt ASCII idézőjelek escape-elése.
-
-    A modell néha emfázisra straight " jelet tesz a tartalomba (pl. „átmásolja"),
-    ami idő előtt lezárja a JSON stringet -> "Expecting ',' delimiter". Egy kis
-    állapotgéppel megkülönböztetjük a szerkezeti idézőjelet a tartalmitól: ha egy
-    string belsejében lévő " után (whitespace-t átugorva) NEM szerkezeti karakter
-    (, : } ]) jön, akkor az tartalmi -> escape-eljük.
-    """
-    out: list[str] = []
-    i, n, in_str = 0, len(s), False
-    while i < n:
-        c = s[i]
-        if not in_str:
-            out.append(c)
-            if c == '"':
-                in_str = True
-        elif c == "\\":  # meglévő escape-pár érintetlenül
-            out.append(c)
-            if i + 1 < n:
-                out.append(s[i + 1])
-                i += 2
-                continue
-        elif c == '"':
-            j = i + 1
-            while j < n and s[j] in " \t\r\n":
-                j += 1
-            nxt = s[j] if j < n else ""
-            if nxt in ",:}]" or nxt == "":
-                out.append(c)        # szerkezeti zárás
-                in_str = False
-            else:
-                out.append('\\"')    # tartalmi idézőjel -> escape
-        else:
-            out.append(c)
-        i += 1
-    return "".join(out)
-
-
-def _repair_and_parse(text: str) -> dict[str, Any] | None:
-    """Robusztus JSON parse repair lépésekkel. Sikertelenség esetén None.
-
-    Lépések minden jelöltön (teljes szöveg, majd az első {..} utolsó } blokk):
-      a) json.loads (strict)
-      b) json.loads(strict=False) — megengedi a string-en belüli kontrollkaraktert (pl. \\n)
-      c) trailing-comma javítás után újra (strict=False)
-      d) string-en belüli nem-escape-elt idézőjelek escape-elése után újra (strict=False)
-    """
-    t = _strip_fences(text)
-    if not t:
-        return None
-
-    candidates = [t]
-    start, end = t.find("{"), t.rfind("}")
-    if start != -1 and end > start:
-        block = t[start : end + 1]
-        if block != t:
-            candidates.append(block)
-
-    def _try(s: str) -> dict[str, Any] | None:
-        for strict in (True, False):
-            try:
-                parsed = json.loads(s, strict=strict)
-                return parsed if isinstance(parsed, dict) else None
-            except json.JSONDecodeError:
-                continue
-        return None
-
-    for cand in candidates:
-        for variant in (cand, _TRAILING_COMMA_RE.sub(r"\1", cand), _escape_inner_quotes(cand)):
-            parsed = _try(variant)
-            if parsed is not None:
-                return parsed
-    return None
 
 
 def _build_payload(feed_item: FeedItem | dict[str, Any]) -> str:
@@ -236,6 +156,12 @@ async def generate(
 
     if auto_improve:
         await _auto_improve(data, feed_item, stem)
+
+    # Best-effort séma-validáció a LLM-határon (log-only, visszafelé kompatibilis):
+    # a hívó továbbra is a nyers dict-tel dolgozik, de a séma-eltérés naplózhatóvá válik.
+    _, _schema_err = validate_generated(data)
+    if _schema_err:
+        logger.warning("[schema] %s: a generált poszt eltér a GeneratedPost sémától — %s", stem, _schema_err)
     return data
 
 

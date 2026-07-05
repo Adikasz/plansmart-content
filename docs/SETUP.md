@@ -102,8 +102,13 @@ python scripts/test_rss.py --source anthropic_blog
 # 3 voice generálás tesztje
 python scripts/test_voice.py --topic "Anthropic kihozott egy új modellt"
 
-# Teljes pipeline dry-run mód
-DRY_RUN=true python -m src.workers.pipeline_worker --once
+# Offline unit tesztek (zero-network, ~276 teszt — se hálózat, se API)
+python -m pytest
+
+# Az orchestrator lokálisan (ütemező + Telegram bot + health; Ctrl+C-ig fut)
+DRY_RUN=true python -m src.workers.main
+# Csak az ütemezés kiírása, majd kilép:
+python -m src.workers.main --print-schedule
 ```
 
 ## 9. lépés — Telegram bot tesztelés
@@ -134,16 +139,12 @@ railway variables set ANTHROPIC_API_KEY=sk-...
 railway up
 ```
 
-A `railway.toml` automatikusan beállítja a `web` service-t.
-
-**A 3 worker service-t a Railway dashboardon manuálisan kell hozzáadni:**
-
-1. Dashboard → Add Service → Empty service
-2. Mindegyikhez:
-   - **worker-collector**: Start command `python -m src.workers.collector_worker`
-   - **worker-pipeline**: Start command `python -m src.workers.pipeline_worker`
-   - **worker-publisher**: Start command `python -m src.workers.publisher_worker`
-3. Mindegyik service ugyanazt a repot deployolja, csak más command-dal indul
+A `railway.toml` **egyetlen monolit service**-t indít
+(`startCommand = python -m src.workers.main`): APScheduler cron jobok
+(collector / filter / breaking / morning) + Telegram approval bot + health
+szerver — mind egy process-ben, egy event loopban. **Nincs külön `web` /
+`worker-*` service** (a régi „4 service" felállás sosem épült meg). Push
+`main`-re → a Railway automatikusan újradeployolja ezt az egy service-t.
 
 ## 11. lépés — Élesítés
 
@@ -175,7 +176,7 @@ Basic tier 1500 write / hónap. Ellenőrizd a posts táblát hogy nem ír túl.
 
 | Tétel | Költség |
 |---|---|
-| Railway (1 web + 3 worker) | $5-15 |
+| Railway (1 monolit service) | $5-15 |
 | Supabase | $0 (free tier) |
 | Claude API | $10-25 |
 | Twitter API Basic | $100 |
