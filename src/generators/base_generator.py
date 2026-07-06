@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -16,6 +15,7 @@ from typing import Any
 from anthropic import AsyncAnthropic
 from dotenv import load_dotenv
 
+from src.config.settings import get_settings
 from src.generators.schemas import validate_generated
 from src.storage.models import FeedItem
 
@@ -96,9 +96,9 @@ def _build_payload(feed_item: FeedItem | dict[str, Any]) -> str:
     )
 
 
-AUTO_IMPROVE = os.environ.get("TEXT_AUTO_IMPROVE", "false").lower() == "true"
+AUTO_IMPROVE = get_settings().text_auto_improve
 # Phase 14: az angol-natív minőségnek kevesebb a mentsége mint a magyar adaptációnak → 9.0 gate.
-SHIP_THRESHOLD = float(os.environ.get("TEXT_SHIP_THRESHOLD", "9.0"))
+SHIP_THRESHOLD = get_settings().text_ship_threshold
 
 
 async def generate(

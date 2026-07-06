@@ -17,17 +17,17 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import os
-import sys
 from datetime import datetime, timedelta, timezone
 
 import pytz
 from dotenv import load_dotenv
 
 from src.bots import telegram_bot as tb
+from src.config.settings import get_settings
 from src.storage import feed_items as feed_store
 from src.storage import posts as posts_store
 from src.storage.db import get_client, has_service_key
+from src.utils.logging import setup_logging
 from src.workers.generator_worker import GENERATORS, _optimize_post
 
 logger = logging.getLogger(__name__)
@@ -42,9 +42,9 @@ BREAKING_MIN_SCORE = 8
 BREAKING_WINDOW_HOURS = 4
 BREAKING_HOOK_BIAS = ["C", "B"]  # Data / Curiosity — ezek viszik a breaking newst
 
-MAX_BREAKING_PER_DAY = int(os.environ.get("MAX_BREAKING_PER_DAY", "3"))
-BREAKING_NEWS_ENABLED = os.environ.get("BREAKING_NEWS_ENABLED", "true").lower() == "true"
-TZ_NAME = os.environ.get("TIMEZONE", "Europe/Budapest")
+MAX_BREAKING_PER_DAY = get_settings().max_breaking_per_day
+BREAKING_NEWS_ENABLED = get_settings().breaking_news_enabled
+TZ_NAME = get_settings().timezone
 
 
 def _tz():
@@ -182,13 +182,7 @@ async def run_breaking_check(dry_run: bool = False, send: bool = True, item: dic
 
 
 def main() -> int:
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, ValueError):
-            pass
-    logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"), format="%(message)s")
-    logging.getLogger("httpx").setLevel(logging.WARNING)
+    setup_logging()
     asyncio.run(run_breaking_check(dry_run=True, send=False))
     return 0
 

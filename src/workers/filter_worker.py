@@ -10,20 +10,20 @@ A main.py a collector után 30 perccel futtatja. Önállóan is fut:
 from __future__ import annotations
 
 import logging
-import os
-import sys
 
 from dotenv import load_dotenv
 
+from src.config.settings import get_settings
 from src.filters import filter_worker as run_filter_pipeline  # a 3 lépéses pipeline függvény
 from src.filters.keyword_filter import load_scoring_config
 from src.storage import feed_items as feed_store
 from src.storage.db import get_client, has_service_key
+from src.utils.logging import setup_logging
 
 logger = logging.getLogger(__name__)
 load_dotenv(override=False)
 
-DEFAULT_LIMIT = int(os.environ.get("FILTER_BATCH_LIMIT", "50"))
+DEFAULT_LIMIT = get_settings().filter_batch_limit
 
 
 def run_filter_cycle(limit: int = DEFAULT_LIMIT, dry_run: bool = False) -> dict:
@@ -74,13 +74,7 @@ def run_filter_cycle(limit: int = DEFAULT_LIMIT, dry_run: bool = False) -> dict:
 
 
 def main() -> int:
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, ValueError):
-            pass
-    logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"), format="%(message)s")
-    logging.getLogger("httpx").setLevel(logging.WARNING)
+    setup_logging()
     run_filter_cycle()
     return 0
 

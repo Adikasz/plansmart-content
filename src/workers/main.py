@@ -19,9 +19,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import logging
-import os
 import signal
-import sys
 from datetime import datetime, timedelta
 
 import pytz
@@ -32,6 +30,8 @@ from dotenv import load_dotenv
 
 from src.bots import prospect_review
 from src.bots import telegram_bot as tb
+from src.config.settings import get_settings
+from src.utils.logging import setup_logging
 from src.workers import health
 from src.workers.breaking_news_worker import run_breaking_check
 from src.workers.collector_worker import run_collector_cycle
@@ -41,12 +41,13 @@ from src.workers.morning_post_worker import run_morning_posts
 logger = logging.getLogger("workers.main")
 load_dotenv(override=False)
 
-INTERVAL_H = max(1, int(os.environ.get("COLLECTOR_INTERVAL_HOURS", "2")))
-MORNING_TIME = os.environ.get("MORNING_POST_TIME", "07:30")
+# Tipizált config: a COLLECTOR_INTERVAL_HOURS clamp (>=1) és a defaultok a Settings-ben laknak.
+INTERVAL_H = get_settings().collector_interval_hours
+MORNING_TIME = get_settings().morning_post_time
 
 
 def _tz():
-    name = os.environ.get("TIMEZONE", os.environ.get("SCHEDULER_TZ", "Europe/Budapest"))
+    name = get_settings().timezone  # TIMEZONE, majd SCHEDULER_TZ, majd Europe/Budapest fallback
     try:
         return pytz.timezone(name)
     except Exception:
@@ -207,16 +208,7 @@ async def _amain() -> None:
 
 
 def main() -> int:
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, ValueError):
-            pass
-    logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"), format="%(message)s")
-    logging.getLogger("aiogram").setLevel(logging.WARNING)
-    logging.getLogger("apscheduler").setLevel(logging.WARNING)
-    logging.getLogger("aiohttp").setLevel(logging.WARNING)
-    logging.getLogger("httpx").setLevel(logging.WARNING)
+    setup_logging()  # UTF-8 streamek + basicConfig(%(message)s, LOG_LEVEL) + zajos libek WARNING-ra
 
     ap = argparse.ArgumentParser(description="PlanSmart worker orchestrator (APScheduler + Telegram + health).")
     ap.add_argument("--print-schedule", action="store_true", help="csak az ütemezést írja ki, majd kilép")
