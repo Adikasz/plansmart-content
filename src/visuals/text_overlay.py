@@ -12,7 +12,6 @@ fonttools-szal TTF-re konvertáljuk (assets/fonts/ttf/ cache), a Bebas Neue-t le
 from __future__ import annotations
 
 import logging
-from functools import lru_cache
 from pathlib import Path
 
 import httpx
@@ -112,6 +111,10 @@ class TextOverlayComposer:
         self._ttf = _ensure_ttf()
         self._cov = self._build_coverage()
         self._logo = self._load_logo()
+        # Per-instance font cache (face, size, weight) -> font. Példány-élettartamú (a példánnyal
+        # együtt szabadul fel) — NEM osztály-szintű lru_cache, ami self-en át életben tartaná a
+        # példányokat (B019). A kulcstér kicsi (néhány face × méret × weight).
+        self._font_cache: dict[tuple[str, int, str | None], ImageFont.FreeTypeFont] = {}
         GENERATED_DIR.mkdir(parents=True, exist_ok=True)
 
     @staticmethod
@@ -208,8 +211,11 @@ class TextOverlayComposer:
         return font, self._hard_wrap(upper_text, font, max_w)[:max_lines]
 
     # ── Font betöltés (méret px-ben, opcionális named weight: Inter variable) ──
-    @lru_cache(maxsize=64)
     def _font(self, face: str, size: int, weight: str | None = None) -> ImageFont.FreeTypeFont:
+        key = (face, size, weight)
+        cached = self._font_cache.get(key)
+        if cached is not None:
+            return cached
         if face == "bricolage":  # a Bricolage variable TTF nem tölthető PIL-be → Inter (márka-elsődleges)
             face = "inter"
         path = self._ttf.get(face) or self._ttf.get("inter") or next(iter(self._ttf.values()), None)
@@ -221,6 +227,7 @@ class TextOverlayComposer:
                 font.set_variation_by_name(weight)  # 'Regular'|'SemiBold'|'Bold'|'ExtraBold'
             except Exception:
                 pass  # nem variable / nincs ilyen instance — alap marad
+        self._font_cache[key] = font
         return font
 
     # ── Szöveg-tördelés a megadott max szélességre ─────────────────────
@@ -309,18 +316,21 @@ class TextOverlayComposer:
 
         # Gradiens: STAT_CARD → a bevált per-voice; a többi template → saját, olvashatóság-barát wash.
         if layout == lt.STAT_CARD:
-            layer_fn = {
-                "david": lambda: self._gradient(img.size, bottom=0.85),
-                "adam": lambda: self._gradient(img.size, top=0.7, bottom=0.8),
-                "plansmart": lambda: self._gradient(img.size, full=0.6),
-            }.get(voice, lambda: self._gradient(img.size, bottom=0.8))
+            if voice == "david":
+                layer = self._gradient(img.size, bottom=0.85)
+            elif voice == "adam":
+                layer = self._gradient(img.size, top=0.7, bottom=0.8)
+            elif voice == "plansmart":
+                layer = self._gradient(img.size, full=0.6)
+            else:
+                layer = self._gradient(img.size, bottom=0.8)
         elif layout == lt.QUOTE_STYLE:
-            layer_fn = lambda: self._gradient(img.size, full=0.5, bottom=0.35)
+            layer = self._gradient(img.size, full=0.5, bottom=0.35)
         elif layout == lt.SPLIT_COMPARISON:
-            layer_fn = lambda: self._gradient(img.size, full=0.58)
+            layer = self._gradient(img.size, full=0.58)
         else:  # MINIMAL_TYPOGRAPHIC
-            layer_fn = lambda: self._gradient(img.size, full=0.5)
-        img = Image.alpha_composite(img, layer_fn())
+            layer = self._gradient(img.size, full=0.5)
+        img = Image.alpha_composite(img, layer)
 
         if has_portrait:
             self._place_portrait(img, portrait_path, s)
