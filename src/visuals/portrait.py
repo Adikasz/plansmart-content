@@ -23,6 +23,8 @@ from pathlib import Path
 
 from PIL import Image
 
+from src.utils.logging import setup_logging
+
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -200,13 +202,7 @@ def seed_from_local_state() -> dict[str, str]:
 
 
 def _demo() -> int:
-    import sys
-
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, ValueError):
-            pass
+    setup_logging()
     paths = preprocess_all()
     print("Cutouts:", {v: str(p) for v, p in paths.items()})
     try:
@@ -218,7 +214,4 @@ def _demo() -> int:
 
 
 if __name__ == "__main__":
-    import os
-
-    logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"), format="%(message)s")
     raise SystemExit(_demo())

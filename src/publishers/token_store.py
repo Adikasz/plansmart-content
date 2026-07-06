@@ -19,6 +19,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from src.storage.db import get_client, has_service_key
+from src.utils.logging import setup_logging
 
 logger = logging.getLogger(__name__)
 
@@ -116,9 +117,7 @@ def token_status(account_id: str, client=None) -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    import os
-
-    logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"), format="%(message)s")
+    setup_logging()
     # Füstteszt: lekér egy ismert account tokent (ha van a DB-ben).
     for acc in ("david", "adam", "plansmart"):
         tok = get_token(acc)

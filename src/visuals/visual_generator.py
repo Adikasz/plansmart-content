@@ -22,6 +22,7 @@ from anthropic import AsyncAnthropic
 from dotenv import load_dotenv
 
 from src.generators.base_generator import _repair_and_parse
+from src.utils.logging import setup_logging
 from src.visuals import layout_templates as lt
 from src.visuals import muapi_client
 
@@ -421,9 +422,5 @@ async def _demo() -> int:
 
 
 if __name__ == "__main__":
-    import asyncio
-    import os
-
-    logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"), format="%(message)s")
-    logging.getLogger("httpx").setLevel(logging.WARNING)
+    setup_logging()
     raise SystemExit(asyncio.run(_demo()))

@@ -17,6 +17,7 @@ from anthropic import AsyncAnthropic
 from dotenv import load_dotenv
 
 from src.optimization.text_evaluator import TextEvaluator
+from src.utils.logging import setup_logging
 
 logger = logging.getLogger(__name__)
 load_dotenv(override=False)
@@ -203,8 +204,6 @@ async def improve_post(
 
 
 async def _demo() -> int:
-    import json
-
     sample = ("In today's fast-paced world, businesses must leverage cutting-edge AI to "
               "revolutionize their workflows. It's a real game changer for SMEs. Agree?")
     out = await improve_post(sample, "adam", "ai_news", target_score=9.0, max_iterations=3)
@@ -216,14 +215,6 @@ async def _demo() -> int:
 
 if __name__ == "__main__":
     import asyncio
-    import os
-    import sys
 
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, ValueError):
-            pass
-    logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"), format="%(message)s")
-    logging.getLogger("httpx").setLevel(logging.WARNING)
+    setup_logging()
     raise SystemExit(asyncio.run(_demo()))

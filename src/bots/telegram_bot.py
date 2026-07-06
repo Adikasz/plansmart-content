@@ -27,19 +27,21 @@ from aiogram.filters.callback_data import CallbackData
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 from dotenv import load_dotenv
 
+from src.config.settings import get_settings
 from src.generators.base_generator import generate as generate_post
 from src.publishers import token_store
 from src.publishers.linkedin_publisher import post_to_linkedin
 from src.storage import posts as posts_store
 from src.strategy import content_strategy
+from src.utils.logging import setup_logging
 from src.visuals import visual_generator
 
 logger = logging.getLogger(__name__)
 load_dotenv(override=False)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-POSTS_CHAT_ID = int(os.environ.get("TELEGRAM_POSTS_CHAT_ID", "0"))
-REACTIONS_CHAT_ID = int(os.environ.get("TELEGRAM_REACTIONS_CHAT_ID", "0"))
+POSTS_CHAT_ID = get_settings().telegram_posts_chat_id
+REACTIONS_CHAT_ID = get_settings().telegram_reactions_chat_id
 TELEGRAM_CAPTION_LIMIT = 1024  # Telegram photo caption max hossza
 
 
@@ -614,8 +616,7 @@ async def _amain() -> None:
 
 
 def main() -> None:
-    logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"), format="%(message)s")
-    logging.getLogger("aiogram").setLevel(logging.WARNING)
+    setup_logging()
     asyncio.run(_amain())
 
 

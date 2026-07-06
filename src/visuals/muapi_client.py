@@ -21,6 +21,8 @@ from typing import Any
 import httpx
 from dotenv import load_dotenv
 
+from src.utils.logging import setup_logging
+
 logger = logging.getLogger(__name__)
 load_dotenv(override=False)
 
@@ -269,7 +271,6 @@ async def _smoke(prompt: str) -> int:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"), format="%(message)s")
-    logging.getLogger("httpx").setLevel(logging.WARNING)
+    setup_logging()
     prompt = sys.argv[1] if len(sys.argv) > 1 else "minimalist dark dashboard, #04060a background, single bold metric centered"
     raise SystemExit(asyncio.run(_smoke(prompt)))

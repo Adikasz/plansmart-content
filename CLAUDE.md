@@ -164,8 +164,12 @@ Moduláris config- és segéd-réteg + valódi offline teszt-suite:
 
 - **`src/config/`** — tipizált konfiguráció:
   - `settings.py` — `Settings` (Pydantic) az összes env változóhoz, `get_settings()` cache-elve.
-    Új kód INNEN olvasson env-et (a régi `os.environ.get` fokozatosan migrálható). A titkok
-    Optional-ök: az import sosem bukik hiányzó kulcson (a lazy `@lru_cache` kliensekhez illeszkedve).
+    Az import-idejű config-olvasás MÁR EZEN megy át az egész kódbázisban (workers, collectors,
+    generators, bots, visuals stb.) — új kód is INNEN olvasson. KIVÉTEL (szándékos): a call-time
+    titok/kapcsoló olvasások (`LINKEDIN_MOCK`, `TELEGRAM_BOT_TOKEN`, `MUAPI_API_KEY`,
+    `ANTHROPIC_API_KEY`, `SUPABASE_*`) közvetlen `os.environ`-ból jönnek — ezeket NE fagyaszd
+    cache-elt Settings-be. A titkok Optional-ök: az import sosem bukik hiányzó kulcson (a lazy
+    `@lru_cache` kliensekhez illeszkedve).
   - `loaders.py` — cache-elt YAML betöltők (`load_yaml`, `load_scoring`, `load_content_strategy`, …);
     a szétszórt `yaml.safe_load` EGY helyen (a `keyword_filter` és `content_strategy` már ezt hívja).
 - **`src/utils/`** — kereszt-metsző segédek, projekt-belső (src.*) függőség NÉLKÜL:

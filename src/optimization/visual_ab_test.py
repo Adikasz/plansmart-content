@@ -21,6 +21,7 @@ from typing import Any
 from dotenv import load_dotenv
 
 from src.optimization.visual_eval import VisualEvaluator
+from src.utils.logging import setup_logging
 from src.visuals import muapi_client
 from src.visuals import visual_generator as vg
 
@@ -163,14 +164,5 @@ async def _demo() -> int:
 
 
 if __name__ == "__main__":
-    import os
-    import sys
-
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, ValueError):
-            pass
-    logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"), format="%(message)s")
-    logging.getLogger("httpx").setLevel(logging.WARNING)
+    setup_logging()
     raise SystemExit(asyncio.run(_demo()))

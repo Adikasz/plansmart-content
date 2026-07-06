@@ -17,19 +17,19 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import os
-import sys
 from datetime import datetime, timedelta, timezone
 
 import pytz
 from dotenv import load_dotenv
 
 from src.bots import telegram_bot as tb
+from src.config.settings import get_settings
 from src.generators.base_generator import generate as generate_post
 from src.storage import feed_items as feed_store
 from src.storage import posts as posts_store
 from src.storage.db import get_client, has_service_key
 from src.strategy import content_strategy
+from src.utils.logging import setup_logging
 from src.workers.generator_worker import GENERATORS, VOICE_PROMPTS, _optimize_post
 
 logger = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ load_dotenv(override=False)
 
 MORNING_ACCOUNTS = ["david", "adam", "plansmart"]
 EDUCATIONAL_REUSE_DAYS = 30
-TZ_NAME = os.environ.get("TIMEZONE", "Europe/Budapest")
+TZ_NAME = get_settings().timezone
 
 HU_MONTHS = [
     "január", "február", "március", "április", "május", "június",
@@ -216,13 +216,7 @@ async def run_morning_posts(dry_run: bool = False, send: bool = True, accounts: 
 
 
 def main() -> int:
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, ValueError):
-            pass
-    logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"), format="%(message)s")
-    logging.getLogger("httpx").setLevel(logging.WARNING)
+    setup_logging()
     asyncio.run(run_morning_posts(dry_run=True, send=False))
     return 0
 

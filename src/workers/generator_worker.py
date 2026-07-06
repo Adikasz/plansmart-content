@@ -11,13 +11,12 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import os
-import sys
 from datetime import datetime, timedelta, timezone
 
 from dotenv import load_dotenv
 
 from src.bots import telegram_bot as tb
+from src.config.settings import get_settings
 from src.generators.adam_generator import generate_adam
 from src.generators.base_generator import generate as generate_post
 from src.generators.david_generator import generate_david
@@ -27,16 +26,17 @@ from src.storage import feed_items as feed_store
 from src.storage import posts as posts_store
 from src.storage.db import get_client, has_service_key
 from src.strategy import content_strategy
+from src.utils.logging import setup_logging
 
 logger = logging.getLogger(__name__)
 load_dotenv(override=False)
 
-GENERATION_VOICES = [v.strip() for v in os.environ.get("GENERATION_VOICES", "david,adam").split(",") if v.strip()]
-MAX_POSTS_PER_RUN = int(os.environ.get("MAX_POSTS_PER_RUN", "3"))
-ITEM_LIMIT = int(os.environ.get("GENERATOR_ITEM_LIMIT", "20"))
+GENERATION_VOICES = get_settings().generation_voices
+MAX_POSTS_PER_RUN = get_settings().max_posts_per_run
+ITEM_LIMIT = get_settings().generator_item_limit
 EDUCATIONAL_REUSE_DAYS = 30  # ennyi napon belül nem ismételünk educational topicot
 
-QUALITY_EVAL_EVERY = int(os.environ.get("QUALITY_EVAL_EVERY", "50"))  # N generált posztonként vizuál-eval
+QUALITY_EVAL_EVERY = get_settings().quality_eval_every  # N generált posztonként vizuál-eval
 _gen_counter = 0
 _quality_running = False
 
@@ -368,13 +368,7 @@ async def run_strategy_cycle(
 
 
 def main() -> int:
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, ValueError):
-            pass
-    logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"), format="%(message)s")
-    logging.getLogger("httpx").setLevel(logging.WARNING)
+    setup_logging()
     asyncio.run(run_strategy_cycle())
     return 0
 

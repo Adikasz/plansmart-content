@@ -18,6 +18,7 @@ import logging
 from datetime import datetime, timezone
 from pathlib import Path
 
+from src.utils.logging import setup_logging
 from src.visuals import layout_templates as lt
 
 logger = logging.getLogger(__name__)
@@ -156,5 +157,5 @@ def _demo() -> int:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level="INFO", format="%(message)s")
+    setup_logging()
     raise SystemExit(_demo())

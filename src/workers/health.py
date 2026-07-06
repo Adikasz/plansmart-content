@@ -11,15 +11,16 @@ A job wrapperek a record_run()-nal frissítik a STATE-et.
 from __future__ import annotations
 
 import logging
-import os
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 from aiohttp import web
 
+from src.config.settings import get_settings
+
 logger = logging.getLogger(__name__)
 
-HEALTH_PORT = int(os.environ.get("PORT", os.environ.get("HEALTH_PORT", "8080")))
-TZ_NAME = os.environ.get("TIMEZONE", "Europe/Budapest")
+HEALTH_PORT = get_settings().port
+TZ_NAME = get_settings().timezone
 
 # Megosztott futásidejű állapot — a job wrapperek frissítik (record_run).
 STATE: dict[str, object] = {

@@ -17,6 +17,8 @@ from dotenv import load_dotenv
 from postgrest.exceptions import APIError
 from supabase import Client, create_client
 
+from src.utils.logging import setup_logging
+
 logger = logging.getLogger(__name__)
 
 # A .env-et import-időben egyszer betöltjük; meglévő env változókat nem írunk felül.
@@ -79,7 +81,7 @@ def ping(use_service_key: bool | None = None) -> bool:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
+    setup_logging()
     ok = ping()
     logger.info("Supabase ping: %s", "OK" if ok else "SIKERTELEN")
     raise SystemExit(0 if ok else 1)

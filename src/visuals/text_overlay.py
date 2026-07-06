@@ -18,6 +18,7 @@ from pathlib import Path
 import httpx
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter, ImageFont
 
+from src.utils.logging import setup_logging
 from src.visuals import layout_templates as lt
 
 logger = logging.getLogger(__name__)
@@ -725,16 +726,9 @@ def _demo(url: str, voice: str) -> int:
 
 
 if __name__ == "__main__":
-    import os
     import sys
 
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, ValueError):
-            pass
-    logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"), format="%(message)s")
-    logging.getLogger("httpx").setLevel(logging.WARNING)
+    setup_logging()
     if len(sys.argv) < 2:
         print("Használat: python -m src.visuals.text_overlay <base_image_url> [voice]")
         raise SystemExit(2)

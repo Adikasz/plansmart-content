@@ -7,14 +7,13 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import os
-import sys
 import time
 
 from dotenv import load_dotenv
 
 from src.collectors.rss_collector import collect
 from src.storage.feed_items import dedupe_and_save
+from src.utils.logging import setup_logging
 
 logger = logging.getLogger(__name__)
 load_dotenv(override=False)
@@ -49,13 +48,7 @@ async def run_collector_cycle() -> dict:
 
 
 def main() -> int:
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, ValueError):
-            pass
-    logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"), format="%(message)s")
-    logging.getLogger("httpx").setLevel(logging.WARNING)
+    setup_logging()
     asyncio.run(run_collector_cycle())
     return 0
 

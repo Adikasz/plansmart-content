@@ -90,6 +90,13 @@ class Settings(BaseModel):
     rss_max_concurrency: int = Field(default=10, ge=1)
     rss_max_items: int = Field(default=50, ge=1)
     rss_max_retries: int = Field(default=3, ge=0)
+    rss_user_agent: str | None = None  # None -> a modul BROWSER_UA defaultja
+
+    # ── Generátor worker ─────────────────────────────────────────────────
+    generation_voices: list[str] = Field(default_factory=lambda: ["david", "adam"])
+    max_posts_per_run: int = Field(default=3, ge=1)
+    generator_item_limit: int = Field(default=20, ge=1)
+    quality_eval_every: int = Field(default=50, ge=1)
 
     @classmethod
     def from_env(cls, env: Mapping[str, str] | None = None) -> "Settings":
@@ -119,7 +126,7 @@ class Settings(BaseModel):
             telegram_reactions_chat_id=_as_int(e.get("TELEGRAM_REACTIONS_CHAT_ID"), 0),
             log_level=e.get("LOG_LEVEL", "INFO") or "INFO",
             timezone=e.get("TIMEZONE", e.get("SCHEDULER_TZ", "Europe/Budapest")) or "Europe/Budapest",
-            port=_as_int(e.get("PORT"), 8080),
+            port=_as_int(e.get("PORT", e.get("HEALTH_PORT")), 8080),
             collector_interval_hours=max(1, _as_int(e.get("COLLECTOR_INTERVAL_HOURS"), 2)),
             morning_post_time=e.get("MORNING_POST_TIME", "07:30") or "07:30",
             dry_run=_as_bool(e.get("DRY_RUN"), False),
@@ -134,6 +141,11 @@ class Settings(BaseModel):
             rss_max_concurrency=_as_int(e.get("RSS_MAX_CONCURRENCY"), 10),
             rss_max_items=_as_int(e.get("RSS_MAX_ITEMS"), 50),
             rss_max_retries=_as_int(e.get("RSS_MAX_RETRIES"), 3),
+            rss_user_agent=g("RSS_USER_AGENT"),
+            generation_voices=[v.strip() for v in e.get("GENERATION_VOICES", "david,adam").split(",") if v.strip()],
+            max_posts_per_run=_as_int(e.get("MAX_POSTS_PER_RUN"), 3),
+            generator_item_limit=_as_int(e.get("GENERATOR_ITEM_LIMIT"), 20),
+            quality_eval_every=_as_int(e.get("QUALITY_EVAL_EVERY"), 50),
         )
 
 

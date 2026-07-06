@@ -14,8 +14,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import os
-import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -27,10 +25,18 @@ import yaml
 from dotenv import load_dotenv
 
 from src.collectors.nextjs_scraper import fetch_nextjs_json
+from src.config.settings import get_settings
 from src.storage.feed_items import dedupe_and_save
 from src.storage.models import (
-    DISABLED, FIXED, OK, STILL_FAILING, FeedItem, SourceResult, make_id,
+    DISABLED,
+    FIXED,
+    OK,
+    STILL_FAILING,
+    FeedItem,
+    SourceResult,
+    make_id,
 )
+from src.utils.logging import setup_logging
 
 logger = logging.getLogger(__name__)
 
@@ -40,10 +46,10 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SOURCES_FILE = PROJECT_ROOT / "config" / "sources.yml"
 
 # Operacios konstansok (env-bol felulirhatok, nem hardcode-olunk fixen).
-REQUEST_TIMEOUT = float(os.environ.get("RSS_TIMEOUT_SEC", "15"))
-MAX_CONCURRENCY = int(os.environ.get("RSS_MAX_CONCURRENCY", "10"))
-DEFAULT_MAX_ITEMS = int(os.environ.get("RSS_MAX_ITEMS", "50"))
-MAX_RETRIES = int(os.environ.get("RSS_MAX_RETRIES", "3"))
+REQUEST_TIMEOUT = get_settings().rss_timeout_sec
+MAX_CONCURRENCY = get_settings().rss_max_concurrency
+DEFAULT_MAX_ITEMS = get_settings().rss_max_items
+MAX_RETRIES = get_settings().rss_max_retries
 RETRY_BACKOFF = [1.0, 2.0, 4.0]  # masodperc — exponencialis (1s, 2s, 4s)
 
 # Bongeszo-szeru User-Agent, hogy a bot-blokkolt feedek (pl. The Verge) atengedjenek.
@@ -51,7 +57,7 @@ BROWSER_UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 )
-USER_AGENT = os.environ.get("RSS_USER_AGENT", BROWSER_UA)
+USER_AGENT = get_settings().rss_user_agent or BROWSER_UA
 
 
 def load_rss_sources(path: Path = SOURCES_FILE) -> list[dict[str, Any]]:
@@ -252,15 +258,7 @@ async def _amain() -> int:
 
 
 def main() -> int:
-    # Windows konzol: UTF-8 kimenet, hogy az ekezetes forrasnevek helyesen jelenjenek meg.
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, ValueError):
-            pass
-
-    logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"), format="%(message)s")
-    logging.getLogger("httpx").setLevel(logging.WARNING)  # per-request INFO logok elnemitasa
+    setup_logging()
     return asyncio.run(_amain())
 
 

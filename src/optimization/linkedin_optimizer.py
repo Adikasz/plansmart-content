@@ -21,6 +21,7 @@ from anthropic import AsyncAnthropic
 from dotenv import load_dotenv
 
 from src.generators.base_generator import _repair_and_parse
+from src.utils.logging import setup_logging
 
 logger = logging.getLogger(__name__)
 load_dotenv(override=False)
@@ -218,14 +219,6 @@ async def _demo() -> int:
 
 if __name__ == "__main__":
     import asyncio
-    import os
-    import sys
 
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, ValueError):
-            pass
-    logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"), format="%(message)s")
-    logging.getLogger("httpx").setLevel(logging.WARNING)
+    setup_logging()
     raise SystemExit(asyncio.run(_demo()))
