@@ -93,3 +93,28 @@ def get(pid: str, client=None) -> dict[str, Any] | None:
 def count_by_status(status: str, client=None) -> int:
     resp = _c(client).table(TABLE).select("id").eq("status", status).execute()
     return len(resp.data or [])
+
+
+def all_name_company(client=None) -> list[dict[str, Any]]:
+    """MINDEN prospect (bármely státusz) neve+cége — a per-full-run de-dup forrása.
+
+    A Phase 19 batch-orchestrator ebből építi a már-lefedett kulcsokat, hogy egy céget/
+    embert az EGÉSZ futásban (és a korábbi futásokból, pl. a logisztika 5-ből) csak egyszer
+    vegyünk fel.
+    """
+    resp = _c(client).table(TABLE).select("name,company,category,voice").execute()
+    return resp.data or []
+
+
+def all_full(client=None) -> list[dict[str, Any]]:
+    """MINDEN prospect a verifikációhoz/exporthoz szükséges mezőkkel.
+
+    A Phase 19 verifikációs pass (prospect_verifier) és a connect-lista export ezt hívja —
+    a per-sor függetlenség-ellenőrzéshez (id/név/pozíció/cég/ország) és a note-mentes
+    exporthoz (kategória/voice) kell, a nagy `relevance_notes`/`connection_note_draft`
+    mezők nélkül (kisebb payload).
+    """
+    resp = (_c(client).table(TABLE)
+            .select("id,name,title,company,country,category,voice,status")
+            .execute())
+    return resp.data or []

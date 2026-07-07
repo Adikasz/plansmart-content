@@ -21,6 +21,11 @@ data/*.db
 data/*.db-journal
 data/*.sqlite
 
+# Prospect kutatás/verifikáció lokális artefaktumai (a Supabase az igazság forrása)
+data/prospects_connect_list.md
+data/prospects_connect_list.csv
+data/verification_results.json
+
 # Logs
 logs/
 *.log

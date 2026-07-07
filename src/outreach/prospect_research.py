@@ -122,7 +122,9 @@ SYSTEM_PROMPT = (
 )
 
 
-def _user_prompt(category: str, keywords: str | None, count: int) -> str:
+def _user_prompt(
+    category: str, keywords: str | None, count: int, exclude_terms: list[str] | None = None
+) -> str:
     brief = CATEGORY_BRIEF.get(category, "")
     parts = [f"TARGET CATEGORY: {category}\n{brief}"]
     if category == "hu_sme_owner":
@@ -134,6 +136,14 @@ def _user_prompt(category: str, keywords: str | None, count: int) -> str:
             )
     if keywords:
         parts.append(f"Focus industry / keyword: {keywords}")
+    if exclude_terms:
+        # Per-full-run de-dup segéd: a modell NE hozza vissza a már lefedett embereket/cégeket.
+        # (A kemény szűrés a hívónál/`_clean`-ben van; ez csak csökkenti a pazarlást.)
+        listed = "; ".join(t for t in exclude_terms if t)[:1600]
+        parts.append(
+            "ALREADY COVERED — do NOT return any of these people or companies again; find DIFFERENT "
+            f"ones from other firms:\n{listed}"
+        )
     parts.append(
         f"Find exactly {count} candidates, EACH FROM A DIFFERENT COMPANY (at most one person per "
         "firm). Use web_search first, then return the JSON object. Every candidate must be a real "
@@ -142,10 +152,12 @@ def _user_prompt(category: str, keywords: str | None, count: int) -> str:
     return "\n\n".join(parts)
 
 
-def _tool_def(category: str) -> dict[str, Any]:
+def _tool_def(category: str, max_searches: int = MAX_SEARCH_USES) -> dict[str, Any]:
     # NB: a web_search user_location csak bizonyos országokat enged (HU nem támogatott) —
     # a magyar fókuszt a prompt + a magyar kulcsszavak adják, nem a user_location.
-    return {"type": WEB_SEARCH_TOOL, "name": "web_search", "max_uses": MAX_SEARCH_USES}
+    # max_searches: a keresések száma a KÖLTSÉG fő hajtóereje (a találati oldalak input-tokenjei) —
+    # kevesebb keresés = olcsóbb kör, kevesebb jelölt.
+    return {"type": WEB_SEARCH_TOOL, "name": "web_search", "max_uses": max(1, max_searches)}
 
 
 def _final_text(content: list[dict[str, Any]]) -> str:
@@ -157,7 +169,10 @@ def _count_searches(content: list[dict[str, Any]]) -> int:
               and b.get("name") == "web_search")
 
 
-async def _call_with_search(category: str, keywords: str | None, count: int) -> tuple[str, dict]:
+async def _call_with_search(
+    category: str, keywords: str | None, count: int,
+    exclude_terms: list[str] | None = None, max_searches: int = MAX_SEARCH_USES,
+) -> tuple[str, dict]:
     """A web_search-ös Messages hívás, pause_turn (server-tool loop) kezeléssel.
     Visszaad: (végső szöveg, meta) — meta: {searches, in_tokens, out_tokens, rounds}."""
     api_key = os.environ.get("ANTHROPIC_API_KEY")
@@ -168,12 +183,14 @@ async def _call_with_search(category: str, keywords: str | None, count: int) -> 
         "anthropic-version": ANTHROPIC_VERSION,
         "content-type": "application/json",
     }
-    messages: list[dict[str, Any]] = [{"role": "user", "content": _user_prompt(category, keywords, count)}]
+    messages: list[dict[str, Any]] = [
+        {"role": "user", "content": _user_prompt(category, keywords, count, exclude_terms)}
+    ]
     body_base = {
         "model": MODEL,
         "max_tokens": MAX_TOKENS,
         "system": SYSTEM_PROMPT,
-        "tools": [_tool_def(category)],
+        "tools": [_tool_def(category, max_searches)],
     }
     searches = in_tok = out_tok = 0
     last_content: list[dict[str, Any]] = []
@@ -239,6 +256,23 @@ def _norm_company(name: str | None) -> str:
     return " ".join(tokens)
 
 
+def _norm_name(name: str | None) -> str:
+    """Személynév kulcs a de-duphoz (kisbetűs, összenyomott whitespace)."""
+    return " ".join((name or "").strip().lower().split())
+
+
+def _exclude_keys(exclude_terms: list[str] | None) -> set[str]:
+    """A kizárt nevek/cégek normalizált kulcsai (név- és cég-alakban is), a post-filterhez."""
+    keys: set[str] = set()
+    for term in exclude_terms or []:
+        nk, ck = _norm_name(term), _norm_company(term)
+        if nk:
+            keys.add(nk)
+        if ck:
+            keys.add(ck)
+    return keys
+
+
 def _has_quote(text: str | None) -> bool:
     return any(q in (text or "") for q in ('"', "“", "”", "„", "»", "«"))
 
@@ -294,19 +328,35 @@ def _dedupe_by_company(candidates: list[dict]) -> tuple[list[dict], dict]:
 
 
 async def research_prospects(
-    category: str, keywords: str | None = None, count: int = 5, persist: bool = True
+    category: str,
+    keywords: str | None = None,
+    count: int = 5,
+    persist: bool = True,
+    exclude_terms: list[str] | None = None,
+    max_searches: int = MAX_SEARCH_USES,
 ) -> tuple[list[dict], dict]:
     """A kategória jelöltjeinek kutatása. Visszaad: (jelöltek, meta).
 
     persist=True: best-effort mentés a prospects táblába (ha a migráció már lefutott).
     A jelöltek listája akkor is visszajön, ha a tábla még nem létezik (a Part 6 teszt így
     a migráció ELŐTT is meg tudja mutatni az eredményt).
+
+    exclude_terms: már lefedett nevek/cégek — a PROMPT-ba kerülnek (a modell kerülje őket),
+    ÉS a parse után kemény szűrjük is (per-full-run de-dup segéd; a végső de-dup a hívónál).
     """
     if category not in CATEGORIES:
         raise ValueError(f"Ismeretlen kategória: {category} (választható: {CATEGORIES})")
-    text, meta = await _call_with_search(category, keywords, count)
+    text, meta = await _call_with_search(category, keywords, count, exclude_terms, max_searches)
     parsed = _repair_and_parse(text) or {}
     raw = _clean(parsed.get("candidates", []) if isinstance(parsed, dict) else [], category)
+
+    ex_keys = _exclude_keys(exclude_terms)
+    if ex_keys:
+        before = len(raw)
+        raw = [c for c in raw
+               if _norm_name(c.get("name")) not in ex_keys
+               and (not _norm_company(c.get("company")) or _norm_company(c.get("company")) not in ex_keys)]
+        meta["excluded_prefilter"] = before - len(raw)
     meta["parsed_ok"] = bool(raw)
 
     # De-dup: cégenként max 1 (egyértelmű győztes marad; döntetlen → mindet jelöljük).
