@@ -64,6 +64,9 @@ class Settings(BaseModel):
     telegram_posts_chat_id: int = 0
     telegram_reactions_chat_id: int = 0
 
+    # ── Outreach / reakció-asszisztens ───────────────────────────────────
+    calendly_url: str = ""  # a DM first-message lead sablon foglalási linkje (üres → link nélkül)
+
     # ── Általános / ütemezés ─────────────────────────────────────────────
     log_level: str = "INFO"
     timezone: str = "Europe/Budapest"
@@ -124,6 +127,7 @@ class Settings(BaseModel):
             railway_environment=g("RAILWAY_ENVIRONMENT"),
             telegram_posts_chat_id=_as_int(e.get("TELEGRAM_POSTS_CHAT_ID"), 0),
             telegram_reactions_chat_id=_as_int(e.get("TELEGRAM_REACTIONS_CHAT_ID"), 0),
+            calendly_url=e.get("CALENDLY_URL", "") or "",
             log_level=e.get("LOG_LEVEL", "INFO") or "INFO",
             timezone=e.get("TIMEZONE", e.get("SCHEDULER_TZ", "Europe/Budapest")) or "Europe/Budapest",
             port=_as_int(e.get("PORT", e.get("HEALTH_PORT")), 8080),
