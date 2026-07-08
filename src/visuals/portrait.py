@@ -23,13 +23,16 @@ from pathlib import Path
 
 from PIL import Image
 
+from src.config.settings import get_settings
 from src.utils.logging import setup_logging
 
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 BRAND_DIR = PROJECT_ROOT / "assets" / "brand"
-CUTOUT_DIR = BRAND_DIR / "cutouts"
+# Éles: PORTRAIT_CUTOUT_DIR egy perzisztens Railway volume-ra mutat, hogy a már kivágott
+# PNG-k túléljék a redeployt és a rembg SOSE fusson (memória-korlát — lásd Settings docstring).
+CUTOUT_DIR = Path(get_settings().portrait_cutout_dir) if get_settings().portrait_cutout_dir else BRAND_DIR / "cutouts"
 STATE_FILE = PROJECT_ROOT / "data" / "portrait_state.json"  # csak fallback (Supabase az elsődleges)
 STATE_TABLE = "portrait_counters"
 
