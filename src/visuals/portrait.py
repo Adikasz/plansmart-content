@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import logging
 import random
+import shutil
 from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
@@ -30,8 +31,15 @@ logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 BRAND_DIR = PROJECT_ROOT / "assets" / "brand"
-# Éles: PORTRAIT_CUTOUT_DIR egy perzisztens Railway volume-ra mutat, hogy a már kivágott
-# PNG-k túléljék a redeployt és a rembg SOSE fusson (memória-korlát — lásd Settings docstring).
+# Git-committed, már kivágott PNG-k (lásd get_cutout) — ezekből egy egyszerű fájlmásolással
+# újraépíthető a cache minden redeploy után, a rembg/onnxruntime éles futtatása NÉLKÜL (az
+# ONNX modell betöltése+inferenciája az 1GB Railway memórialimitet súrolta, ismétlődő
+# OOM-restartokat okozva — lásd git history). Csak akkor kell frissíteni, ha a forrás-fotó
+# változik: futtasd force_refresh=True-val lokálisan, majd commitold az új seed PNG-t.
+SEED_DIR = BRAND_DIR / "cutouts_seed"
+# Éles override: perzisztens Railway volume-ra mutathat, ha valaha szükség lenne rá — alapból
+# a lokális (ephemeral, redeploykor törlődő) útvonal, mert a SEED_DIR-ből való másolás úgyis
+# minden cold boot-on újraépíti a cache-t, gyorsan és rembg nélkül.
 CUTOUT_DIR = Path(get_settings().portrait_cutout_dir) if get_settings().portrait_cutout_dir else BRAND_DIR / "cutouts"
 STATE_FILE = PROJECT_ROOT / "data" / "portrait_state.json"  # csak fallback (Supabase az elsődleges)
 STATE_TABLE = "portrait_counters"
@@ -72,7 +80,9 @@ def _session():
 def get_cutout(voice: str, *, force_refresh: bool = False) -> Path | None:
     """A voice kivágott portréjának lokális útja (cache-elve). None, ha nincs forrás/hang.
 
-    Első hívásnál lefuttatja a rembg-et és elmenti `assets/brand/cutouts/{voice}.png`-ként.
+    Első hívásnál a git-committed SEED_DIR-ből másolja be (gyors, rembg nélkül); ha az sincs
+    (pl. új voice, még nincs seed), lefuttatja a rembg-et és a másolt eredményt menti seedként
+    is, hogy legközelebb (és a következő redeploy után) onnan töltődjön.
     """
     if voice not in PORTRAIT_SOURCES:
         return None
@@ -84,6 +94,13 @@ def get_cutout(voice: str, *, force_refresh: bool = False) -> Path | None:
     if out.exists() and not force_refresh:
         return out
     CUTOUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    seed = SEED_DIR / f"{voice}.png"
+    if seed.exists() and not force_refresh:
+        shutil.copyfile(seed, out)
+        logger.info("[portrait] cutout másolva seedből: %s", out.name)
+        return out
+
     logger.info("[portrait] háttér-eltávolítás (%s) — egyszeri, cache-elt…", voice)
     cut = remove_background(src)
     cut.save(out, "PNG")
