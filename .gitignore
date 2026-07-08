@@ -20,6 +20,10 @@ env/
 data/*.db
 data/*.db-journal
 data/*.sqlite
+data/portrait_state.json
+
+# Portré-kivágat cache (rembg, startupkor előmelegítve — lásd src/visuals/portrait.py)
+assets/brand/cutouts/
 
 # Prospect kutatás/verifikáció lokális artefaktumai (a Supabase az igazság forrása)
 data/prospects_connect_list.md

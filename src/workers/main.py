@@ -29,6 +29,7 @@ from apscheduler.triggers.cron import CronTrigger
 from dotenv import load_dotenv
 
 from src.bots import prospect_review
+from src.bots import reactions_bot
 from src.bots import telegram_bot as tb
 from src.config.settings import get_settings
 from src.utils.logging import setup_logging
@@ -37,6 +38,7 @@ from src.workers.breaking_news_worker import run_breaking_check
 from src.workers.collector_worker import run_collector_cycle
 from src.workers.filter_worker import run_filter_cycle
 from src.workers.morning_post_worker import run_morning_posts
+from src.visuals import portrait as portrait_mod
 
 logger = logging.getLogger("workers.main")
 load_dotenv(override=False)
@@ -160,16 +162,31 @@ async def _amain() -> None:
 
     runner = await health.start_health_server()
 
+    # Alapító-portré kivágatok előmelegítése (rembg/onnx, lassú) — a Railway FS ephemeral,
+    # így minden redeploy után újra kellene vágni; ha ezt az első élő --portrait kérés
+    # csinálná meg szinkron módon, percekre blokkolná az event loopot (lásd bug: /create
+    # --portrait "nem válaszol" + hiányzó portré). Itt, indításkor, háttérszálon fut.
+    async def _prewarm_portraits() -> None:
+        try:
+            paths = await asyncio.to_thread(portrait_mod.preprocess_all)
+            logger.info("Portré cache előmelegítve: %s", {k: str(v) for k, v in paths.items()})
+        except Exception:
+            logger.exception("Portré cache előmelegítés hiba (nem blokkoló)")
+
+    asyncio.create_task(_prewarm_portraits())
+
     bot = tb.get_bot()
     me = await bot.get_me()
     logger.info("\nTelegram bot: @%s | posts=%s | reactions=%s", me.username, tb.POSTS_CHAT_ID, tb.REACTIONS_CHAT_ID)
     logger.info("Orchestrator elindult — SIGINT/SIGTERM a leállításhoz.\n")
 
     dp = Dispatcher()
-    # A prospect router ELŐBB fut, mint a posts router: a posts botnak van egy privát-chat
-    # catch-all handlere (dm_edit_reply), ami különben elnyelné a /prospects, /mark_sent stb.
-    # parancsokat DM-ben. A prospect routernek nincs catch-all-ja, így a nem-prospect DM-ek
-    # rendben átesnek rajta a posts routerhez.
+    # A reactions + prospect routerek ELŐBB futnak, mint a posts router: a posts botnak van egy
+    # privát-chat catch-all handlere (dm_edit_reply), ami különben elnyelné a /reply_comment,
+    # /prospects stb. parancsokat DM-ben. A reactions free-text handlere CSAK aktív flow-nál kap
+    # el (más DM-et nem), a prospect routernek nincs catch-all-ja — így a nem-flow DM-ek rendben
+    # átesnek a posts routerhez.
+    dp.include_router(reactions_bot.router)
     dp.include_router(prospect_review.router)
     dp.include_router(tb.router)
 

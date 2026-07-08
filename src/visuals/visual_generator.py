@@ -330,7 +330,10 @@ async def compose_visual(post: dict[str, Any]) -> dict[str, Any]:
     result = await muapi_client.generate(prompt, model=model, aspect_ratio=aspect_ratio)
     base_url = result.image_url
 
-    portrait_path = _resolve_portrait(post, voice)
+    # _resolve_portrait sync (rembg/onnx CPU-inferencia + Supabase hívás) — to_thread-be,
+    # különben első (nem cache-elt) portré-vágásnál percekre blokkolja az event loopot,
+    # ami alatt a bot minden más Telegram-üzenetre "némán" nem válaszol.
+    portrait_path = await asyncio.to_thread(_resolve_portrait, post, voice)
     logger.info(
         "[%s] szöveg-mentes alapkép kész | template=%s mood=%s | overlay: '%s' | portré: %s",
         voice, template, mood, visual_text.get("main_text", ""), "igen" if portrait_path else "nem",

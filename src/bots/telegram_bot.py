@@ -276,9 +276,15 @@ async def create_cmd(message: Message, command: CommandObject, bot: Bot) -> None
         return
     post["id"] = posts_store.insert_post(post)
     await message.answer("🎨 Vizuál generálása …")
-    await _attach_visual(post)
-    await send_for_approval(post, POSTS_CHAT_ID, bot)
-    await message.answer(f"✅ Poszt jóváhagyásra küldve (post_id={post['id']}).")
+    try:
+        await _attach_visual(post)
+        await send_for_approval(post, POSTS_CHAT_ID, bot)
+        await message.answer(f"✅ Poszt jóváhagyásra küldve (post_id={post['id']}).")
+    except Exception as exc:
+        # _attach_visual maga best-effort (kép nélkül is mehet a poszt) — ez itt a
+        # send_for_approval / egyéb váratlan hibát fogja el, hogy sose maradjon néma a bot.
+        logger.exception("Poszt jóváhagyásra küldése sikertelen (post_id=%s)", post["id"])
+        await message.answer(f"❌ Hiba történt a poszt küldésekor (post_id={post['id']}): {str(exc)[:150]}")
 
 
 # ── Callback handlerek ─────────────────────────────────────────────────
