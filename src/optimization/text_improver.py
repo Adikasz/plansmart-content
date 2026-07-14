@@ -115,7 +115,7 @@ async def _rewrite(post: str, voice: str, content_type: str, scores: dict) -> st
         )
     ai_sig_line = ""
     ai_sig_risk = scores.get("ai_signature_risk")
-    if isinstance(ai_sig_risk, (int, float)) and ai_sig_risk >= 7:
+    if isinstance(ai_sig_risk, (int, float)) and ai_sig_risk >= 6:
         hits = [f for f in (scores.get("anti_patterns") or []) if str(f).startswith("AI-signature:")]
         detected = "; ".join(hits) if hits else "see SPECIFIC PROBLEMS below for the exact spans"
         ai_sig_line = (
