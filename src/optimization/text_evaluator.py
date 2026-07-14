@@ -35,7 +35,7 @@ MAX_TOKENS = 1400
 # (lásd SCORE_KEYS_HU + SYSTEM_PROMPT_HU lentebb), ha valaha újra kellene a magyar kimenet.
 SCORE_KEYS = (
     "hook_strength", "human_feel", "english_quality", "english_native_quality",
-    "concrete_value", "voice_consistency", "engagement_potential",
+    "concrete_value", "voice_consistency", "engagement_potential", "ai_signature_risk",
 )
 # Dormant (Phase 13.5 magyar pipeline) — jelenleg nem hívjuk, de megőrizzük.
 SCORE_KEYS_HU = (
@@ -84,6 +84,116 @@ ENGLISH_BANNED: list[tuple[str, str]] = [
     (r"\bmove the needle\b", "move the needle → tired idiom"),
     (r"\blow[- ]hanging fruit\b", "low-hanging fruit → tired idiom"),
 ]
+
+# ── ai_signature_risk (Phase 20): determinisztikus "Signs of AI writing" kapás ─────────
+# Lásd prompts/ai_writing_signals.md (29 minta, blader/humanizer MIT + Wikipedia WP:AICLEANUP).
+# Csak a MEGBÍZHATÓAN reguláris/keyword-alapú mintákat kapjuk itt kódból; a szemantikus
+# ítéletet igénylő minták (significance inflation, vague attributions, rule of three, …) a
+# SYSTEM_PROMPT-on keresztül Sonnet-re maradnak.
+AI_VOCABULARY = [
+    "testament to", "tapestry", "delve into", "delve", "intricate", "underscore", "underscores",
+    "crucial", "pivotal", "meticulously", "meticulous", "robust", "boasts", "elevate", "elevates",
+    "unlock", "unlocks", "realm", "beacon", "nestled", "ever-evolving", "multifaceted",
+]
+PROMOTIONAL_LANGUAGE = [
+    "breathtaking", "stunning", "renowned", "vibrant", "unparalleled", "world-renowned",
+    "must-have", "best-in-class", "game-changing", "transformative",
+]
+SIGNPOSTING_PHRASES = [
+    "let's dive in", "here's what you need to know", "buckle up", "let's break it down",
+    "without further ado", "in today's rapidly evolving landscape",
+]
+CHATBOT_ARTIFACTS = [
+    "let me know if you have any questions", "i hope this helps", "would you like me to",
+    "happy to assist", "as an ai", "i don't have the ability to",
+]
+CUTOFF_DISCLAIMERS = [
+    "as of my last update", "as of my knowledge cutoff", "i don't have access to real-time data",
+    "i cannot browse the internet",
+]
+SYCOPHANTIC_PHRASES = [
+    "great question", "you're absolutely right", "that's a fantastic point",
+    "i'd be happy to help", "excellent point",
+]
+GENERIC_CONCLUSIONS = [
+    "the future looks bright", "the possibilities are endless", "only time will tell",
+    "time will tell", "exciting times ahead", "the sky's the limit",
+]
+FILLER_PHRASES: list[tuple[str, str]] = [
+    (r"\bin order to\b", "in order to → to"),
+    (r"\bdue to the fact that\b", "due to the fact that → because"),
+    (r"\bat this point in time\b", "at this point in time → now"),
+    (r"\bfor the purpose of\b", "for the purpose of → to"),
+    (r"\bin the event that\b", "in the event that → if"),
+]
+HEDGE_WORDS = ["could", "potentially", "possibly", "perhaps", "arguably", "to some extent", "in some cases"]
+NEGATIVE_PARALLELISM_RE = re.compile(r"\bit'?s not (?:just |only )?[^,.]+,\s*(?:it'?s|but)\b", re.I)
+_EM_DASH_RE = re.compile(r"[—–]")
+_CURLY_QUOTE_RE = re.compile(r"[“”‘’]")
+_MD_BOLD_RE = re.compile(r"\*\*[^*]+\*\*")
+_INLINE_HEADER_RE = re.compile(r"\*\*[^*]{1,40}:\*\*")
+_HYPHEN_COMPOUND_RE = re.compile(r"\b[a-zA-Z]+-[a-zA-Z]+\b")  # csak betű-betű (a "25-person" ne számítson)
+_GERUND_CHAIN_RE = re.compile(r"\b\w+ing\b[^.!?]*,\s*\w+ing\b[^.!?]*,\s*\w+ing\b", re.I)  # 3+ lánc kell
+_EMOJI_RE = re.compile(
+    "[\U0001F300-\U0001FAFF\U00002600-\U000027BF\U0001F1E6-\U0001F1FF]"
+)
+EMOJI_MAX_BY_VOICE = {"david": 1, "adam": 0, "plansmart": 3}
+
+
+def _ai_signature_flags(text: str, voice: str) -> list[str]:
+    """Determinisztikus "Signs of AI writing" kapás (Phase 20, aktív). Lásd prompts/ai_writing_signals.md."""
+    t = text or ""
+    low = t.lower()
+    flags: list[str] = []
+    for term in AI_VOCABULARY:
+        if term in low:
+            flags.append(f"AI-signature: AI vocabulary — “{term}”")
+    for term in PROMOTIONAL_LANGUAGE:
+        if term in low:
+            flags.append(f"AI-signature: promotional language — “{term}”")
+    for phrase in SIGNPOSTING_PHRASES:
+        if phrase in low:
+            flags.append(f"AI-signature: signposting announcement — “{phrase}”")
+    for phrase in CHATBOT_ARTIFACTS:
+        if phrase in low:
+            flags.append(f"AI-signature: chatbot artifact — “{phrase}”")
+    for phrase in CUTOFF_DISCLAIMERS:
+        if phrase in low:
+            flags.append(f"AI-signature: cutoff disclaimer — “{phrase}”")
+    for phrase in SYCOPHANTIC_PHRASES:
+        if phrase in low:
+            flags.append(f"AI-signature: sycophantic tone — “{phrase}”")
+    for phrase in GENERIC_CONCLUSIONS:
+        if phrase in low:
+            flags.append(f"AI-signature: generic conclusion — “{phrase}”")
+    for pat, msg in FILLER_PHRASES:
+        if re.search(pat, t, re.I):
+            flags.append(f"AI-signature: filler phrase — {msg}")
+    if NEGATIVE_PARALLELISM_RE.search(t):
+        flags.append("AI-signature: negative parallelism (“it's not X, it's/but Y”)")
+    n_hedge = sum(low.count(h) for h in HEDGE_WORDS)
+    if n_hedge >= 2:
+        flags.append(f"AI-signature: excessive hedging ({n_hedge} stacked hedge words)")
+    n_dash = len(_EM_DASH_RE.findall(t))
+    if n_dash >= 2:
+        flags.append(f"AI-signature: em-dash overuse ({n_dash} em/en dashes)")
+    if _CURLY_QUOTE_RE.search(t):
+        flags.append("AI-signature: curly/smart quotes (should be straight quotes)")
+    if _MD_BOLD_RE.search(t):
+        flags.append("AI-signature: markdown boldface (**word**) — renders as literal asterisks on LinkedIn")
+    if _INLINE_HEADER_RE.search(t):
+        flags.append("AI-signature: inline-header list (\"**Label:** ...\") instead of prose")
+    n_hyphen = len(_HYPHEN_COMPOUND_RE.findall(t))
+    if n_hyphen >= 3:
+        flags.append(f"AI-signature: hyphenated word-pair overuse ({n_hyphen} compound modifiers)")
+    if _GERUND_CHAIN_RE.search(t):
+        flags.append("AI-signature: superficial -ing chain (e.g. \"showcasing…, reflecting…, symbolizing…\")")
+    n_emoji = len(_EMOJI_RE.findall(t))
+    emoji_max = EMOJI_MAX_BY_VOICE.get(voice, 0)
+    if n_emoji > emoji_max:
+        flags.append(f"AI-signature: emoji overuse ({n_emoji} emoji, max {emoji_max} for this voice)")
+    return flags
+
 
 # ── Dormant (Phase 13.5 magyar pipeline) — megőrizve, jelenleg NEM hívjuk ──
 AI_TELLS = [
@@ -136,7 +246,20 @@ SYSTEM_PROMPT = (
     "  concrete_value        — concrete number/name/example, or vague ('a lot', 'many', 'several')? "
     "Empty platitudes = low.\n"
     "  voice_consistency     — does it fit the given voice?\n"
-    "  engagement_potential  — would people comment/save? Real question or insight, not engagement-bait.\n\n"
+    "  engagement_potential  — would people comment/save? Real question or insight, not engagement-bait.\n"
+    "  ai_signature_risk     — how strongly does this read as AI-generated, per Wikipedia's \"Signs of "
+    "AI writing\" catalog (WikiProject AI Cleanup) / the blader/humanizer pattern list "
+    "(prompts/ai_writing_signals.md)? SCALE IS INVERTED from the other keys: 1 = reads fully human, no "
+    "AI-tells; 10 = obviously AI-generated. Penalize clusters (not a single instance) of: significance "
+    "inflation (grand claims about importance with no substance), notability name-dropping (vague "
+    "'recognized by experts' citations), vague attributions ('experts believe...' with no source), "
+    "formulaic 'despite challenges, continues to thrive' sections, copula avoidance ('serves as' instead "
+    "of 'is'), rule-of-three padding (forcing lists into exactly 3 items), synonym cycling (avoiding a "
+    "repeated word via near-synonyms), false ranges ('from X to Y' for non-continuous items), passive "
+    "voice/subjectless fragments ('no configuration needed'), Title Case Headings, persuasive-authority "
+    "tropes ('at its core, what matters is...'), and fragmented headers (heading immediately restated as "
+    "a sentence). A single em dash, one non-cliché adjective, or correct grammar is NOT an AI-tell by "
+    "itself — only flag clusters of multiple distinct patterns.\n\n"
     "What to FIND and flag in anti_patterns (quote the exact problem span):\n"
     f"  • AI-tell / stiff connectors: {', '.join(ENGLISH_AI_TELLS[:12])}, …\n"
     "  • Banned buzzwords: leverage, revolutionize, game changer, seamless, disruptive, "
@@ -148,7 +271,13 @@ SYSTEM_PROMPT = (
     "  • Empty business platitude / cliché\n"
     "  • Bad CTA: 'Agree?', engagement-bait, external link, 'DM me', 'book a call'\n"
     "  • Length outside the 1300-1900 character sweet spot (too short = thin, too long = loses "
-    "dwell/engagement) — a post far outside this range CANNOT score 9+ overall.\n\n"
+    "dwell/engagement) — a post far outside this range CANNOT score 9+ overall.\n"
+    "  • AI-writing-signal clusters (see ai_signature_risk above): significance inflation, formulaic "
+    "'despite challenges' framing, copula avoidance, rule-of-three padding, synonym cycling, false "
+    "ranges, subjectless passive fragments, persuasive-authority tropes, fragmented headers.\n\n"
+    "SCORING CAP — ai_signature_risk: if ai_signature_risk is 7-8, overall_score CANNOT be 8+; if "
+    "ai_signature_risk is 9-10, overall_score CANNOT be 6+ (a post that reads as clearly AI-generated "
+    "cannot score as excellent, no matter how strong the other dimensions are).\n\n"
     "overall_score is holistic (NOT the average of sub-scores). If overall < 7, rewrite_suggestion "
     "must be a COMPLETE, ready English post (same voice, strong hook). If >= 7, rewrite_suggestion "
     "is an empty string.\n\n"
@@ -173,7 +302,7 @@ SYSTEM_PROMPT = (
     "when false, fabrication_reason is an empty string.\n\n"
     'Reply ONLY with this JSON: {"hook_strength":int,"human_feel":int,"english_quality":int,'
     '"english_native_quality":int,"concrete_value":int,"voice_consistency":int,'
-    '"engagement_potential":int,"anti_patterns":[...],'
+    '"engagement_potential":int,"ai_signature_risk":int,"anti_patterns":[...],'
     '"overall_score":float,"fabrication_risk":true|false,"fabrication_reason":"...",'
     '"rewrite_suggestion":"...","feedback":"..."}'
 )
@@ -275,10 +404,10 @@ class TextEvaluator:
             return self._error(f"eval hiba: {str(exc)[:100]}")
         if not data:
             return self._error("a modell nem adott értelmezhető JSON-t")
-        return self._normalize(data, post_content)
+        return self._normalize(data, post_content, voice)
 
     @staticmethod
-    def _normalize(data: dict[str, Any], post_content: str) -> dict[str, Any]:
+    def _normalize(data: dict[str, Any], post_content: str, voice: str = "") -> dict[str, Any]:
         scores = {k: _clamp(data.get(k), 1, 10, 5) for k in SCORE_KEYS}
         # Determinisztikus angol-jargon büntetés: a banned-lista/AI-tell találatai lehúzzák az
         # english_native_quality-t, akkor is, ha a modell elnézte (1 találat → max 6, 2+ → max 4).
@@ -292,10 +421,24 @@ class TextEvaluator:
         for lf in _local_flags(post_content):
             if lf not in flags:
                 flags.append(lf)
+        # ai_signature_risk (Phase 20): determinisztikus "Signs of AI writing" találatok emelik a
+        # kockázatot akkor is, ha a modell nem vette észre (fordított skála — magasabb = rosszabb,
+        # lásd _ai_signature_flags). 1 találat → min 4, 2 → min 6, 3+ → min 7.
+        ai_sig_flags = _ai_signature_flags(post_content, voice)
+        if ai_sig_flags:
+            floor = 7 if len(ai_sig_flags) >= 3 else 6 if len(ai_sig_flags) == 2 else 4
+            scores["ai_signature_risk"] = max(scores["ai_signature_risk"], floor)
+        for f in ai_sig_flags:
+            if f not in flags:
+                flags.append(f)
         try:
             overall = float(data.get("overall_score"))
         except (TypeError, ValueError):
-            overall = sum(scores.values()) / len(scores)
+            # Fallback: ai_signature_risk fordított skálájú (magasabb = rosszabb), a 11-x
+            # inverzióval keveredik bele a többi (magasabb = jobb) dimenzió átlagába.
+            quality = {k: v for k, v in scores.items() if k != "ai_signature_risk"}
+            quality["ai_signature_quality"] = 11 - scores["ai_signature_risk"]
+            overall = sum(quality.values()) / len(quality)
         overall = max(1.0, min(10.0, round(overall, 2)))
         fabrication_risk = bool(data.get("fabrication_risk"))
         fabrication_reason = str(data.get("fabrication_reason") or "").strip()

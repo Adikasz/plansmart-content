@@ -283,6 +283,21 @@ synergy, supercharge, paradigm shift; stiff connectors (furthermore, moreover, i
 it's important to note, in today's fast-paced world); "Agree?"-style engagement-bait; external
 links; personal "I".
 
+## Anti-AI-writing signals (CRITICAL)
+
+Full 29-pattern catalog + before/after examples: `prompts/ai_writing_signals.md` (credit:
+blader/humanizer + Wikipedia's WikiProject AI Cleanup "Signs of AI writing"). The `ai_signature_risk`
+eval dimension scores against that list — these are the ones most likely to show up in a short
+LinkedIn business post, banned outright:
+
+- No "In conclusion" / "Let's dive in" / "Here's what you need to know" openers
+- No "It's not just X, it's Y" parallelisms
+- No em-dash chains (one em dash is fine, a string of them isn't)
+- No superficial -ing endings ("showcasing… reflecting… symbolizing…")
+- No "In today's rapidly evolving landscape" type framing
+- No generic conclusions ("The future looks bright")
+- No sycophantic hooks ("Great question!" style)
+
 ## English-native quality (CRITICAL)
 
 The post must read like it was written by a confident native English B2B brand voice, not translated

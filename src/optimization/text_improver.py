@@ -74,7 +74,14 @@ def _rewrite_system(voice: str) -> str:
         "LinkedIn-guru cadence (a wall of tiny punchy one-liners). Sound like a real, confident "
         "operator talking.\n\n"
         "Also avoid: vague quantity ('a lot', 'many', 'several'), engagement-bait ('Agree?'), "
-        "pushy CTA ('book a call', 'DM me'), external links.\n"
+        "pushy CTA ('book a call', 'DM me'), external links.\n\n"
+        "ALSO avoid 'Signs of AI writing' tells (full 29-pattern catalog: prompts/ai_writing_signals.md "
+        "— credit: blader/humanizer + Wikipedia WP:AICLEANUP): signposting openers ('let's dive in', "
+        "'here's what you need to know'), negative parallelisms ('it's not just X, it's Y'), em-dash "
+        "chains, superficial -ing chains ('showcasing… reflecting… symbolizing…'), 'in today's rapidly "
+        "evolving landscape' framing, generic conclusions ('the future looks bright'), sycophantic "
+        "hooks ('Great question!'), markdown boldface/curly quotes/emoji spam, and chatbot artifacts "
+        "('let me know if you have questions').\n"
         "Target length: 1300-1900 characters.\n\n"
         f"=== ENGLISH-NATIVE GUIDE ===\n{_native_guide()}\n\n"
         f"=== VOICE PROMPT ===\n{voice_md}\n\n=== HOOK LIBRARY ===\n{_hooks()}\n\n"
@@ -106,10 +113,21 @@ async def _rewrite(post: str, voice: str, content_type: str, scores: dict) -> st
             "specificity and make the point through clear explanation instead. Do NOT swap one "
             "invented specific for another.\n\n"
         )
+    ai_sig_line = ""
+    ai_sig_risk = scores.get("ai_signature_risk")
+    if isinstance(ai_sig_risk, (int, float)) and ai_sig_risk >= 7:
+        hits = [f for f in (scores.get("anti_patterns") or []) if str(f).startswith("AI-signature:")]
+        detected = "; ".join(hits) if hits else "see SPECIFIC PROBLEMS below for the exact spans"
+        ai_sig_line = (
+            f"AI-SIGNATURE RISK — TOP PRIORITY, must fix (score {ai_sig_risk}/10, lower=more human): "
+            f"this post reads as AI-generated. Detected patterns: {detected}. Rewrite these spans out "
+            "entirely (don't just swap in a synonym) — see prompts/ai_writing_signals.md for the "
+            "before/after fix for each pattern.\n\n"
+        )
     user = (
         f"CONTENT TYPE: {content_type}\n\n"
         f"CURRENT POST ({n} chars, overall {scores.get('overall_score')}):\n{post}\n\n"
-        f"{fab_line}{len_line}{native_line}"
+        f"{fab_line}{ai_sig_line}{len_line}{native_line}"
         f"EVALUATOR FEEDBACK:\n{scores.get('feedback', '')}\n\n"
         f"SPECIFIC PROBLEMS:\n- " + "\n- ".join(scores.get("anti_patterns") or ["—"]) + "\n\n"
     )
