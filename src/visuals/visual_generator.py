@@ -333,7 +333,11 @@ async def compose_visual(post: dict[str, Any]) -> dict[str, Any]:
     # _resolve_portrait sync (rembg/onnx CPU-inferencia + Supabase hívás) — to_thread-be,
     # különben első (nem cache-elt) portré-vágásnál percekre blokkolja az event loopot,
     # ami alatt a bot minden más Telegram-üzenetre "némán" nem válaszol.
+    logger.info("[PORTRAIT-TRACE] compose_visual: post.get('portrait')=%r voice=%s -> calling _resolve_portrait",
+                post.get("portrait"), voice)
     portrait_path = await asyncio.to_thread(_resolve_portrait, post, voice)
+    logger.info("[PORTRAIT-TRACE] compose_visual: _resolve_portrait returned portrait_path=%r "
+                "(will be passed into composer.compose)", portrait_path)
     logger.info(
         "[%s] szöveg-mentes alapkép kész | template=%s mood=%s | overlay: '%s' | portré: %s",
         voice, template, mood, visual_text.get("main_text", ""), "igen" if portrait_path else "nem",
@@ -375,17 +379,27 @@ def _resolve_portrait(post: dict[str, Any], voice: str) -> str | None:
     from src.visuals import portrait as portrait_mod
 
     forced = post.get("portrait")
+    logger.info("[PORTRAIT-TRACE] _resolve_portrait entry: voice=%s post['portrait']=%r", voice, forced)
     if forced is False:
+        logger.info("[PORTRAIT-TRACE] _resolve_portrait: forced is False (explicit deny) -> None")
         return None
     if voice not in portrait_mod.PORTRAIT_VOICES:
+        logger.info("[PORTRAIT-TRACE] _resolve_portrait: voice=%s not in PORTRAIT_VOICES=%s -> None",
+                    voice, sorted(portrait_mod.PORTRAIT_VOICES))
         return None
     include = portrait_mod.should_include_portrait(voice, force=bool(forced))
+    logger.info("[PORTRAIT-TRACE] _resolve_portrait: should_include_portrait(voice=%s, force=%s) -> %s",
+                voice, bool(forced), include)
     if not include:
         return None
     try:
         cutout = portrait_mod.get_cutout(voice)
+        logger.info("[PORTRAIT-TRACE] _resolve_portrait: get_cutout(%s) -> %r (exists=%s)",
+                    voice, cutout, cutout.exists() if cutout is not None else "n/a")
         return str(cutout) if cutout else None
     except Exception as exc:  # rembg/onnx hiba ne törje meg a vizuál-generálást
+        logger.warning("[PORTRAIT-TRACE] _resolve_portrait: get_cutout RAISED %s: %s",
+                       type(exc).__name__, str(exc)[:300])
         logger.warning("[%s] portré kivágás kihagyva: %s", voice, str(exc)[:120])
         return None
 

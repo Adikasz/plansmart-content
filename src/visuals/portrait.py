@@ -84,23 +84,39 @@ def get_cutout(voice: str, *, force_refresh: bool = False) -> Path | None:
     (pl. új voice, még nincs seed), lefuttatja a rembg-et és a másolt eredményt menti seedként
     is, hogy legközelebb (és a következő redeploy után) onnan töltődjön.
     """
+    logger.info("[PORTRAIT-TRACE] get_cutout entry: voice=%s force_refresh=%s CUTOUT_DIR=%s SEED_DIR=%s",
+                voice, force_refresh, CUTOUT_DIR, SEED_DIR)
     if voice not in PORTRAIT_SOURCES:
+        logger.info("[PORTRAIT-TRACE] get_cutout: voice=%s not in PORTRAIT_SOURCES -> None", voice)
         return None
     src = BRAND_DIR / PORTRAIT_SOURCES[voice]
+    logger.info("[PORTRAIT-TRACE] get_cutout: src=%s exists=%s", src, src.exists())
     if not src.exists():
+        logger.warning("[PORTRAIT-TRACE] get_cutout: SOURCE PHOTO MISSING at %s -> None (smoking gun candidate)", src)
         logger.warning("[portrait] hiányzó forrás-portré: %s", src)
         return None
     out = CUTOUT_DIR / f"{voice}.png"
+    logger.info("[PORTRAIT-TRACE] get_cutout: out=%s exists=%s", out, out.exists())
     if out.exists() and not force_refresh:
+        logger.info("[PORTRAIT-TRACE] get_cutout: cache hit -> returning %s", out)
         return out
-    CUTOUT_DIR.mkdir(parents=True, exist_ok=True)
+    try:
+        CUTOUT_DIR.mkdir(parents=True, exist_ok=True)
+    except Exception as exc:
+        logger.warning("[PORTRAIT-TRACE] get_cutout: CUTOUT_DIR.mkdir(%s) RAISED %s: %s "
+                       "(smoking gun candidate — volume/permission issue)",
+                       CUTOUT_DIR, type(exc).__name__, str(exc)[:200])
+        raise
 
     seed = SEED_DIR / f"{voice}.png"
+    logger.info("[PORTRAIT-TRACE] get_cutout: seed=%s exists=%s", seed, seed.exists())
     if seed.exists() and not force_refresh:
         shutil.copyfile(seed, out)
         logger.info("[portrait] cutout másolva seedből: %s", out.name)
+        logger.info("[PORTRAIT-TRACE] get_cutout: copied seed -> %s, returning it", out)
         return out
 
+    logger.info("[PORTRAIT-TRACE] get_cutout: no cache, no seed -> falling back to rembg (slow path)")
     logger.info("[portrait] háttér-eltávolítás (%s) — egyszeri, cache-elt…", voice)
     cut = remove_background(src)
     cut.save(out, "PNG")
@@ -182,9 +198,13 @@ def should_include_portrait(voice: str, *, force: bool = False) -> bool:
     ha a Supabase elérhetetlen, a lokális JSON a fallback (redeploykor ugyan elveszik,
     de sosem crashelünk emiatt).
     """
+    logger.info("[PORTRAIT-TRACE] should_include_portrait entry: voice=%s force=%s", voice, force)
     if voice not in PORTRAIT_VOICES:
+        logger.info("[PORTRAIT-TRACE] should_include_portrait: voice=%s not in PORTRAIT_VOICES -> False",
+                    voice)
         return False
     if force:
+        logger.info("[PORTRAIT-TRACE] should_include_portrait: force=True -> True (counter NOT touched)")
         return True
     try:
         include, new_count, new_threshold = _decide(_sb_get(voice))

@@ -311,6 +311,8 @@ class TextOverlayComposer:
 
         # Portré a szöveg ELŐTT (bal-alsó), ha van — plansmart sosem kap portrét.
         has_portrait = bool(portrait_path) and voice in {"david", "adam"}
+        logger.info("[PORTRAIT-TRACE] compose(): portrait_path=%r voice=%s -> has_portrait=%s",
+                    portrait_path, voice, has_portrait)
         # Portré esetén a bevált STAT_CARD (portré-tudatos) elrendezésre esünk vissza.
         layout = lt.STAT_CARD if has_portrait else (template if lt.is_template(template) else lt.STAT_CARD)
 
@@ -335,6 +337,8 @@ class TextOverlayComposer:
         if has_portrait:
             self._place_portrait(img, portrait_path, s)
 
+        logger.info("[PORTRAIT-TRACE] compose(): dispatching layout=%s voice=%s portrait=%s",
+                    layout, voice, has_portrait)
         if layout == lt.STAT_CARD:
             if voice == "david":
                 self._layout_david(img, main_text, sub_text, stat, s, acc, portrait=has_portrait)
@@ -737,11 +741,16 @@ class TextOverlayComposer:
         A portré a szöveg ELŐTT kerül a képre. Lépések: bbox-crop → méretezés (~40% magasság) →
         deszaturáció + kontraszt + grain (filmes illesztés) → grounding árnyék → beillesztés.
         """
+        logger.info("[PORTRAIT-TRACE] _place_portrait entry: portrait_path=%r", portrait_path)
         try:
             cut = Image.open(portrait_path).convert("RGBA")
         except Exception as exc:
+            logger.warning("[PORTRAIT-TRACE] _place_portrait: Image.open(%r) RAISED %s: %s "
+                           "(smoking gun candidate — resolved path not actually readable)",
+                           portrait_path, type(exc).__name__, str(exc)[:200])
             logger.warning("[overlay] portré betöltés hiba (%s): %s", portrait_path, str(exc)[:100])
             return
+        logger.info("[PORTRAIT-TRACE] _place_portrait: loaded OK, size=%s — compositing onto canvas", cut.size)
         bbox = cut.getchannel("A").getbbox()
         if bbox:
             cut = cut.crop(bbox)
