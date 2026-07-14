@@ -410,11 +410,45 @@ class TextOverlayComposer:
         sub_lh = int((sa + sd) * 1.2)
         block_h = len(main_lines) * main_lh + (len(sub_lines) * sub_lh if sub_lines else 0)
         if portrait:
-            # A portré a bal-alsót foglalja → MINDEN szöveg a felső sávba, bal-oldalt, FÜGGŐLEGESEN
-            # egymásra pakolva (stat → main → sub). Így a stat nem ütközik a fő szöveggel.
-            y = margin
+            # A portré a bal-alsó ~40%-ot foglalja (lásd _place_portrait) → MINDEN szöveg a felső
+            # sávba, bal-oldalt, FÜGGŐLEGESEN egymásra pakolva (stat → main → sub). A fő szöveg
+            # hossza (sortörés) előre nem ismert, ezért a méretét a portré teteje fölötti
+            # rendelkezésre álló magassághoz illesztjük (shrink-to-fit magasságra is, nem csak
+            # szélességre) — enélkül egy hosszabb/több-sorosra törő cím ráfuthat a portréra.
+            y0 = margin
+            portrait_top = h - int(h * 0.40)
+            stat_h = 0
+            stat_font = None
             if stat:
                 stat_font = self._fit_font("fragment", stat, int(120 * s), w - 2 * margin)
+                sfa, sfd = stat_font.getmetrics()
+                stat_h = int((sfa + sfd) * 1.02) + int(10 * s)
+            avail_h = max(int(140 * s), portrait_top - y0 - stat_h - int(30 * s))
+            main_size = int(120 * s)
+            sub_lines = []
+            while True:
+                main_font, main_lines = self._fit_lines("bebas", (main_text or "").upper(), main_size,
+                                                         w - 2 * margin, min_ratio=0.4)
+                ma, md = main_font.getmetrics()
+                main_lh = int((ma + md) * 1.04)
+                main_block_h = len(main_lines) * main_lh
+                sub_font = self._font("inter", max(int(22 * s), int(main_size * 0.27)))
+                candidate_sub = self._wrap(draw, sub_text or "", sub_font, w - 2 * margin) if sub_text else []
+                sa, sd = sub_font.getmetrics()
+                sub_lh = int((sa + sd) * 1.2)
+                sub_block_h = (len(candidate_sub) * sub_lh + int(10 * s)) if candidate_sub else 0
+                if main_block_h + sub_block_h <= avail_h:
+                    sub_lines = candidate_sub
+                    break
+                if main_block_h <= avail_h:
+                    sub_lines = []  # a cím elfér, az al-szöveg már nem — inkább elhagyjuk, mintsem a portréra fusson
+                    break
+                if main_size <= int(52 * s):
+                    sub_lines = []
+                    break
+                main_size = int(main_size * 0.9)
+            y = y0
+            if stat and stat_font is not None:
                 sfa, sfd = stat_font.getmetrics()
                 stat_lh = int((sfa + sfd) * 1.02)
                 self._shadow(img, [stat], stat_font, (margin, y), "la", stat_lh, blur=int(12 * s))
@@ -422,6 +456,7 @@ class TextOverlayComposer:
                 y += stat_lh + int(10 * s)
             y = self._text_with_glow(img, main_lines, main_font, (margin, y), WHITE, "la", accent, int(14 * s), line_gap=1.04)
             if sub_lines:
+                y += int(10 * s)
                 self._shadow(img, sub_lines, sub_font, (margin, y), "la", sub_lh, blur=int(8 * s))
                 draw = ImageDraw.Draw(img)
                 for ln in sub_lines:
@@ -446,22 +481,53 @@ class TextOverlayComposer:
         draw = ImageDraw.Draw(img)
         w, h = img.size
         margin = int(70 * s)
-        main_font, main_lines = self._fit_lines("inter", (main_text or "").upper(), int(124 * s), w - 2 * margin, weight="ExtraBold")
-        sub_font = self._font("inter", int(36 * s))
-        sub_lines = self._wrap(draw, sub_text or "", sub_font, int(w * 0.8)) if sub_text else []
-
-        ma, md = main_font.getmetrics()
-        sa, sd = sub_font.getmetrics()
-        main_lh = int((ma + md) * 1.06)
-        sub_lh = int((sa + sd) * 1.2)
-        block_h = len(main_lines) * main_lh + (len(sub_lines) * sub_lh + int(24 * s) if sub_lines else 0)
-        # A stat (ha van) a felső sávban ül; a szöveg-blokk alapból középen, portré esetén feljebb
-        # (a felső harmadba), hogy a bal-alsó portré ne takarja.
         stat_reserve = int(200 * s + margin) if stat else 0
+
         if portrait:
-            y = stat_reserve + margin
+            # A portré a bal-alsó ~40%-ot foglalja (lásd _place_portrait). A cím (main_text) sor-
+            # törése előre nem ismert méretnél, ezért itt magasságra IS shrink-to-fit-elünk (nem
+            # csak szélességre, mint az alap _fit_lines) — enélkül egy több-sorosra törő cím + az
+            # al-szöveg ráfuthat a portréra (lásd 2026-07-14 bug: "YOU'RE RENTING YOUR WORKFLOW"
+            # 4 sorra törve a fejre futott).
+            portrait_top = h - int(h * 0.40)
+            y0 = stat_reserve + margin
+            avail_h = max(int(160 * s), portrait_top - y0 - int(30 * s))
+            main_size = int(124 * s)
+            sub_lines: list[str] = []
+            while True:
+                main_font, main_lines = self._fit_lines("inter", (main_text or "").upper(), main_size,
+                                                         w - 2 * margin, weight="ExtraBold", min_ratio=0.4)
+                ma, md = main_font.getmetrics()
+                main_lh = int((ma + md) * 1.06)
+                main_block_h = len(main_lines) * main_lh
+                sub_font = self._font("inter", max(int(22 * s), int(main_size * 0.29)))
+                candidate_sub = self._wrap(draw, sub_text or "", sub_font, int(w * 0.8)) if sub_text else []
+                sa, sd = sub_font.getmetrics()
+                sub_lh = int((sa + sd) * 1.2)
+                sub_block_h = (len(candidate_sub) * sub_lh + int(24 * s)) if candidate_sub else 0
+                if main_block_h + sub_block_h <= avail_h:
+                    sub_lines = candidate_sub
+                    break
+                if main_block_h <= avail_h:
+                    sub_lines = []  # a cím elfér, az al-szöveg már nem — inkább elhagyjuk, mintsem a portréra fusson
+                    break
+                if main_size <= int(56 * s):
+                    sub_lines = []
+                    break
+                main_size = int(main_size * 0.9)
+            y = y0
         else:
+            main_font, main_lines = self._fit_lines("inter", (main_text or "").upper(), int(124 * s), w - 2 * margin, weight="ExtraBold")
+            sub_font = self._font("inter", int(36 * s))
+            sub_lines = self._wrap(draw, sub_text or "", sub_font, int(w * 0.8)) if sub_text else []
+            ma, md = main_font.getmetrics()
+            sa, sd = sub_font.getmetrics()
+            main_lh = int((ma + md) * 1.06)
+            sub_lh = int((sa + sd) * 1.2)
+            block_h = len(main_lines) * main_lh + (len(sub_lines) * sub_lh + int(24 * s) if sub_lines else 0)
+            # A szöveg-blokk alapból középen (nincs portré, ami a bal-alsót foglalná).
             y = (h - block_h) // 2 + int(h * 0.06)
+
         cx = w // 2
         self._shadow(img, main_lines, main_font, (cx, y), "ma", main_lh, blur=int(16 * s), alpha=170)
         for ln in main_lines:
