@@ -189,35 +189,20 @@ def _save_state(state: dict) -> None:
 
 
 def should_include_portrait(voice: str, *, force: bool = False) -> bool:
-    """Kell-e portré ehhez a poszthoz? Növeli a per-voice számlálót és a küszöbnél jelez.
+    """Kell-e portré ehhez a poszthoz?
 
-    force=True: mindig igaz (a /create --portrait kézi felülíráshoz) — a számlálót nem érinti.
-    plansmart / ismeretlen hang: mindig hamis. Minden N. (3-4) david/adam poszt kap portrét.
-
-    Állapot: elsődlegesen a Supabase `portrait_counters` tábla (túléli a redeployt);
-    ha a Supabase elérhetetlen, a lokális JSON a fallback (redeploykor ugyan elveszik,
-    de sosem crashelünk emiatt).
+    2026-07-15: always-on — david/adam MINDIG igaz, plansmart/ismeretlen hang mindig hamis.
+    A korábbi "minden 3-4. poszt" frekvencia-számláló (_decide/_sb_get/_sb_upsert, Supabase
+    `portrait_counters` tábla) NEM gátolja többé a döntést — a tábla és a hozzá tartozó
+    segédfüggvények megmaradnak (seed_from_local_state, a _demo diagnosztika), csak innen már
+    nem hívódnak. A `force` param innentől nincs hatással a kimenetre (mindkét ág ugyanazt adja
+    david/adam-ra), de megmarad a hívási hely kompatibilitása miatt (_resolve_portrait force=...-t ad át).
     """
     logger.info("[PORTRAIT-TRACE] should_include_portrait entry: voice=%s force=%s", voice, force)
-    if voice not in PORTRAIT_VOICES:
-        logger.info("[PORTRAIT-TRACE] should_include_portrait: voice=%s not in PORTRAIT_VOICES -> False",
-                    voice)
-        return False
-    if force:
-        logger.info("[PORTRAIT-TRACE] should_include_portrait: force=True -> True (counter NOT touched)")
-        return True
-    try:
-        include, new_count, new_threshold = _decide(_sb_get(voice))
-        _sb_upsert(voice, new_count, new_threshold)
-        return include
-    except Exception as exc:  # Supabase elérhetetlen → lokális JSON fallback
-        logger.warning("[portrait] Supabase állapot elérhetetlen (%s) — lokális JSON fallback",
-                       str(exc)[:120])
-        state = _load_state()
-        include, new_count, new_threshold = _decide(state.get(voice))
-        state[voice] = {"count": new_count, "threshold": new_threshold}
-        _save_state(state)
-        return include
+    include = voice in PORTRAIT_VOICES
+    logger.info("[PORTRAIT-TRACE] should_include_portrait: voice=%s -> %s (always-on, counter not consulted)",
+                voice, include)
+    return include
 
 
 def seed_from_local_state() -> dict[str, str]:

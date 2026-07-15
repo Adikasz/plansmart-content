@@ -291,8 +291,9 @@ class TextOverlayComposer:
 
         template (Phase 17): STAT_CARD (baseline) | QUOTE_STYLE | SPLIT_COMPARISON |
         MINIMAL_TYPOGRAPHIC — a kompozíciós struktúra. accent: a mood accent-színe (RGB);
-        None → voice default. Ha portré van, MINDIG a STAT_CARD (portré-tudatos) elrendezés fut,
-        hogy ne regresszáljunk a bevált portré-layoutról.
+        None → voice default. Portré esetén (2026-07-15, Part B) mind a 4 template natívan
+        portré-tudatos — a variety rotation választása MEGMARAD, nincs többé STAT_CARD-ra
+        kényszerítés (lásd _layout_quote/_layout_split/_layout_minimal portrait= ágait).
         """
         # BUG2 fix: ne rajzoljuk ki kétszer ugyanazt a számot. Ha a stat megegyezik a
         # main_text-tel (kis/nagybetűtől függetlenül), vagy a main_text már tartalmazza,
@@ -313,8 +314,7 @@ class TextOverlayComposer:
         has_portrait = bool(portrait_path) and voice in {"david", "adam"}
         logger.info("[PORTRAIT-TRACE] compose(): portrait_path=%r voice=%s -> has_portrait=%s",
                     portrait_path, voice, has_portrait)
-        # Portré esetén a bevált STAT_CARD (portré-tudatos) elrendezésre esünk vissza.
-        layout = lt.STAT_CARD if has_portrait else (template if lt.is_template(template) else lt.STAT_CARD)
+        layout = template if lt.is_template(template) else lt.STAT_CARD
 
         # Gradiens: STAT_CARD → a bevált per-voice; a többi template → saját, olvashatóság-barát wash.
         if layout == lt.STAT_CARD:
@@ -347,11 +347,11 @@ class TextOverlayComposer:
             else:
                 self._layout_plansmart(img, main_text, sub_text, s, acc)
         elif layout == lt.QUOTE_STYLE:
-            self._layout_quote(img, main_text, sub_text, stat, s, voice, acc)
+            self._layout_quote(img, main_text, sub_text, stat, s, voice, acc, portrait=has_portrait)
         elif layout == lt.SPLIT_COMPARISON:
-            self._layout_split(img, main_text, sub_text, stat, s, voice, acc)
+            self._layout_split(img, main_text, sub_text, stat, s, voice, acc, portrait=has_portrait)
         else:  # MINIMAL_TYPOGRAPHIC
-            self._layout_minimal(img, main_text, sub_text, stat, s, voice, acc)
+            self._layout_minimal(img, main_text, sub_text, stat, s, voice, acc, portrait=has_portrait)
 
         self._paste_logo(img, s)  # valódi logó-jel minden képre, jobb-alsó sarok
 
@@ -576,18 +576,62 @@ class TextOverlayComposer:
         # A PlanSmart brandet a valódi logó-jel adja (jobb-alsó), a compose() teszi rá.
 
     # ── Phase 17 template-elrendezések (STAT_CARD-on túl) ──────────────
-    def _layout_quote(self, img, main_text, sub_text, stat, s, voice, accent):
+    def _layout_quote(self, img, main_text, sub_text, stat, s, voice, accent, portrait=False):
         """QUOTE_STYLE — editorial pull-quote: nagy idézőjel-accent, bal-igazított aszimmetrikus
-        fő szöveg (pull-quote), az al-szöveg kicsi, attribúció-jellegű."""
+        fő szöveg (pull-quote), az al-szöveg kicsi, attribúció-jellegű.
+
+        portrait=True (2026-07-15, Part B): a portré bal-alsó ~40%-ot foglal (lásd
+        _place_portrait) — a pull-quote + attribúció magasságra IS shrink-to-fit-elve a portré
+        teteje fölötti sávba szorul (ugyanaz az elv, mint a STAT_CARD portré-ágában: sosem
+        feltételezünk fix szövegmagasságot, mindig a ténylegesen tördelt sorszámot mérjük)."""
+        draw = ImageDraw.Draw(img)
         w, h = img.size
         margin = int(80 * s)
         # Nagy stilizált idézőjel (accent), bal-felső — az Inter fedi a „ (U+201C) glyphet.
         qfont = self._font("inter", int(300 * s), "ExtraBold")
         self._shadow(img, ["“"], qfont, (margin - int(10 * s), int(10 * s)), "la", int(300 * s), blur=int(10 * s))
-        ImageDraw.Draw(img).text((margin - int(10 * s), int(10 * s)), "“", font=qfont, fill=accent, anchor="la")
+        draw.text((margin - int(10 * s), int(10 * s)), "“", font=qfont, fill=accent, anchor="la")
 
         quote_text = (main_text or "").strip().strip('"“”')
         max_w = int(w * 0.82)
+
+        if portrait:
+            portrait_top = h - int(h * 0.40)
+            y0 = int(h * 0.32)
+            avail_h = max(int(140 * s), portrait_top - y0 - int(20 * s))
+            size = int(112 * s)
+            attr_lines: list[str] = []
+            while True:
+                main_font, main_lines = self._fit_lines("bebas", quote_text.upper(), size, max_w,
+                                                         min_ratio=0.4, max_lines=4)
+                ma, md = main_font.getmetrics()
+                main_lh = int((ma + md) * 1.02)
+                main_block_h = len(main_lines) * main_lh
+                sub_font = self._font("inter", max(int(20 * s), int(size * 0.27)), "SemiBold")
+                candidate_attr = self._wrap(draw, f"— {sub_text.strip()}", sub_font, max_w) if sub_text else []
+                sa, sd = sub_font.getmetrics()
+                sub_lh = int((sa + sd) * 1.2)
+                attr_block_h = (len(candidate_attr) * sub_lh + int(18 * s)) if candidate_attr else 0
+                if main_block_h + attr_block_h <= avail_h:
+                    attr_lines = candidate_attr
+                    break
+                if main_block_h <= avail_h:
+                    attr_lines = []  # a fő idézet elfér, az attribúció már nem — inkább elhagyjuk
+                    break
+                if size <= int(48 * s):
+                    attr_lines = []
+                    break
+                size = int(size * 0.9)
+            y = self._text_with_glow(img, main_lines, main_font, (margin, y0), WHITE, "la", accent,
+                                      int(12 * s), line_gap=1.02)
+            if attr_lines:
+                y += int(18 * s)
+                self._shadow(img, attr_lines, sub_font, (margin, y), "la", sub_lh, blur=int(6 * s))
+                for ln in attr_lines:
+                    draw.text((margin, y), ln, font=sub_font, fill=accent, anchor="la")
+                    y += sub_lh
+            return
+
         main_font, main_lines = self._fit_lines("bebas", quote_text.upper(), int(112 * s), max_w,
                                                 min_ratio=0.5, max_lines=4)
         ma, md = main_font.getmetrics()
@@ -599,12 +643,11 @@ class TextOverlayComposer:
         y = self._text_with_glow(img, main_lines, main_font, (margin, y), WHITE, "la", accent, int(12 * s), line_gap=1.02)
         if sub_text:
             sub_font = self._font("inter", int(30 * s), "SemiBold")
-            attr_lines = self._wrap(ImageDraw.Draw(img), f"— {sub_text.strip()}", sub_font, max_w)
+            attr_lines = self._wrap(draw, f"— {sub_text.strip()}", sub_font, max_w)
             sa, sd = sub_font.getmetrics()
             sub_lh = int((sa + sd) * 1.2)
             y += int(18 * s)
             self._shadow(img, attr_lines, sub_font, (margin, y), "la", sub_lh, blur=int(6 * s))
-            draw = ImageDraw.Draw(img)
             for ln in attr_lines:
                 draw.text((margin, y), ln, font=sub_font, fill=accent, anchor="la")
                 y += sub_lh
@@ -637,47 +680,70 @@ class TextOverlayComposer:
         img.alpha_composite(layer.filter(ImageFilter.GaussianBlur(int(6 * s))))  # glow
         img.alpha_composite(layer)  # éles vonal felül
 
-    def _layout_split(self, img, main_text, sub_text, stat, s, voice, accent):
-        """SPLIT_COMPARISON — függőleges divider, bal/jobb (before → after / kontraszt) keret."""
+    def _layout_split(self, img, main_text, sub_text, stat, s, voice, accent, portrait=False):
+        """SPLIT_COMPARISON — függőleges divider, bal/jobb (before → after / kontraszt) keret.
+
+        portrait=True (2026-07-15, Part B): a portré bal-alsó ~40%-ot foglalja — a divider
+        lerövidül a portré teteje fölé, a BAL oldali szöveg csak a portré fölötti sávba fér
+        (magasságra shrink-to-fit, mint mindenhol), a JOBB oldal érintetlen (ott nincs portré,
+        marad a teljes magasságban középre igazítva). Az al-szöveg (bottom, teljes szélességű
+        felirat) portré esetén elmarad — a bal-alsó negyedet úgyis a portré foglalja, egy
+        keresztbe húzott felirat csak összezavarná a kompozíciót."""
+        draw = ImageDraw.Draw(img)
         w, h = img.size
         margin = int(60 * s)
         left, right = self._split_pair(main_text, stat)
         cx = w // 2
-        self._divider(img, cx, int(h * 0.20), int(h * 0.80), s, accent)
         half_w = int(w * 0.5 - margin * 1.4)
+        portrait_top = h - int(h * 0.40) if portrait else None
+        divider_y1 = min(int(h * 0.80), portrait_top - int(20 * s)) if portrait else int(h * 0.80)
+        self._divider(img, cx, int(h * 0.20), divider_y1, s, accent)
 
-        def draw_side(text, center_x):
+        def draw_side(text, center_x, top, bottom):
             if not text:
                 return
-            font, lines = self._fit_lines("inter", text.upper(), int(100 * s), half_w,
-                                          weight="ExtraBold", min_ratio=0.45, max_lines=3)
-            a, dsc = font.getmetrics()
-            lh = int((a + dsc) * 1.05)
-            bh = len(lines) * lh
-            yy = (h - bh) // 2 - int(h * 0.02)
+            avail_h = max(int(90 * s), bottom - top)
+            size = int(100 * s)
+            while True:
+                font, lines = self._fit_lines("inter", text.upper(), size, half_w,
+                                              weight="ExtraBold", min_ratio=0.4, max_lines=3)
+                a, dsc = font.getmetrics()
+                lh = int((a + dsc) * 1.05)
+                bh = len(lines) * lh
+                if bh <= avail_h or size <= int(44 * s):
+                    break
+                size = int(size * 0.9)
+            yy = top + (avail_h - bh) // 2
             self._shadow(img, lines, font, (center_x, yy), "ma", lh, blur=int(12 * s), alpha=175)
-            dd = ImageDraw.Draw(img)
             for ln in lines:
-                dd.text((center_x, yy), ln, font=font, fill=WHITE, anchor="ma")
+                draw.text((center_x, yy), ln, font=font, fill=WHITE, anchor="ma")
                 yy += lh
 
-        draw_side(left, w // 4)
-        draw_side(right, 3 * w // 4)
-        if sub_text:
+        left_bottom = (portrait_top - int(20 * s)) if portrait else h
+        draw_side(left, w // 4, 0, left_bottom)
+        draw_side(right, 3 * w // 4, 0, h)
+
+        if sub_text and not portrait:
             sub_font = self._font("inter", int(30 * s))
-            sub_lines = self._wrap(ImageDraw.Draw(img), sub_text, sub_font, int(w * 0.86))
+            sub_lines = self._wrap(draw, sub_text, sub_font, int(w * 0.86))
             sa, sd = sub_font.getmetrics()
             sub_lh = int((sa + sd) * 1.2)
             yy = h - margin - len(sub_lines) * sub_lh
             self._shadow(img, sub_lines, sub_font, (cx, yy), "ma", sub_lh, blur=int(6 * s))
-            dd = ImageDraw.Draw(img)
             for ln in sub_lines:
-                dd.text((cx, yy), ln, font=sub_font, fill=LIGHT_GREY, anchor="ma")
+                draw.text((cx, yy), ln, font=sub_font, fill=LIGHT_GREY, anchor="ma")
                 yy += sub_lh
 
-    def _layout_minimal(self, img, main_text, sub_text, stat, s, voice, accent):
+    def _layout_minimal(self, img, main_text, sub_text, stat, s, voice, accent, portrait=False):
         """MINIMAL_TYPOGRAPHIC — egyetlen óriási szó/rövid frázis középen, maximális negatív tér,
-        legnagyobb kontraszt (erős accent-glow). Alig-alig más szöveg."""
+        legnagyobb kontraszt (erős accent-glow). Alig-alig más szöveg.
+
+        portrait=True (2026-07-15, Part B): a portré bal-alsó ~40%-ot foglalja, ezért a nagy
+        szöveg a portré fölötti sávra szorul (középre igazítva ABBAN a sávban, nem a teljes
+        vásznon) — a shrink-to-fit ugyanúgy magasságra IS mér, mint mindenhol. Az egyetlen
+        halvány al-szöveg-sor (ami eredetileg a legalsó sávban ülne, pont ahol a portré van)
+        portré esetén elmarad — ez tartja meg a "minimal" jelleget ahelyett, hogy a portré mellé
+        zsúfolnánk egy sort."""
         w, h = img.size
         margin = int(50 * s)
         # Egy RÖVID, de TELJES egység: rövid stat (pl. "73%", "16 MIN"), különben a teljes
@@ -694,7 +760,14 @@ class TextOverlayComposer:
                 text = " ".join(words[:3])
         # Méret: illeszkedjen SZÉLESSÉGRE ÉS MAGASSÁGRA is (a hosszabb frázis kisebb lesz, de
         # teljesen látszik — nem lóg ki fent/lent). Marad a nagy negatív tér.
-        avail_h = int(h * 0.60)
+        if portrait:
+            portrait_top = h - int(h * 0.40)
+            zone_top = int(h * 0.08)
+            zone_bottom = portrait_top - int(30 * s)
+            avail_h = max(int(140 * s), zone_bottom - zone_top)
+        else:
+            zone_top, zone_bottom = 0, h
+            avail_h = int(h * 0.60)
         size = int(280 * s)
         while True:
             main_font, main_lines = self._fit_lines("bebas", text.upper(), size, w - 2 * margin,
@@ -705,10 +778,13 @@ class TextOverlayComposer:
                 break
             size = int(size * 0.9)
         block_h = len(main_lines) * main_lh
-        y = max(int(h * 0.14), (h - block_h) // 2)
+        if portrait:
+            y = max(zone_top, zone_top + (zone_bottom - zone_top - block_h) // 2)
+        else:
+            y = max(int(h * 0.14), (h - block_h) // 2)
         cx = w // 2
         self._text_with_glow(img, main_lines, main_font, (cx, y), WHITE, "ma", accent, int(22 * s), line_gap=0.98)
-        if sub_text:  # csak egy halvány sor legalul
+        if sub_text and not portrait:  # csak egy halvány sor legalul — portré esetén elhagyjuk
             sub_font = self._font("inter", int(26 * s), "SemiBold")
             sub_lines = self._wrap(ImageDraw.Draw(img), sub_text, sub_font, int(w * 0.7))[:1]
             sa, sd = sub_font.getmetrics()
