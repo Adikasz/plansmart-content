@@ -34,8 +34,8 @@ logger = logging.getLogger(__name__)
 load_dotenv(override=False)
 
 BREAKING_KEYWORDS = [
-    "OpenAI", "Anthropic", "Google", "Apple", "GPT-", "Claude", "Gemini",
-    "ChatGPT", "Sora", "DeepMind", "Meta AI",
+    "OpenAI", "Anthropic", "Google", "Apple", "GPT", "Claude", "Gemini",
+    "ChatGPT", "Sora", "DeepMind", "Meta AI", "Mistral", "Cohere", "Hugging Face",
 ]
 BREAKING_VOICE = "adam"  # ő a news reactor
 BREAKING_MIN_SCORE = 8

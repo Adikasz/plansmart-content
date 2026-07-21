@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from src.storage.models import FeedItem
@@ -102,16 +102,26 @@ def get_recent_top(since_iso: str, min_score: int = 6, limit: int = 20, client=N
     return resp.data or []
 
 
-def get_breaking_candidates(min_score: int = 8, limit: int = 30, client=None) -> list[dict[str, Any]]:
-    """Breaking news jelöltek: score>=min, még nem 'breaking'-elt elemek — legjobb előre.
+def get_breaking_candidates(
+    min_score: int = 8, limit: int = 30, window_hours: int = 48, client=None
+) -> list[dict[str, Any]]:
+    """Breaking news jelöltek: score>=min, még nem 'breaking'-elt, ÉS az utolsó `window_hours`
+    órában begyűjtött elemek — legjobb pontszám előre EZEN a szűkített ablakon belül.
 
-    A 4 órás időablakot + kulcsszó-szűrést a hívó (breaking_news_worker) végzi Pythonban,
-    mert a published_at formátuma forrásonként eltérhet (és lehet null).
+    2026-07-21: window_hours hozzáadva. Enélkül egy sosem-breaking-elt, hónapokra visszanyúló
+    score>=8 elem-készlet (élesben 482 sor) örökre kiszorította a friss jelölteket a limit-es
+    (30) top-score találati halmazból, mert a query csak score szerint rendezett, dátum-szűrés
+    nélkül — 7 napon át MINDEN futás ugyanazt a 30, hetekkel/hónapokkal ezelőtti elemet adta
+    vissza, 0 megfelelő jelölttel. A 4 órás publikálási frissesség-ellenőrzést továbbra is a
+    hívó (breaking_news_worker) végzi Pythonban — ez a window csak azt korlátozza, meddig
+    jöhet szóba egy jelölt egyáltalán a top-N-es slice-ban.
     """
     c = client or _client()
+    since_iso = (datetime.now(timezone.utc) - timedelta(hours=window_hours)).isoformat()
     resp = (
         c.table("feed_items").select("*")
         .gte("score", min_score).eq("breaking", False)
+        .gte("fetched_at", since_iso)
         .order("score", desc=True).limit(limit).execute()
     )
     return resp.data or []
