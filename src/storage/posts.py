@@ -117,12 +117,36 @@ def used_seed_keys(
     return keys
 
 
-def save_visual(post_id: str, visual_url: str, base_image_url: str | None = None, client=None) -> None:
-    """A végleges (komponált) vizuál URL-jét menti; opcionálisan a nyers Muapi alapképet is."""
+def save_visual(
+    post_id: str,
+    visual_url: str,
+    base_image_url: str | None = None,
+    visual_template: str | None = None,
+    portrait_used: bool | None = None,
+    client=None,
+) -> None:
+    """A végleges (komponált) vizuál URL-jét menti; opcionálisan a nyers Muapi alapképet is.
+
+    visual_template/portrait_used (Phase 21b -- az engagement_report BY VISUAL bontásához):
+    nincs rá dedikált oszlop, a meglévő metadata JSONB-be kerül (ugyanaz a minta mint a
+    strategy_type/seed_key insert_post-ban) -- read-modify-write, hogy az insert_post által
+    már beírt egyéb metadata kulcsok (pl. strategy_type) ne vesszenek el.
+    """
     patch: dict[str, Any] = {"visual_url": visual_url}
     if base_image_url:
         patch["base_image_url"] = base_image_url
-    _c(client).table("posts").update(patch).eq("id", post_id).execute()
+    if visual_template is None and portrait_used is None:
+        _c(client).table("posts").update(patch).eq("id", post_id).execute()
+        return
+    c = _c(client)
+    current = get_post(post_id, client=c) or {}
+    metadata = dict(current.get("metadata") or {})
+    if visual_template is not None:
+        metadata["visual_template"] = visual_template
+    if portrait_used is not None:
+        metadata["portrait_used"] = portrait_used
+    patch["metadata"] = metadata
+    c.table("posts").update(patch).eq("id", post_id).execute()
 
 
 def record_cost(
@@ -152,6 +176,23 @@ def record_cost(
 def get_post(post_id: str, client=None) -> dict[str, Any] | None:
     resp = _c(client).table("posts").select("*").eq("id", post_id).limit(1).execute()
     return (resp.data or [None])[0]
+
+
+def get_posts_by_ids(post_ids: list[str], client=None) -> dict[str, dict[str, Any]]:
+    """Több poszt lekérése id szerint egy dict-be ({id: row}) -- csak a report-hoz kellő
+    mezőkkel (könnyebb payload, mint select("*")). 100-as csomagokban (in_ limit), mint a
+    feed_items.dedupe_and_save mintája."""
+    c = _c(client)
+    out: dict[str, dict[str, Any]] = {}
+    for i in range(0, len(post_ids), 100):
+        chunk = post_ids[i : i + 100]
+        resp = (
+            c.table("posts").select("id,voice,hook_type,is_breaking,metadata")
+            .in_("id", chunk).execute()
+        )
+        for row in resp.data or []:
+            out[row["id"]] = row
+    return out
 
 
 def update_post_status(post_id: str, status: str, client=None, **fields: Any) -> None:
@@ -221,6 +262,21 @@ def breaking_count_since(since_iso: str, client=None) -> int:
 def mark_sent(post_id: str, sent_at: str | None = None, client=None) -> None:
     """A poszt sent_at mezőjének beállítása (Telegram kiküldés után)."""
     _c(client).table("posts").update({"sent_at": sent_at or _now()}).eq("id", post_id).execute()
+
+
+def mark_posted(post_id: str, by: str, client=None) -> None:
+    """Phase 21b: a human ténylegesen posztolta LinkedInre KÉZZEL (a LinkedIn API még nem
+    éles -- lásd approve_cb mock ága, ami approved-nál megáll).
+
+    status='posted' -- a schema.sql posts_status_check ezt már régóta engedi, de eddig
+    semmi nem állította be (csak 'approved'/'published' volt élesben használva) -- ez a
+    hiányzó, EMBER-vezérelt "valóban kiment LinkedInre" esemény, külön a 'published'-től
+    (ami a jövőbeli automata LinkedIn API-hívást jelentené). sent_at innentől az
+    engagement_metrics.hours_since_post nulla-órája (lásd src/storage/engagement.py).
+    """
+    now = _now()
+    update_post_status(post_id, "posted", client=client, approved_at=now, approved_by=by)
+    mark_sent(post_id, now, client=client)
 
 
 def status_counts_since(since_iso: str, client=None) -> dict[str, int]:

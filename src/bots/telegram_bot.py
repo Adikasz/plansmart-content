@@ -153,8 +153,13 @@ async def _attach_visual(post: dict) -> dict:
         vis = await visual_generator.compose_visual(post)
         post["visual_url"] = vis["image_url"]
         post["base_image_url"] = vis.get("base_image_url")
+        post["visual_template"] = vis.get("template")
+        post["portrait_used"] = vis.get("portrait_used")
         if post.get("id"):
-            posts_store.save_visual(post["id"], vis["image_url"], base_image_url=vis.get("base_image_url"))
+            posts_store.save_visual(
+                post["id"], vis["image_url"], base_image_url=vis.get("base_image_url"),
+                visual_template=vis.get("template"), portrait_used=vis.get("portrait_used"),
+            )
         logger.info("Vizual kesz (%s): %s", post.get("voice"), vis["image_url"])
     except Exception as exc:
         logger.warning("Vizual generalas kihagyva: %s", str(exc)[:160])
@@ -486,6 +491,33 @@ async def edit_command(message: Message, command: CommandObject, bot: Bot) -> No
     await message.answer(f"✏️ Szerkesztés mentve (post_id={post_id}).")
 
 
+# Phase 21b: amíg a LinkedIn API nincs éles, az "Approve" csak jóváhagyás -- a TÉNYLEGES
+# posztolás Dávid/Ádám kézzel, saját LinkedIn sessionjükben történik. Ez a parancs jelzi ezt
+# a valós eseményt: status='posted' + sent_at=most (ez indítja az engagement-mérés óráját).
+@router.message(Command("mark_posted"))
+async def mark_posted_cmd(message: Message, command: CommandObject) -> None:
+    post_id = ((command.args or "").strip().split() or [""])[0]
+    if not post_id:
+        await message.answer("Használat: <code>/mark_posted &lt;post_id&gt;</code>")
+        return
+    try:
+        post = posts_store.get_post(post_id)
+    except Exception as exc:
+        await message.answer(f"⚠️ Lekérdezés hiba: {html.escape(str(exc)[:150])}")
+        return
+    if not post:
+        await message.answer(f"Nincs ilyen poszt: <code>{html.escape(post_id)}</code>")
+        return
+    by = message.from_user.username or message.from_user.full_name
+    posts_store.mark_posted(post_id, by)
+    await message.answer(
+        f"✅ Posztoltként jelölve: <b>{html.escape(post.get('voice', '?'))}</b> "
+        f"poszt (post_id={post_id}).\n\n"
+        f"Az engagement-mérés órája MOST indult. 24-48 óra múlva: "
+        f"<code>/log_stats {post_id} views=... likes=... comments=... shares=...</code>"
+    )
+
+
 # DM-ben érkező új szöveg (privacy mode-tól függetlenül kézbesül).
 @router.message(F.chat.type == "private")
 async def dm_edit_reply(message: Message, bot: Bot) -> None:
@@ -566,7 +598,7 @@ async def status_cmd(message: Message) -> None:
         await message.answer(f"❌ Státusz lekérdezés hiba: {html.escape(str(exc)[:150])}")
         return
 
-    known = ("pending", "approved", "published", "skipped")
+    known = ("pending", "approved", "posted", "published", "skipped")
     lines = ["📊 <b>Állapot — ma (UTC)</b>", "", "<b>Posztok:</b>"]
     lines += [f"  {st}: <b>{counts.get(st, 0)}</b>" for st in known]
     for st, n in counts.items():  # egyéb státuszok (edited, regenerated, posted, failed…)

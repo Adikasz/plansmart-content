@@ -28,6 +28,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from dotenv import load_dotenv
 
+from src.bots import engagement_bot
 from src.bots import prospect_review
 from src.bots import reactions_bot
 from src.bots import telegram_bot as tb
@@ -188,6 +189,7 @@ async def _amain() -> None:
     # átesnek a posts routerhez.
     dp.include_router(reactions_bot.router)
     dp.include_router(prospect_review.router)
+    dp.include_router(engagement_bot.router)
     dp.include_router(tb.router)
 
     stop = asyncio.Event()
