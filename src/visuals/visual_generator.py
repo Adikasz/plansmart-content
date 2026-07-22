@@ -22,6 +22,7 @@ from anthropic import AsyncAnthropic
 from dotenv import load_dotenv
 
 from src.generators.base_generator import _repair_and_parse
+from src.storage.cost_tracking import record_claude_usage
 from src.utils.logging import setup_logging
 from src.visuals import layout_templates as lt
 from src.visuals import muapi_client
@@ -134,6 +135,7 @@ async def extract_visual_text(post_content: str) -> dict[str, Any]:
             system=EXTRACT_SYSTEM,
             messages=[{"role": "user", "content": text[:1500]}],
         )
+        record_claude_usage(msg, HAIKU_MODEL)
         data = _repair_and_parse(msg.content[0].text if msg.content else "")
     except Exception as exc:
         logger.warning("[visual-text] kinyerés hiba (%s) — heurisztika.", str(exc)[:90])

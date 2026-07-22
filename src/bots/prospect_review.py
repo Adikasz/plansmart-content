@@ -1,11 +1,16 @@
 """Phase 18 / Part 4-5 — prospects Telegram review (GATED, ember-jóváhagyás).
+Phase 21: kapcsolatépítés élet-ciklus követés (post_send interactions).
 
 Parancsok:
   /prospects          — a note_drafted jelölteket EGYESÉVEL átnézed:
                         ✅ Approve | ✏️ Edit | ⏭️ Skip
   /prospects_pending  — hány JÓVÁHAGYOTT-de-még-nem-küldött (approved_to_send) van
   /mark_sent <id>     — a human MANUÁLISAN elküldte a kapcsolatkérést → status='sent'
+                        (Phase 21 óta: 'connection_sent' interaction-t is logol)
   /pnote <id> <szöveg> — a jegyzet kézi átírása (Edit fallback; DM catch-all nélkül)
+  /update_prospect <id> — élet-ciklus frissítés gombokkal (Phase 21)
+  /add_note <id> <szöveg> — szabad szöveges jegyzet az interakció-history-hoz (Phase 21)
+  /prospects_status   — összesítő tábla a küldött jelöltek jelenlegi stage-e szerint (Phase 21)
 
 Biztonság (kritikus): NINCS auto-küldés, NINCS LinkedIn API, NINCS scraping.
 Az ✅ Approve CSAK státuszt állít (approved_to_send). A tényleges kapcsolatkérést
@@ -13,7 +18,7 @@ Dávid/Ádám küldi manuálisan, saját LinkedIn sessionben; utána /mark_sent-
 
 Külön Router — a src/workers/main.py a posts router ELÉ fűzi be (lásd ott a kommentet),
 hogy a privát-chat parancsokat ne nyelje el a posts bot DM-catch-all handlere. Ezért
-NINCS itt catch-all üzenet-handler (a szerkesztés a /pnote paranccsal megy).
+NINCS itt catch-all üzenet-handler (a szerkesztés a /pnote / /add_note paranccsal megy).
 """
 from __future__ import annotations
 
@@ -25,6 +30,7 @@ from aiogram.filters import Command, CommandObject
 from aiogram.filters.callback_data import CallbackData
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
+from src.storage import prospect_interactions as interactions_store
 from src.storage import prospects as store
 
 logger = logging.getLogger(__name__)
@@ -41,6 +47,28 @@ CATEGORY_LABEL = {
 CHAR_LIMIT = 300
 _TABLE_MISSING = ("⚠️ A prospects tábla még nincs a Supabase-ben — futtasd a "
                   "<code>scripts/migration_18_prospects.sql</code>-t.")
+_INTERACTIONS_TABLE_MISSING = (
+    "⚠️ A prospect_interactions tábla még nincs a Supabase-ben — futtasd a "
+    "<code>scripts/migration_21_prospect_tracking.sql</code>-t."
+)
+
+# /update_prospect gombok: (label, interaction_type | None a jegyzet-gombhoz)
+_STAGE_BUTTONS = [
+    ("✅ Elfogadta a kapcsolatot", "connection_accepted"),
+    ("💬 Válaszolt", "replied"),
+    ("📅 Meeting/hívás", "meeting_booked"),
+    ("❄️ Nem reagált", "went_cold"),
+    ("❌ Nem érdekli", "not_interested"),
+]
+_INTERACTION_LABEL = {
+    "connection_sent": "📤 Kapcsolatkérés elküldve",
+    "connection_accepted": "✅ Elfogadta a kapcsolatot",
+    "replied": "💬 Válaszolt",
+    "meeting_booked": "📅 Meeting/hívás foglalva",
+    "went_cold": "❄️ Nem reagált",
+    "not_interested": "❌ Nem érdekli",
+    "note": "✏️ Jegyzet",
+}
 
 
 class ProspectCB(CallbackData, prefix="prospect"):
@@ -267,5 +295,161 @@ async def mark_sent_cmd(message: Message, command: CommandObject) -> None:
         return
     prev = p.get("status")
     store.mark_sent(pid)
-    await message.answer(f"✅ Elküldöttként jelölve: <b>{html.escape(p.get('name') or pid)}</b> "
-                         f"(korábbi státusz: {html.escape(str(prev))} → sent).")
+    note_hint = ""
+    try:
+        if interactions_store.table_ready():
+            interactions_store.log_interaction(pid, "connection_sent")
+        else:
+            note_hint = f"\n\n{_INTERACTIONS_TABLE_MISSING}"
+    except Exception as exc:  # noqa: BLE001 — a mark_sent már megtörtént, ez csak extra tracking
+        logger.warning("[prospects] connection_sent interaction logolás sikertelen: %s", str(exc)[:120])
+    await message.answer(
+        f"✅ Elküldöttként jelölve: <b>{html.escape(p.get('name') or pid)}</b> "
+        f"(korábbi státusz: {html.escape(str(prev))} → sent).\n\n"
+        f"Pár nap múlva, ha van fejlemény: <code>/update_prospect {pid}</code>{note_hint}"
+    )
+
+
+# ── Phase 21: élet-ciklus követés (post-send interactions) ──────────────
+class InteractionCB(CallbackData, prefix="interact"):
+    action: str
+    pid: str
+
+
+def _interaction_kb(pid: str) -> InlineKeyboardMarkup:
+    def btn(text: str, action: str) -> InlineKeyboardButton:
+        return InlineKeyboardButton(text=text, callback_data=InteractionCB(action=action, pid=pid).pack())
+
+    rows = [[btn(label, action)] for label, action in _STAGE_BUTTONS]
+    rows.append([btn("✏️ Jegyzet hozzáadása", "note")])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def _format_history(rows: list[dict]) -> str:
+    if not rows:
+        return "<i>(még nincs rögzített interakció)</i>"
+    lines = []
+    for r in rows[:15]:
+        label = _INTERACTION_LABEL.get(r.get("interaction_type"), r.get("interaction_type") or "?")
+        date = (r.get("interaction_date") or "")[:10]
+        line = f"  {date} — {label}"
+        if r.get("notes"):
+            line += f": {html.escape(_short(r['notes'], 100))}"
+        lines.append(line)
+    if len(rows) > 15:
+        lines.append(f"  … +{len(rows) - 15} korábbi")
+    return "\n".join(lines)
+
+
+async def _guard_interactions(message: Message) -> bool:
+    try:
+        ok = interactions_store.table_ready()
+    except Exception as exc:  # noqa: BLE001
+        await message.answer(f"⚠️ prospect_interactions tábla hiba: {html.escape(str(exc)[:120])}")
+        return False
+    if not ok:
+        await message.answer(_INTERACTIONS_TABLE_MISSING)
+        return False
+    return True
+
+
+async def _send_update_card(chat_id: int, pid: str, bot: Bot) -> None:
+    p = store.get(pid)
+    if not p:
+        await bot.send_message(chat_id, f"Nincs ilyen jelölt: <code>{html.escape(pid)}</code>")
+        return
+    if p.get("status") not in ("sent", "connected", "declined"):
+        await bot.send_message(
+            chat_id,
+            f"⚠️ <b>{html.escape(p.get('name') or pid)}</b> még nincs elküldve "
+            f"(jelenlegi státusz: {html.escape(str(p.get('status')))}). "
+            f"Küldés után: <code>/mark_sent {pid}</code>",
+        )
+        return
+    rows = interactions_store.history_for(pid)
+    stage = interactions_store.current_stage(pid, rows)
+    stage_label = interactions_store.bucket_label(stage)
+    company = f" · {html.escape(p['company'])}" if p.get("company") else ""
+    text = (
+        f"👤 <b>{html.escape(p.get('name') or pid)}</b>{company}\n"
+        f"📍 Jelenlegi állapot: <b>{html.escape(stage_label)}</b>\n\n"
+        f"<b>Előzmények:</b>\n{_format_history(rows)}\n\n"
+        f"Frissítsd az állapotot:"
+    )
+    await bot.send_message(chat_id, text, reply_markup=_interaction_kb(pid))
+
+
+@router.message(Command("update_prospect"))
+async def update_prospect_cmd(message: Message, command: CommandObject, bot: Bot) -> None:
+    if not await _guard(message) or not await _guard_interactions(message):
+        return
+    pid = ((command.args or "").strip().split() or [""])[0]
+    if not pid:
+        await message.answer("Használat: <code>/update_prospect &lt;id&gt;</code>")
+        return
+    await _send_update_card(message.chat.id, pid, bot)
+
+
+@router.callback_query(InteractionCB.filter(F.action != "note"))
+async def interaction_stage_cb(query: CallbackQuery, callback_data: InteractionCB, bot: Bot) -> None:
+    pid, action = callback_data.pid, callback_data.action
+    try:
+        interactions_store.log_interaction(pid, action)
+    except Exception as exc:  # noqa: BLE001
+        await query.answer(f"Hiba: {str(exc)[:150]}", show_alert=True)
+        return
+    label = _INTERACTION_LABEL.get(action, action)
+    await query.answer(f"Rögzítve: {label}")
+    try:
+        await query.message.delete()
+    except Exception:  # noqa: BLE001 — nem kritikus, ha nem törölhető
+        pass
+    await _send_update_card(query.message.chat.id, pid, bot)
+
+
+@router.callback_query(InteractionCB.filter(F.action == "note"))
+async def interaction_note_cb(query: CallbackQuery, callback_data: InteractionCB) -> None:
+    pid = callback_data.pid
+    await query.message.answer(
+        "✏️ Írd be a jegyzetet (másold ki, egészítsd ki, küldd vissza):\n"
+        f"<code>/add_note {pid} &lt;szöveg&gt;</code>"
+    )
+    await query.answer("Jegyzet: lásd az /add_note sablont ⬆️")
+
+
+@router.message(Command("add_note"))
+async def add_note_cmd(message: Message, command: CommandObject, bot: Bot) -> None:
+    if not await _guard_interactions(message):
+        return
+    pid, _, note = (command.args or "").strip().partition(" ")
+    note = note.strip()
+    if not pid or not note:
+        await message.answer("Használat: <code>/add_note &lt;id&gt; &lt;szöveg&gt;</code>")
+        return
+    try:
+        interactions_store.log_interaction(pid, "note", notes=note)
+    except Exception as exc:  # noqa: BLE001
+        await message.answer(f"⚠️ Jegyzet mentés hiba: {html.escape(str(exc)[:150])}")
+        return
+    await message.answer(f"✏️ Jegyzet mentve ({len(note)} kar).")
+    await _send_update_card(message.chat.id, pid, bot)
+
+
+@router.message(Command("prospects_status"))
+async def prospects_status_cmd(message: Message) -> None:
+    if not await _guard(message) or not await _guard_interactions(message):
+        return
+    try:
+        counts = interactions_store.status_summary()
+    except Exception as exc:  # noqa: BLE001
+        await message.answer(f"⚠️ Lekérdezés hiba: {html.escape(str(exc)[:150])}")
+        return
+    total = sum(counts.values())
+    if not total:
+        await message.answer("📭 Nincs még elküldött jelölt (státusz='sent') a nyomon követéshez.")
+        return
+    lines = ["📈 <b>Kapcsolatépítés — jelenlegi állapotok</b>", ""]
+    for label in interactions_store.BUCKET_ORDER:
+        lines.append(f"  {label}: <b>{counts.get(label, 0)}</b>")
+    lines.append(f"\n<i>összesen: {total}</i>")
+    await message.answer("\n".join(lines))

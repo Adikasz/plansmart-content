@@ -296,6 +296,80 @@ def mark_published(post_id: str, by: str, client=None) -> None:
     update_post_status(post_id, "published", client=client, approved_at=_now(), approved_by=by)
 
 
+def generated_counts_by_voice_since(since_iso: str, client=None) -> dict[str, int]:
+    """Generált posztok száma hangonként egy időpont óta (/metrics TARTALOM szekció)."""
+    resp = _c(client).table("posts").select("voice").gte("generated_at", since_iso).execute()
+    counts: dict[str, int] = {}
+    for row in resp.data or []:
+        voice = row.get("voice") or "?"
+        counts[voice] = counts.get(voice, 0) + 1
+    return counts
+
+
+def approval_action_counts_since(since_iso: str, client=None) -> dict[str, int]:
+    """Az approvals tábla action-jeinek darabszáma egy időpont óta (actioned_at alapján).
+
+    Az approvals minden emberi döntést rögzít időbélyeggel (approve/skip/edited/regenerate) —
+    ez pontosabb "Ma/Ez a hét jóváhagyva" méréshez, mint a posts.status pillanatfelvétele
+    (ami felülíródik, ha egy poszt később tovább lép státuszban).
+    """
+    resp = (
+        _c(client).table("approvals").select("action").gte("actioned_at", since_iso).execute()
+    )
+    counts: dict[str, int] = {}
+    for row in resp.data or []:
+        action = row.get("action") or "?"
+        counts[action] = counts.get(action, 0) + 1
+    return counts
+
+
+def published_count_since(since_iso: str, client=None) -> int:
+    """Manuálisan kiposztoltként jelölt posztok száma egy időpont óta (approved_at = a
+    mark_published hívás időpontja, ÚJRA beírva minden publish-nál -- lásd mark_published)."""
+    resp = (
+        _c(client).table("posts").select("id")
+        .eq("status", "published").gte("approved_at", since_iso).execute()
+    )
+    return len(resp.data or [])
+
+
+def cost_summary_since(since_iso: str, client=None) -> dict[str, float]:
+    """Költség-összesítő kind szerint (claude_api / muapi_image / összesen) egy időpont óta."""
+    resp = (
+        _c(client).table("costs").select("kind,cost_usd").gte("generated_at", since_iso).execute()
+    )
+    summary: dict[str, float] = {}
+    for row in resp.data or []:
+        kind = row.get("kind") or "unknown"
+        cost = row.get("cost_usd") or 0
+        summary[kind] = summary.get(kind, 0.0) + float(cost)
+    summary["total"] = sum(summary.values())
+    return summary
+
+
+def daily_cost_breakdown(since_iso: str, client=None) -> list[dict[str, Any]]:
+    """Napi bontású költség (generated_at napja szerint csoportosítva) egy időpont óta.
+
+    Nincs külön "nap" oszlop a costs táblán -- a generated_at timestampből számoljuk, így
+    nem kell séma-módosítás a napi bontáshoz.
+    """
+    resp = (
+        _c(client).table("costs").select("kind,cost_usd,generated_at")
+        .gte("generated_at", since_iso).order("generated_at").execute()
+    )
+    by_day: dict[str, dict[str, float]] = {}
+    for row in resp.data or []:
+        day = (row.get("generated_at") or "")[:10]
+        if not day:
+            continue
+        bucket = by_day.setdefault(day, {})
+        kind = row.get("kind") or "unknown"
+        cost = float(row.get("cost_usd") or 0)
+        bucket[kind] = bucket.get(kind, 0.0) + cost
+        bucket["total"] = bucket.get("total", 0.0) + cost
+    return [{"date": day, **vals} for day, vals in sorted(by_day.items())]
+
+
 def mark_edited(post_id: str, new_content: str, client=None) -> None:
     current = get_post(post_id, client=client) or {}
     update_post_status(

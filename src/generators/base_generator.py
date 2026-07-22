@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -17,6 +18,7 @@ from dotenv import load_dotenv
 
 from src.config.settings import get_settings
 from src.generators.schemas import validate_generated
+from src.storage.cost_tracking import record_claude_usage
 from src.storage.models import FeedItem
 
 # A JSON parse/repair a src.utils.json_repair-ben lakik; itt re-exportáljuk, hogy a történeti
@@ -96,6 +98,17 @@ def _build_payload(feed_item: FeedItem | dict[str, Any]) -> str:
     )
 
 
+_DASH_RE = re.compile(r"\s*[—–]\s*")
+
+
+def _normalize_dashes(text: str) -> str:
+    """Em/en dash -> hyphen — a modell időnként em-dash-t ír a promptok tiltása ellenére is,
+    ez a bevett ai_signature_risk AI-jelzés (text_evaluator._EM_DASH_RE), és mechanikusan
+    kizárható ahelyett, hogy a rewrite-loopra bíznánk. ' - ' ha szóköz vette körül, különben
+    sima '-' (pl. 'word—word' -> 'word-word', nem 'word - word')."""
+    return _DASH_RE.sub(lambda m: " - " if len(m.group(0)) > 1 else "-", text)
+
+
 AUTO_IMPROVE = get_settings().text_auto_improve
 # Phase 14: az angol-natív minőségnek kevesebb a mentsége mint a magyar adaptációnak → 9.0 gate.
 SHIP_THRESHOLD = get_settings().text_ship_threshold
@@ -130,6 +143,7 @@ async def generate(
         system=system,
         messages=[{"role": "user", "content": payload}],
     )
+    record_claude_usage(msg, MODEL)
     raw_text = msg.content[0].text if msg.content else ""
     stem = Path(voice_prompt_path).stem
 
@@ -156,6 +170,11 @@ async def generate(
 
     if auto_improve:
         await _auto_improve(data, feed_item, stem)
+
+    li_final = data.get("linkedin") or {}
+    if li_final.get("content"):
+        li_final["content"] = _normalize_dashes(li_final["content"])
+        data["linkedin"] = li_final
 
     # Best-effort séma-validáció a LLM-határon (log-only, visszafelé kompatibilis):
     # a hívó továbbra is a nyers dict-tel dolgozik, de a séma-eltérés naplózhatóvá válik.
@@ -236,6 +255,7 @@ async def generate_hook_variants(post_text: str) -> dict[str, Any] | None:
             system=HOOK_SYSTEM,
             messages=[{"role": "user", "content": f"POSZT:\n{post_text}"}],
         )
+        record_claude_usage(msg, MODEL)
         data = _repair_and_parse(msg.content[0].text if msg.content else "")
     except Exception as exc:
         logger.warning("[hook] variáns generálás hiba: %s", str(exc)[:120])

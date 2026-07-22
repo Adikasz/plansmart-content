@@ -22,6 +22,7 @@ from anthropic import AsyncAnthropic
 from dotenv import load_dotenv
 
 from src.generators.base_generator import _repair_and_parse
+from src.storage.cost_tracking import record_claude_usage
 from src.utils.logging import setup_logging
 
 logger = logging.getLogger(__name__)
@@ -398,6 +399,7 @@ class TextEvaluator:
                 model=MODEL, max_tokens=MAX_TOKENS, system=SYSTEM_PROMPT,
                 messages=[{"role": "user", "content": user}],
             )
+            record_claude_usage(msg, MODEL)
             data = _repair_and_parse(msg.content[0].text if msg.content else "")
         except Exception as exc:
             logger.warning("[text-eval] hiba (%s): %s", voice, str(exc)[:120])

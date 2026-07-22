@@ -106,6 +106,37 @@ def all_name_company(client=None) -> list[dict[str, Any]]:
     return resp.data or []
 
 
+def added_count_since(since_iso: str, client=None) -> int:
+    """Új kutatott jelöltek száma egy időpont óta (added_at -- sosem íródik felül)."""
+    resp = _c(client).table(TABLE).select("id").gte("added_at", since_iso).execute()
+    return len(resp.data or [])
+
+
+def sent_count_since(since_iso: str, client=None) -> int:
+    """Ténylegesen (/mark_sent-tel) elküldött jelöltek száma egy időpont óta (sent_at -- csak a
+    mark_sent állítja be, később nem íródik felül, tehát pontos, nem közelítés)."""
+    resp = _c(client).table(TABLE).select("id").gte("sent_at", since_iso).execute()
+    return len(resp.data or [])
+
+
+def approved_to_send_count_since(since_iso: str, client=None) -> int:
+    """Jóváhagyva-küldésre-VAGY-tovább jelöltek, akiknek a legutóbbi státuszváltása erre az
+    időszakra esik (updated_at).
+
+    Közelítés: a prospects.updated_at minden státuszváltásnál felülíródik, tehát ha egy
+    jelöltet a múlt héten hagytak jóvá, de csak MA küldték el, ez a lekérdezés a mai napon
+    "sent"-ként (nem "approved_to_send"-ként) fogja számolni -- nincs külön esemény-napló a
+    küldés ELŐTTI szakaszra (a prospect_interactions csak a küldés UTÁNI életciklust követi,
+    lásd Part 2). Rövid (napi/heti) időszakokra ez a torzítás elhanyagolható.
+    """
+    resp = (
+        _c(client).table(TABLE).select("id")
+        .in_("status", ["approved_to_send", "sent", "connected", "declined"])
+        .gte("updated_at", since_iso).execute()
+    )
+    return len(resp.data or [])
+
+
 def all_full(client=None) -> list[dict[str, Any]]:
     """MINDEN prospect a verifikációhoz/exporthoz szükséges mezőkkel.
 

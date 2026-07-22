@@ -15,6 +15,7 @@ from typing import Any
 from anthropic import Anthropic
 from dotenv import load_dotenv
 
+from src.storage.cost_tracking import record_claude_usage
 from src.storage.models import FeedItem
 
 logger = logging.getLogger(__name__)
@@ -86,6 +87,7 @@ def score_item(item: FeedItem) -> ScoreResult:
         system=_load_prompt(),
         messages=[{"role": "user", "content": payload}],
     )
+    record_claude_usage(msg, MODEL)
     data = _parse_json_strict(msg.content[0].text)
 
     return ScoreResult(
