@@ -310,6 +310,33 @@ def _left_scrim(img: Image.Image, frac: float = 0.46, strength: float = 0.92) ->
     img.alpha_composite(Image.composite(solid, empty, ramp))
 
 
+def _right_scrim(img: Image.Image, frac: float = 0.52, strength: float = 0.9) -> None:
+    """Jobb oldali sötét gradiens-scrim (a jobb-oldali szöveg olvashatóságáért) — a
+    _left_scrim tükre: a jobb szélen a legerősebb, befelé kifut."""
+    w, h = img.size
+    band = int(w * frac)
+    col = bytearray(w)
+    for x in range(w):
+        xr = w - 1 - x
+        a = strength * (1 - xr / band) if xr < band else 0.0
+        col[x] = int(max(0, min(255, a * 255)))
+    ramp = Image.frombytes("L", (w, 1), bytes(col)).resize((w, h))
+    solid = Image.new("RGBA", img.size, (*BG, 255))
+    empty = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    img.alpha_composite(Image.composite(solid, empty, ramp))
+
+
+def _corner_scrim(img: Image.Image, box: tuple[int, int, int, int],
+                  strength: float = 0.55, blur: int = 45) -> None:
+    """Lágy, elmosott sötét folt egy sarok-régió mögé (pl. bal-felső logó olvashatóságáért)."""
+    mask = Image.new("L", img.size, 0)
+    ImageDraw.Draw(mask).rectangle(box, fill=int(max(0.0, min(1.0, strength)) * 255))
+    mask = mask.filter(ImageFilter.GaussianBlur(blur))
+    solid = Image.new("RGBA", img.size, (*BG, 255))
+    empty = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    img.alpha_composite(Image.composite(solid, empty, mask))
+
+
 # ── Banner 1: Dávid személyes ──────────────────────────────────────────
 def compose_banner1(bg: Image.Image, fonts: Fonts, out: Path) -> None:
     img = _cover(bg, BANNER_W, BANNER_H).convert("RGBA")
@@ -404,6 +431,63 @@ def compose_banner2(bg: Image.Image, fonts: Fonts, out: Path) -> None:
     logger.info("Banner 2 mentve: %s (headline font: %s)", out.name, fonts.headline_face)
 
 
+# ── Banner Ádám: személyes (logó BAL-FELSŐ sarok, szöveg JOBB oldal) ────
+def compose_banner_adam(bg: Image.Image, fonts: Fonts, out: Path) -> None:
+    """Ádám banner — a David-banner tükör-elrendezése: logó a BAL-FELSŐ sarokban,
+    a teljes szöveg-blokk JOBBRA igazítva. A hátteret vízszintesen tükrözzük, hogy a
+    szöveg a natúr sötét (nyugodt) oldalra essen, a vizuál pedig balra, a logó mögé."""
+    flipped = bg.transpose(Image.FLIP_LEFT_RIGHT)
+    img = _cover(flipped, BANNER_W, BANNER_H).convert("RGBA")
+    _right_scrim(img, frac=0.52, strength=0.9)
+
+    # Logó a bal-felső sarokban (wordmark), lágy sarok-scrimmel az olvashatóságért.
+    wm = _wordmark_light()
+    lw = int(BANNER_W * 0.15)
+    lh = int(wm.height * lw / wm.width)
+    wm_r = wm.resize((lw, lh), Image.LANCZOS)
+    pad = 40
+    _corner_scrim(img, (-pad, -pad, pad * 2 + lw, pad * 2 + lh), strength=0.6, blur=48)
+    _paste(img, wm_r, (pad, pad), 0.92)
+
+    # Szöveg-blokk jobbra igazítva (anchor "ra"): headline + sub + tag.
+    margin = 88
+    right_x = BANNER_W - margin
+    col_w = int(BANNER_W * 0.42)
+
+    sub_font = fonts.body(27)
+    sub_lines = _wrap("Building Agentic AI Systems — Python, Claude, Supabase", sub_font, col_w)
+    tag_font = fonts.mono(21)
+    tag = "Founder @ PlanSmartAI"
+    gap_hs, gap_st = 22, 18
+    asc, desc = tag_font.getmetrics()
+    h_tag = asc + desc
+    h_sub = _block_height(sub_lines, sub_font, 1.22)
+
+    max_block = BANNER_H - 2 * 34
+    size = 78
+    while size > 40:
+        head_font = fonts.headline(size)
+        head_lines = _wrap("AI PRODUCT ENGINEER", head_font, col_w)
+        h_head = _block_height(head_lines, head_font, 1.06)
+        total = h_head + gap_hs + h_sub + gap_st + h_tag
+        fits_w = head_lines and max(_M.textlength(ln, font=head_font) for ln in head_lines) <= col_w
+        if fits_w and total <= max_block:
+            break
+        size = int(size * 0.94)
+
+    y = (BANNER_H - total) // 2
+    y = _draw_text(img, head_lines, head_font, (right_x, y), WHITE, "ra",
+                   line_gap=1.06, shadow_blur=12, glow=(45, 212, 191, 85))
+    y += gap_hs
+    y = _draw_text(img, sub_lines, sub_font, (right_x, y), LIGHT_GREY, "ra",
+                   line_gap=1.22, shadow_blur=7)
+    y += gap_st
+    _draw_text(img, [tag], tag_font, (right_x, y), TEAL, "ra", line_gap=1.0, shadow_blur=6)
+
+    img.convert("RGB").save(out, "PNG")
+    logger.info("Banner Ádám mentve: %s (headline font: %s)", out.name, fonts.headline_face)
+
+
 async def main() -> int:
     for stream in (sys.stdout, sys.stderr):
         try:
@@ -422,11 +506,14 @@ async def main() -> int:
 
     out1 = OUT_DIR / "banner_david_en.png"
     out2 = OUT_DIR / "banner_plansmart_en.png"
+    out3 = OUT_DIR / "banner_adam_en.png"
     compose_banner1(bg1, fonts, out1)
     compose_banner2(bg2, fonts, out2)
+    compose_banner_adam(bg1, fonts, out3)  # a David-háttér tükrözve (logó bal-fent, szöveg jobbra)
 
     print(f"\nBanner 1 (Dávid):     {out1}  [háttér: {src1}]")
     print(f"Banner 2 (PlanSmart): {out2}  [háttér: {src2}]")
+    print(f"Banner 3 (Ádám):      {out3}  [háttér: {src1} — tükrözve]")
 
     # Side-by-side HTML preview.
     html = (
@@ -439,6 +526,8 @@ async def main() -> int:
         f"</figcaption></figure>"
         f"<figure><img src='{out2.name}'><figcaption>Banner 2 — PlanSmartAI company · 1584×396 · háttér: {src2}"
         f"</figcaption></figure>"
+        f"<figure><img src='{out3.name}'><figcaption>Banner 3 — Ádám personal (logó bal-fent, szöveg jobbra) · "
+        f"1584×396 · háttér: {src1} tükrözve</figcaption></figure>"
     )
     html_path = OUT_DIR / "banners_en_preview.html"
     html_path.write_text(html, encoding="utf-8")

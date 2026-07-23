@@ -172,7 +172,7 @@ async def _generate_once(
         model=MODEL, max_tokens=MAX_TOKENS, system=cached_system(system),  # ~3.8k tok, retry-ismételt
         messages=[{"role": "user", "content": user_content}],
     )
-    record_claude_usage(msg, MODEL)
+    record_claude_usage(msg, MODEL, kind="video_idea")
     raw_text = msg.content[0].text if msg.content else ""
     data = _repair_and_parse(raw_text)
     if data is None:
