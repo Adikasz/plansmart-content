@@ -28,7 +28,7 @@ os.environ.setdefault("SUPABASE_SERVICE_KEY", "test-service-key")
 os.environ.setdefault("TELEGRAM_BOT_TOKEN", "123456:test-telegram-token")
 os.environ.setdefault("MUAPI_API_KEY", "test-muapi-key")
 
-from src.storage.models import FeedItem  # noqa: E402  (a sys.path/env beállítás UTÁN)
+from src.core.storage.models import FeedItem  # noqa: E402  (a sys.path/env beállítás UTÁN)
 
 
 # ── FeedItem gyár ──────────────────────────────────────────────────────

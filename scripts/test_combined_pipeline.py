@@ -22,10 +22,10 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.generators.base_generator import generate as generate_post  # noqa: E402
-from src.optimization.text_evaluator import TextEvaluator, _hunglish_flags  # noqa: E402
-from src.optimization.text_improver import improve_post  # noqa: E402
-from src.visuals import visual_generator  # noqa: E402
+from src.ai.generators.base_generator import generate as generate_post  # noqa: E402
+from src.ai.optimization.text_evaluator import TextEvaluator, _hunglish_flags  # noqa: E402
+from src.ai.optimization.text_improver import improve_post  # noqa: E402
+from src.integrations.visuals import visual_generator  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

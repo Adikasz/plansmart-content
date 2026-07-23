@@ -79,7 +79,7 @@ A lenti finomított fázis-számozás tükrözi a tényleges fejlesztést (7.6 =
    - `approvals` (Telegram approval state)
    - `published` (mi ment ki, mikor, hová)
    - `metrics` (later — engagement adatok)
-6. Storage modul (`src/storage/db.py`) - alap Supabase connection
+6. Storage modul (`src/core/storage/db.py`) - alap Supabase connection
 
 ### Függőségek (`requirements.txt`)
 ```
@@ -105,7 +105,7 @@ Implement Phase 1: project setup and Supabase schema.
 Steps:
 1. Create requirements.txt with the dependencies listed
 2. Create .env.example with placeholders
-3. Create src/storage/db.py with Supabase client setup
+3. Create src/core/storage/db.py with Supabase client setup
 4. Create scripts/init_db.py that creates all 5 tables
 5. Create scripts/test_db.py for verification
 
@@ -120,13 +120,13 @@ Don't run anything yet — show me the files first.
 
 ### Feladatok
 1. `config/sources.yml` feltöltése (lista a `docs/SOURCES.md`-ben)
-2. `src/collectors/rss_collector.py` megírása
+2. `src/integrations/collectors/rss_collector.py` megírása
 3. Deduplication URL hash + Supabase check alapján
 4. Async polling (httpx + feedparser)
 5. Hibakezelés: timeout, parse errors, dead feeds
 
 ### Acceptance kritérium
-- `python -m src.collectors.rss_collector` 60+ forrást végigjár 30 mp alatt
+- `python -m src.integrations.collectors.rss_collector` 60+ forrást végigjár 30 mp alatt
 - Új elemek menthetők Supabase-be, ismétlődések kihagyva
 
 ---
@@ -138,7 +138,7 @@ Don't run anything yet — show me the files first.
 ### Feladatok
 1. `config/sources.yml`-ben Twitter handle lista
 2. Twitter API auth (Basic tier elegendő, $100/hó — vagy ingyenes scraping route)
-3. `src/collectors/twitter_collector.py` — async fetcher
+3. `src/integrations/collectors/twitter_collector.py` — async fetcher
 4. Threadek összefűzése (nem külön elemenként)
 5. Quote tweet és reply context megőrzése
 
@@ -155,7 +155,7 @@ A döntés fázis indulásakor a budget alapján.
 ### Feladatok
 1. `config/sources.yml`-ben LinkedIn profile/page URL lista
 2. **Választás:** Phantombuster API ($59/hó) VAGY Apify LinkedIn scraper (~$20-40/hó)
-3. `src/collectors/linkedin_collector.py` — daily fetcher (LinkedIn nem support real-time-ot)
+3. `src/integrations/collectors/linkedin_collector.py` — daily fetcher (LinkedIn nem support real-time-ot)
 4. HTML/JSON parsing
 5. Image és video URL eltárolása
 
@@ -169,9 +169,9 @@ LinkedIn scraping szürkezónás. Ne menjünk agresszívan — naponta 1-2x.
 **Cél:** Bejövő tartalmakból csak a magyar KKV-relevánsakat továbbengedi.
 
 ### Feladatok
-1. `src/filters/dedup.py` — URL hash + content similarity (rapidfuzz)
-2. `src/filters/keyword_filter.py` — gyors skip/pass kulcsszó szabályok
-3. `src/filters/relevance_scorer.py` — Claude Haiku 1-10 pontszám
+1. `src/core/filters/dedup.py` — URL hash + content similarity (rapidfuzz)
+2. `src/core/filters/keyword_filter.py` — gyors skip/pass kulcsszó szabályok
+3. `src/core/filters/relevance_scorer.py` — Claude Haiku 1-10 pontszám
 4. Konfigurálható threshold (default: 6)
 5. Eredmény: `feed_items.score` mező frissítve
 
@@ -188,10 +188,10 @@ LinkedIn scraping szürkezónás. Ne menjünk agresszívan — naponta 1-2x.
 1. `prompts/voice_david.md` — Builder voice (~500 szó prompt)
 2. `prompts/voice_adam.md` — Strategist voice
 3. `prompts/voice_plansmart.md` — Brand voice
-4. `src/generators/base_generator.py` — közös logika (Claude API call wrapper)
-5. `src/generators/david_generator.py` — Dávid voice, LinkedIn + X
-6. `src/generators/adam_generator.py` — Ádám voice, LinkedIn + X
-7. `src/generators/plansmart_generator.py` — Brand voice, LinkedIn only
+4. `src/ai/generators/base_generator.py` — közös logika (Claude API call wrapper)
+5. `src/ai/generators/david_generator.py` — Dávid voice, LinkedIn + X
+6. `src/ai/generators/adam_generator.py` — Ádám voice, LinkedIn + X
+7. `src/ai/generators/plansmart_generator.py` — Brand voice, LinkedIn only
 8. Output: 5 poszt egy hírből (3 LinkedIn + 2 X)
 
 ### Voice tesztelés
@@ -208,7 +208,7 @@ python scripts/test_voice.py --feed-id <id>
 
 ### Feladatok
 1. Telegram bot létrehozása (@BotFather)
-2. `src/bots/telegram_bot.py` — aiogram alapon
+2. `src/integrations/bots/telegram_bot.py` — aiogram alapon
 3. 4 gomb: ✅ Approve, ✏️ Edit, 🔄 Regenerate, ❌ Skip
 4. Inline keyboard, callback handlers
 5. Edit flow: bot megnyit egy inline szerkesztőt, mentés után újra approve
@@ -238,7 +238,7 @@ strukturálva — mobile-first hook, 1300–1900 kar sweet spot, anti-pattern el
 **Mit építettünk:**
 - `prompts/linkedin_optimization.md` — mester keretrendszer (algoritmus-szabályok, 5 hook
   típus A–E, poszt-formula, magyar kulturális megjegyzések, anti-patternek).
-- `src/optimization/linkedin_optimizer.py` — `optimize_for_linkedin()`: Claude Sonnet
+- `src/ai/optimization/linkedin_optimizer.py` — `optimize_for_linkedin()`: Claude Sonnet
   átstrukturálja a nyers posztot + diagnosztika (hook_type, hook_score, structure_score,
   warnings, character_count, estimated_engagement_tier). Determinisztikus lokális warningok
   (kar-tartomány, hook-hossz, link, hashtag-szám) + graceful fallback parse/API hibára.
@@ -273,7 +273,7 @@ variánsok + diagnosztika. Eredmény (téma: „Megtanultad a Claude-ot. Mi jön
 ### Feladatok
 1. LinkedIn OAuth setup mindhárom fiókhoz (Dávid, Ádám, PlanSmart)
 2. Access token mentése Supabase-be (refresh kezelés)
-3. `src/publishers/linkedin_publisher.py` — async LinkedIn API kliens
+3. `src/integrations/publishers/linkedin_publisher.py` — async LinkedIn API kliens
 4. Image upload support (későbbi case study-khoz)
 5. Optimális időpont kiválasztása: 7:00-9:00 vagy 17:00-19:00
 
@@ -288,7 +288,7 @@ A LinkedIn API user-context tokent igényel mind a 3 fiókhoz, és **community m
 
 ### Feladatok
 1. X API Basic tier setup mindkét fiókhoz
-2. `src/publishers/twitter_publisher.py`
+2. `src/integrations/publishers/twitter_publisher.py`
 3. Thread mode (multi-tweet posztok)
 4. Image upload support
 
@@ -296,7 +296,7 @@ A LinkedIn API user-context tokent igényel mind a 3 fiókhoz, és **community m
 
 ## Fázis 10 — Automata pipeline (APScheduler) ✅
 
-**Cél:** A pipeline 24/7 fut, egy `src.workers.main` orchestratorban (egy process,
+**Cél:** A pipeline 24/7 fut, egy `src.core.workers.main` orchestratorban (egy process,
 egy event loop): APScheduler + Telegram bot + health szerver.
 
 ### Ütemezés (Europe/Budapest, `COLLECTOR_INTERVAL_HOURS`=2)
@@ -306,17 +306,17 @@ egy event loop): APScheduler + Telegram bot + health szerver.
 - **morning** — naponta `07:30` (hétvégén is)
 
 ### Komponensek
-- `src/workers/main.py` — AsyncIOScheduler + `asyncio` Telegram polling + health,
+- `src/core/workers/main.py` — AsyncIOScheduler + `asyncio` Telegram polling + health,
   graceful shutdown SIGINT/SIGTERM-re, minden job START/END logolva időbélyeggel.
-- `src/workers/morning_post_worker.py` — fiókonként a `content_strategy` ajánlott típusából
+- `src/core/workers/morning_post_worker.py` — fiókonként a `content_strategy` ajánlott típusából
   generál (ai_news → friss top hír; egyébként seed YAML; `consultant_builder` → educational
   kategória; fallback educational), optimalizál, magyar szöveges vizuált készít, és a POSTS
   csatornára küldi `☀️ Reggeli poszt — {magyar dátum}` fejléccel.
-- `src/workers/breaking_news_worker.py` — score≥8 + top-cég kulcsszó (OpenAI, Anthropic,
+- `src/core/workers/breaking_news_worker.py` — score≥8 + top-cég kulcsszó (OpenAI, Anthropic,
   Google, Apple, GPT-, Claude, Gemini, ChatGPT, Sora, DeepMind, Meta AI) + 4h friss + dedup,
   napi max 3. Ádám reakció a REACTIONS csatornára `🚨 BREAKING — Azonnali hír / 📰 Forrás / ⏰ idő`
   prefixszel, hook bias C/B.
-- `src/visuals/visual_generator.py` — `extract_visual_text()` (Haiku) a magyar overlay-szöveghez
+- `src/integrations/visuals/visual_generator.py` — `extract_visual_text()` (Haiku) a magyar overlay-szöveghez
   (main_text NAGYBETŰS 3-5 szó, sub_text 10-15 szó, stat), majd a Muapi prompt a kért formátummal.
 - Migráció: `scripts/migration_10_breaking.sql`.
 
@@ -332,10 +332,10 @@ példák, 3 reggeli poszt (hook + HU vizuál), 1 breaking (🚨 prefix), health 
 **Cél:** Production environment, 24/7 futás — egy service.
 
 ### Komponensek
-- `railway.toml` — `startCommand = "python -m src.workers.main"`, healthcheck `/health`,
+- `railway.toml` — `startCommand = "python -m src.core.workers.main"`, healthcheck `/health`,
   restart ON_FAILURE (max 10).
 - `nixpacks.toml` — Python 3.12 + gcc, `pip install -r requirements.txt`.
-- `src/workers/health.py` — aiohttp `:8080`, `GET /health` (200 + időbélyeg + scheduler állapot),
+- `src/core/workers/health.py` — aiohttp `:8080`, `GET /health` (200 + időbélyeg + scheduler állapot),
   `GET /status` (last_*_run, breaking_count_today, queue_sizes).
 - `requirements.txt` — pinned (apscheduler, pytz, aiogram, anthropic, supabase, feedparser,
   beautifulsoup4, httpx, aiohttp, python-dotenv, pyyaml).
@@ -349,11 +349,11 @@ példák, 3 reggeli poszt (hook + HU vizuál), 1 breaking (🚨 prefix), health 
 PlanSmart brandnek és a magyar LinkedIn közönségnek.
 
 ### Komponensek
-- `src/optimization/visual_eval.py` — `VisualEvaluator`: Claude Sonnet **vision** pontozza a
+- `src/ai/optimization/visual_eval.py` — `VisualEvaluator`: Claude Sonnet **vision** pontozza a
   képet (brand alignment, magyar szöveg minőség, scroll-stopping, professzionalizmus,
   anti-pattern flag-ek, overall + feedback). A 0.28.0 SDK base64 image source-t vár → a képet
   httpx-szel letöltjük.
-- `src/optimization/visual_ab_test.py` — `ab_test_prompts()`: 4 variáns (A produkciós,
+- `src/ai/optimization/visual_ab_test.py` — `ab_test_prompts()`: 4 variáns (A produkciós,
   B minimalista, C filmes, D adat-fókuszú) → kép → értékelés → győztes overall alapján.
 - `scripts/build_eval_dataset.py` — 10 valós poszt → `data/eval_dataset.json`.
 - `scripts/run_visual_eval.py` — 10×4 = 40 kép, per-variant + per-voice átlag, győztesek,
@@ -361,7 +361,7 @@ PlanSmart brandnek és a magyar LinkedIn közönségnek.
   (side-by-side, győztes kiemelve, költség).
 - `scripts/improve_visual_prompts.py` — eredmény-elemzés (leggyengébb hang, ismétlődő flag-ek/
   feedback) + Sonnet 2 új variáns + top-3 javaslat.
-- `src/optimization/quality_monitor.py` + `generator_worker` — **folyamatos eval**: 50 generált
+- `src/ai/optimization/quality_monitor.py` + `generator_worker` — **folyamatos eval**: 50 generált
   posztonként 5 random vizuál pontozása, `visual_quality_metrics` trend, alert a reactions
   csatornára ha az átlag < 7.0.
 - Telegram `/eval_visuals` — aktuális vizuál-minőség vs. baseline.
@@ -382,18 +382,18 @@ PlanSmart brandnek és a magyar LinkedIn közönségnek.
 ezért a szöveget PIL-lel komponáljuk rá).
 
 ### Komponensek
-- `src/visuals/text_overlay.py` — `TextOverlayComposer`: a szöveg-mentes alapképre PIL-lel
+- `src/integrations/visuals/text_overlay.py` — `TextOverlayComposer`: a szöveg-mentes alapképre PIL-lel
   írja a magyar szöveget, voice-specifikus elrendezéssel (Dávid: Bebas Neue bal-alsó + teal
   glow; Ádám: Inter ExtraBold közép + amber stat; PlanSmart: Inter ExtraBold + wordmark).
   Fontok: teljes lefedettségű **Inter** (márka-elsődleges, variable weights) + **Fragment Mono**
   + **Bebas Neue** Google Fontsról letöltve (a repo .woff2-jei unicode-subsetek → boxok lennének).
   **Glyph-fallback**: ha a font nem fedi a karaktert (pl. Bebas-ban nincs `→`), Interre vált;
   kontraszt-árnyék + stat shrink-to-fit.
-- `src/visuals/visual_generator.py` — `build_textfree_prompt()` (szigorú NO-TEXT) + `compose_visual()`
+- `src/integrations/visuals/visual_generator.py` — `build_textfree_prompt()` (szigorú NO-TEXT) + `compose_visual()`
   (extract → text-free Muapi → PIL overlay → feltöltés → végső URL).
-- `src/visuals/uploader.py` + `scripts/setup_supabase_storage.py` — `visuals` publikus Storage
+- `src/integrations/visuals/uploader.py` + `scripts/setup_supabase_storage.py` — `visuals` publikus Storage
   bucket + `upload_visual()`, lokális fallbackkel.
-- `src/optimization/visual_eval.py` — lokális fájl-pontozás (komponált kép base64).
+- `src/ai/optimization/visual_eval.py` — lokális fájl-pontozás (komponált kép base64).
 - `scripts/run_visual_eval_v2.py` — text-free base + overlay, a KOMPONÁLT végeredményt pontozza.
 - Integráció: `telegram_bot._attach_visual` → `compose_visual` (a `/create` és `/test` is),
   `posts.base_image_url` + `migration_12_5_overlay.sql`.
@@ -448,14 +448,14 @@ szisztematikus eval + javítás (a vizuál-eval architektúra szöveges párja).
 ### Komponensek
 - `prompts/viral_hooks_library.md` — 5 hook típus (contrarian/data/narrative/pain/comparison)
   valós példákkal + magyar adaptációkkal + content_type/voice párosítással.
-- `src/optimization/text_evaluator.py` — `TextEvaluator`: 6 tengelyen pontoz (hook, emberi érzet,
+- `src/ai/optimization/text_evaluator.py` — `TextEvaluator`: 6 tengelyen pontoz (hook, emberi érzet,
   magyar nyelv, konkrét érték, voice, engagement) + AI-tell/buzzword/„sokat” determinisztikus flag-ek.
-- `src/optimization/text_improver.py` — `improve_post`: iteratív átírás a cél-pontszámig (hook
+- `src/ai/optimization/text_improver.py` — `improve_post`: iteratív átírás a cél-pontszámig (hook
   könyvtár + voice prompt alapján).
-- `src/optimization/text_ab_test.py` — 5 hook-stratégia variáns (A produkciós, B-E hook-bias).
+- `src/ai/optimization/text_ab_test.py` — 5 hook-stratégia variáns (A produkciós, B-E hook-bias).
 - `scripts/build_text_eval_dataset.py` / `run_text_eval.py` — 10 szcenárió, baseline + improve +
   A/B, HTML riport (`data/text_eval_report.html`).
-- `src/optimization/text_quality_monitor.py` + `migration_13_text_quality.sql` — folyamatos
+- `src/ai/optimization/text_quality_monitor.py` + `migration_13_text_quality.sql` — folyamatos
   monitor (50 posztonként 5 random, < 7.5 → Telegram alert), `generator_worker`-be kötve.
 - `base_generator.generate(auto_improve=…)` — ship-gate (env `TEXT_AUTO_IMPROVE`).
   **ÉLESÍTVE production-ben:** `TEXT_AUTO_IMPROVE=true`, `TEXT_SHIP_THRESHOLD=8.0` — minden generált

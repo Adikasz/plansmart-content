@@ -1,10 +1,10 @@
 """Robusztus LLM-JSON parse + repair — a modellek néha nem-szabványos JSON-t adnak.
 
-Korábban a src/generators/base_generator.py-ban lakott; ide emeltük, mert HAT modul
+Korábban a src/ai/generators/base_generator.py-ban lakott; ide emeltük, mert HAT modul
 (base_generator, optimization.text_evaluator / visual_eval / linkedin_optimizer,
 outreach.prospect_research, visuals.visual_generator) használja. A base_generator
 visszafelé kompatibilisen re-exportálja a `_repair_and_parse` (+ társai) neveket, így a
-meglévő `from src.generators.base_generator import _repair_and_parse` importok érintetlenek.
+meglévő `from src.ai.generators.base_generator import _repair_and_parse` importok érintetlenek.
 
 A repair lépések (a modell tipikus hibáira hangolva) változatlanul kerültek át.
 """

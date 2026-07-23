@@ -164,7 +164,7 @@ def test_repair_and_parse_alias_identity():
 # ── cross-module re-export identity (base_generator) ──────────────────
 
 def test_base_generator_reexport_is_same_object():
-    from src.generators.base_generator import _repair_and_parse as bg_repair
+    from src.ai.generators.base_generator import _repair_and_parse as bg_repair
     from src.utils.json_repair import repair_and_parse as util_repair
 
     assert bg_repair is util_repair

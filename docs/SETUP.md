@@ -106,15 +106,15 @@ python scripts/test_voice.py --topic "Anthropic kihozott egy új modellt"
 python -m pytest
 
 # Az orchestrator lokálisan (ütemező + Telegram bot + health; Ctrl+C-ig fut)
-DRY_RUN=true python -m src.workers.main
+DRY_RUN=true python -m src.core.workers.main
 # Csak az ütemezés kiírása, majd kilép:
-python -m src.workers.main --print-schedule
+python -m src.core.workers.main --print-schedule
 ```
 
 ## 9. lépés — Telegram bot tesztelés
 
 ```bash
-python -m src.bots.telegram_bot
+python -m src.integrations.bots.telegram_bot
 ```
 
 Telegramon ellenőrizd hogy reagál a `/start`-ra.
@@ -140,7 +140,7 @@ railway up
 ```
 
 A `railway.toml` **egyetlen monolit service**-t indít
-(`startCommand = python -m src.workers.main`): APScheduler cron jobok
+(`startCommand = python -m src.core.workers.main`): APScheduler cron jobok
 (collector / filter / breaking / morning) + Telegram approval bot + health
 szerver — mind egy process-ben, egy event loopban. **Nincs külön `web` /
 `worker-*` service** (a régi „4 service" felállás sosem épült meg). Push

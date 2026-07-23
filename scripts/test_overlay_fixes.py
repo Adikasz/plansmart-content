@@ -21,8 +21,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from src.optimization.visual_eval import VisualEvaluator
-from src.visuals.text_overlay import GENERATED_DIR, TextOverlayComposer
+from src.ai.optimization.visual_eval import VisualEvaluator
+from src.integrations.visuals.text_overlay import GENERATED_DIR, TextOverlayComposer
 
 logger = logging.getLogger("test_overlay_fixes")
 load_dotenv(override=False)

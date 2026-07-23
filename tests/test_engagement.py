@@ -1,4 +1,4 @@
-"""Zero-network tests for src.storage.engagement (validation + hours_since_post computation).
+"""Zero-network tests for src.core.storage.engagement (validation + hours_since_post computation).
 
 posts.get_post is monkeypatched so these exercise the actual date-math / auto-final logic in
 log() without touching Supabase. The fake_supabase fixture stands in for the insert call --
@@ -10,7 +10,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from src.storage import engagement
+from src.core.storage import engagement
 
 
 def test_log_raises_on_all_metrics_none():
@@ -19,14 +19,14 @@ def test_log_raises_on_all_metrics_none():
 
 
 def test_log_raises_on_missing_post(monkeypatch, fake_supabase):
-    monkeypatch.setattr("src.storage.posts.get_post", lambda post_id, client=None: None)
+    monkeypatch.setattr("src.core.storage.posts.get_post", lambda post_id, client=None: None)
     with pytest.raises(ValueError):
         engagement.log("nope", views=1, client=fake_supabase())
 
 
 def test_log_missing_sent_at_warns_and_leaves_hours_none(monkeypatch, fake_supabase):
     monkeypatch.setattr(
-        "src.storage.posts.get_post",
+        "src.core.storage.posts.get_post",
         lambda post_id, client=None: {"id": post_id, "voice": "david", "sent_at": None},
     )
     result = engagement.log("p1", views=100, client=fake_supabase())
@@ -39,7 +39,7 @@ def test_log_missing_sent_at_warns_and_leaves_hours_none(monkeypatch, fake_supab
 def test_log_computes_hours_since_post_from_sent_at(monkeypatch, fake_supabase):
     sent = (datetime.now(timezone.utc) - timedelta(hours=10)).isoformat()
     monkeypatch.setattr(
-        "src.storage.posts.get_post",
+        "src.core.storage.posts.get_post",
         lambda post_id, client=None: {"id": post_id, "voice": "adam", "sent_at": sent},
     )
     result = engagement.log("p1", views=100, client=fake_supabase())
@@ -51,7 +51,7 @@ def test_log_computes_hours_since_post_from_sent_at(monkeypatch, fake_supabase):
 def test_log_auto_marks_final_at_48h_plus(monkeypatch, fake_supabase):
     sent = (datetime.now(timezone.utc) - timedelta(hours=50)).isoformat()
     monkeypatch.setattr(
-        "src.storage.posts.get_post",
+        "src.core.storage.posts.get_post",
         lambda post_id, client=None: {"id": post_id, "voice": "adam", "sent_at": sent},
     )
     result = engagement.log("p1", views=100, client=fake_supabase())
@@ -61,7 +61,7 @@ def test_log_auto_marks_final_at_48h_plus(monkeypatch, fake_supabase):
 def test_log_not_final_below_48h(monkeypatch, fake_supabase):
     sent = (datetime.now(timezone.utc) - timedelta(hours=47)).isoformat()
     monkeypatch.setattr(
-        "src.storage.posts.get_post",
+        "src.core.storage.posts.get_post",
         lambda post_id, client=None: {"id": post_id, "voice": "adam", "sent_at": sent},
     )
     result = engagement.log("p1", views=100, client=fake_supabase())
@@ -70,7 +70,7 @@ def test_log_not_final_below_48h(monkeypatch, fake_supabase):
 
 def test_log_manual_final_override_true(monkeypatch, fake_supabase):
     monkeypatch.setattr(
-        "src.storage.posts.get_post",
+        "src.core.storage.posts.get_post",
         lambda post_id, client=None: {"id": post_id, "voice": "adam", "sent_at": None},
     )
     result = engagement.log("p1", views=100, is_final_snapshot=True, client=fake_supabase())
@@ -80,7 +80,7 @@ def test_log_manual_final_override_true(monkeypatch, fake_supabase):
 def test_log_manual_final_override_false_even_past_48h(monkeypatch, fake_supabase):
     sent = (datetime.now(timezone.utc) - timedelta(hours=72)).isoformat()
     monkeypatch.setattr(
-        "src.storage.posts.get_post",
+        "src.core.storage.posts.get_post",
         lambda post_id, client=None: {"id": post_id, "voice": "adam", "sent_at": sent},
     )
     result = engagement.log("p1", views=100, is_final_snapshot=False, client=fake_supabase())
@@ -97,7 +97,7 @@ def test_log_accepts_single_metric_only(monkeypatch, fake_supabase):
             return self
 
     monkeypatch.setattr(
-        "src.storage.posts.get_post",
+        "src.core.storage.posts.get_post",
         lambda post_id, client=None: {"id": post_id, "voice": "david", "sent_at": None},
     )
     engagement.log("p1", views=100, client=_Query())
@@ -111,7 +111,7 @@ def test_log_future_sent_at_clamps_hours_to_zero(monkeypatch, fake_supabase):
     # óra-eltolódás / clock skew védelem: sosem lehet negatív hours_since_post.
     sent = (datetime.now(timezone.utc) + timedelta(hours=2)).isoformat()
     monkeypatch.setattr(
-        "src.storage.posts.get_post",
+        "src.core.storage.posts.get_post",
         lambda post_id, client=None: {"id": post_id, "voice": "adam", "sent_at": sent},
     )
     result = engagement.log("p1", views=100, client=fake_supabase())

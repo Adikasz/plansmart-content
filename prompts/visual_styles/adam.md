@@ -56,4 +56,4 @@ A háttér FOTÓ, nem illusztráció — és Ádámnál PURE TEXTÚRA, NEM tárg
 - Kodak Portra 800 hűvös/semleges felé deszaturálva, egy kemény key-light, TRUE #04060a feketébe
   eséssel. Színhőmérséklet 5000K felett kerülendő.
 - Tilos: screen/UI/HUD/kód/panel/hologram/chart/logó/ember.
-- Forrás: `src/visuals/visual_generator.py` → `build_textfree_prompt` + `VOICE_SCENE["adam"]`.
+- Forrás: `src/integrations/visuals/visual_generator.py` → `build_textfree_prompt` + `VOICE_SCENE["adam"]`.

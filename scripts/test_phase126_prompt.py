@@ -19,11 +19,11 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from src.optimization.visual_eval import VisualEvaluator
-from src.visuals import muapi_client
-from src.visuals import visual_generator as vg
-from src.visuals.text_overlay import GENERATED_DIR, TextOverlayComposer
-from src.visuals.uploader import ensure_bucket, upload_visual
+from src.ai.optimization.visual_eval import VisualEvaluator
+from src.integrations.visuals import muapi_client
+from src.integrations.visuals import visual_generator as vg
+from src.integrations.visuals.text_overlay import GENERATED_DIR, TextOverlayComposer
+from src.integrations.visuals.uploader import ensure_bucket, upload_visual
 
 logger = logging.getLogger("test_phase126_prompt")
 load_dotenv(override=False)

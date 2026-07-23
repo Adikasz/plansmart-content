@@ -25,10 +25,10 @@ from collections import Counter
 
 from dotenv import load_dotenv
 
-from src.outreach.note_generator import generate_note
-from src.outreach.prospect_research import _norm_company, _norm_name, research_prospects
-from src.outreach.prospect_verifier import verify_batch
-from src.storage import prospects as store
+from src.ai.outreach.note_generator import generate_note
+from src.ai.outreach.prospect_research import _norm_company, _norm_name, research_prospects
+from src.ai.outreach.prospect_verifier import verify_batch
+from src.core.storage import prospects as store
 from src.utils.logging import setup_logging
 
 load_dotenv(override=False)

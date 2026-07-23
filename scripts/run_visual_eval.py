@@ -29,8 +29,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from src.optimization import visual_ab_test as ab
-from src.optimization.visual_eval import SCORE_KEYS, VisualEvaluator
+from src.ai.optimization import visual_ab_test as ab
+from src.ai.optimization.visual_eval import SCORE_KEYS, VisualEvaluator
 
 logger = logging.getLogger("run_visual_eval")
 load_dotenv(override=False)

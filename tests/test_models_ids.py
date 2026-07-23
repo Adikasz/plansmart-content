@@ -1,4 +1,4 @@
-"""Zero-network unit tests for src/utils/ids.py and src/storage/models.py.
+"""Zero-network unit tests for src/utils/ids.py and src/core/storage/models.py.
 
 Covers:
 - make_id: sha256 hex prefix, determinism, length, lowercase.
@@ -13,7 +13,7 @@ import hashlib
 import string
 from datetime import datetime
 
-from src.storage.models import make_id as make_id_from_models
+from src.core.storage.models import make_id as make_id_from_models
 from src.utils.ids import _utcnow_iso, make_id, utcnow_iso
 
 

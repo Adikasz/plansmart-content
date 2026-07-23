@@ -1,7 +1,7 @@
 # PlanSmart — Brand & Visual System
 
 > Ez a dokumentum a vizuális generálás (Phase 7.6) egyetlen igazságforrása.
-> A `src/visuals/` modulok és a `prompts/visual_styles/` fájlok erre hivatkoznak.
+> A `src/integrations/visuals/` modulok és a `prompts/visual_styles/` fájlok erre hivatkoznak.
 
 Forrás: <https://plansmart.live> (Astro-alapú oldal) — a fontokat
 `scripts/scrape_brand_font.py` olvasta ki és töltötte le.
@@ -102,7 +102,7 @@ A részletes, modellnek küldött leírás: `prompts/visual_styles/{voice}.md`.
 | `david.jpg` / `adam.jpg` headshot | ⏳ user feltölti később | `assets/headshots/` |
 
 Amint a logó/headshot megérkezik: Muapi `/api/v1/upload_file` → image-to-image
-(`nano-banana-2`) a karakter/logó konzisztenciához. Lásd `src/visuals/muapi_client.py`.
+(`nano-banana-2`) a karakter/logó konzisztenciához. Lásd `src/integrations/visuals/muapi_client.py`.
 
 ---
 

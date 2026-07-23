@@ -24,11 +24,11 @@ from dotenv import load_dotenv  # noqa: E402
 
 load_dotenv(ROOT / ".env", override=False)
 
-from src.storage.db import get_client, has_service_key  # noqa: E402
-from src.storage import feed_items as feed_store  # noqa: E402
-from src.workers.collector_worker import run_collector_cycle  # noqa: E402
-from src.workers.filter_worker import run_filter_cycle  # noqa: E402
-from src.workers.generator_worker import GENERATION_VOICES, run_generator_cycle  # noqa: E402
+from src.core.storage.db import get_client, has_service_key  # noqa: E402
+from src.core.storage import feed_items as feed_store  # noqa: E402
+from src.core.workers.collector_worker import run_collector_cycle  # noqa: E402
+from src.core.workers.filter_worker import run_filter_cycle  # noqa: E402
+from src.core.workers.generator_worker import GENERATION_VOICES, run_generator_cycle  # noqa: E402
 
 logger = logging.getLogger("test_workers")
 

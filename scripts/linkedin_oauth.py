@@ -44,7 +44,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 load_dotenv(ROOT / ".env", override=False)
 
-from src.publishers import token_store  # noqa: E402
+from src.integrations.publishers import token_store  # noqa: E402
 
 logger = logging.getLogger("linkedin_oauth")
 

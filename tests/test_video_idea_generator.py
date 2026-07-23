@@ -1,9 +1,9 @@
-"""Zero-network tests for src.generators.video_idea_generator (pure logic + mocked Claude/eval)."""
+"""Zero-network tests for src.ai.generators.video_idea_generator (pure logic + mocked Claude/eval)."""
 from __future__ import annotations
 
 import pytest
 
-from src.generators import video_idea_generator as gen
+from src.ai.generators import video_idea_generator as gen
 
 
 # ── _build_payload ────────────────────────────────────────────────────

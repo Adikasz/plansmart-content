@@ -24,10 +24,10 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from src.optimization.visual_eval import SCORE_KEYS, VisualEvaluator
-from src.visuals import muapi_client
-from src.visuals import visual_generator as vg
-from src.visuals.text_overlay import GENERATED_DIR, TextOverlayComposer
+from src.ai.optimization.visual_eval import SCORE_KEYS, VisualEvaluator
+from src.integrations.visuals import muapi_client
+from src.integrations.visuals import visual_generator as vg
+from src.integrations.visuals.text_overlay import GENERATED_DIR, TextOverlayComposer
 
 logger = logging.getLogger("run_visual_eval_v2")
 load_dotenv(override=False)

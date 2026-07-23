@@ -2,7 +2,7 @@
 builder = "RAILPACK"
 
 # ════════════════════════════════════════════
-# EGY SERVICE — a unified orchestrator (src.workers.main):
+# EGY SERVICE — a unified orchestrator (src.core.workers.main):
 #   APScheduler (collector / filter / breaking / morning)
 #   + Telegram approval bot
 #   + health szerver (:$PORT, /health, /status)
@@ -12,6 +12,6 @@ builder = "RAILPACK"
 # pyproject.toml), nem használ nixpacks.toml-t.
 # ════════════════════════════════════════════
 [deploy]
-startCommand = "python -m src.workers.main"
+startCommand = "python -m src.core.workers.main"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10

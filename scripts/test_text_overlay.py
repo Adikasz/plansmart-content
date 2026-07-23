@@ -17,10 +17,10 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from src.visuals import muapi_client
-from src.visuals import visual_generator as vg
-from src.visuals.text_overlay import GENERATED_DIR, TextOverlayComposer
-from src.visuals.uploader import ensure_bucket, upload_visual
+from src.integrations.visuals import muapi_client
+from src.integrations.visuals import visual_generator as vg
+from src.integrations.visuals.text_overlay import GENERATED_DIR, TextOverlayComposer
+from src.integrations.visuals.uploader import ensure_bucket, upload_visual
 
 logger = logging.getLogger("test_text_overlay")
 load_dotenv(override=False)

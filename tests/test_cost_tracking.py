@@ -1,7 +1,7 @@
-"""Zero-network tests for src.storage.cost_tracking."""
+"""Zero-network tests for src.core.storage.cost_tracking."""
 from __future__ import annotations
 
-from src.storage import cost_tracking
+from src.core.storage import cost_tracking
 
 
 def test_estimate_cost_usd_known_model_sonnet():

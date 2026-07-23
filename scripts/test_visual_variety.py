@@ -30,9 +30,9 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(messag
 logging.getLogger("httpx").setLevel(logging.WARNING)
 load_dotenv(override=False)
 
-from src.optimization.visual_eval import VisualEvaluator
-from src.visuals import layout_templates as lt
-from src.visuals import visual_generator, visual_variety
+from src.ai.optimization.visual_eval import VisualEvaluator
+from src.integrations.visuals import layout_templates as lt
+from src.integrations.visuals import visual_generator, visual_variety
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
@@ -83,7 +83,7 @@ def _reset_variety_state() -> None:
     except Exception:
         pass
     try:
-        from src.storage.db import get_client, has_service_key, table_exists
+        from src.core.storage.db import get_client, has_service_key, table_exists
 
         client = get_client(use_service_key=has_service_key())
         if table_exists(client, visual_variety.STATE_TABLE):

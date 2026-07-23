@@ -22,14 +22,14 @@ from dotenv import load_dotenv  # noqa: E402
 
 load_dotenv(Path(__file__).resolve().parent.parent / ".env", override=False)
 
-from src.filters.relevance_scorer import score_item  # noqa: E402
-from src.generators.adam_generator import generate_adam  # noqa: E402
-from src.generators.base_generator import generate as generate_post  # noqa: E402
-from src.generators.david_generator import generate_david  # noqa: E402
-from src.generators.plansmart_generator import generate_plansmart  # noqa: E402
-from src.storage.db import get_client, has_service_key  # noqa: E402
-from src.storage.models import FeedItem  # noqa: E402
-from src.strategy import content_strategy  # noqa: E402
+from src.core.filters.relevance_scorer import score_item  # noqa: E402
+from src.ai.generators.adam_generator import generate_adam  # noqa: E402
+from src.ai.generators.base_generator import generate as generate_post  # noqa: E402
+from src.ai.generators.david_generator import generate_david  # noqa: E402
+from src.ai.generators.plansmart_generator import generate_plansmart  # noqa: E402
+from src.core.storage.db import get_client, has_service_key  # noqa: E402
+from src.core.storage.models import FeedItem  # noqa: E402
+from src.core.strategy import content_strategy  # noqa: E402
 
 logger = logging.getLogger("test_voice")
 

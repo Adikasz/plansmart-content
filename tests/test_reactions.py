@@ -6,7 +6,7 @@ storage row-alak (fake Supabase), és a Telegram formázók/keyboard.
 """
 from __future__ import annotations
 
-from src.bots.reactions_bot import (
+from src.integrations.bots.reactions_bot import (
     CLASSIFICATION_LABEL,
     ReactionCB,
     _has_active_flow,
@@ -15,20 +15,20 @@ from src.bots.reactions_bot import (
     format_final,
     format_suggestion,
 )
-from src.outreach.reaction_classifier import (
+from src.ai.outreach.reaction_classifier import (
     CLASSIFICATIONS,
     SKIP_CLASSIFICATIONS,
     SKIP_MESSAGES,
     _coerce,
     _user,
 )
-from src.outreach.reaction_generator import (
+from src.ai.outreach.reaction_generator import (
     VOICE_DESC,
     _system,
     _workshop_line,
     build_user_prompt,
 )
-from src.storage import reactions as store
+from src.core.storage import reactions as store
 
 CALENDLY = "https://calendly.com/plansmart/intro"
 
@@ -199,7 +199,7 @@ def test_classification_label_covers_all_classifications():
 def test_has_active_flow_reflects_flow_registry():
     from types import SimpleNamespace
 
-    from src.bots import reactions_bot as rb
+    from src.integrations.bots import reactions_bot as rb
 
     msg = SimpleNamespace(chat=SimpleNamespace(id=111), from_user=SimpleNamespace(id=222))
     assert _has_active_flow(msg) is False

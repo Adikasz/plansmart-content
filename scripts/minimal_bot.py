@@ -1,7 +1,7 @@
 """Minimális izolációs teszt — csak polling + 1 message handler.
 
 Cél: eldönteni, hogy a polling egyáltalán kézbesít-e üzenetet
-(független az src/bots/telegram_bot.py kódjától).
+(független az src/integrations/bots/telegram_bot.py kódjától).
 
 Futtatás (egyszerre CSAK EGY poller fusson erre a tokenre!):
     python scripts/minimal_bot.py

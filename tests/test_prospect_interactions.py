@@ -1,11 +1,11 @@
-"""Zero-network tests for src.storage.prospect_interactions (pure bucketing logic).
+"""Zero-network tests for src.core.storage.prospect_interactions (pure bucketing logic).
 
 current_stage()/bucket_label() take an in-memory interaction list -- no Supabase client
 needed, so these exercise the actual stage-computation algorithm directly.
 """
 from __future__ import annotations
 
-from src.storage import prospect_interactions as store
+from src.core.storage import prospect_interactions as store
 
 
 def test_current_stage_empty_history_is_none():

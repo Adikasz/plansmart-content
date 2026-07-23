@@ -1,10 +1,10 @@
-"""Zero-network tests for src.storage.video_ideas (row-building + mutation logic)."""
+"""Zero-network tests for src.core.storage.video_ideas (row-building + mutation logic)."""
 from __future__ import annotations
 
 import pytest
 from postgrest.exceptions import APIError
 
-from src.storage import video_ideas as store
+from src.core.storage import video_ideas as store
 
 
 class _CapturingQuery:

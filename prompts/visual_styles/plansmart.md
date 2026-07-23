@@ -51,4 +51,4 @@ A háromból a LEGMINIMÁLISABB — tiszta atmoszférikus sötétség:
   VAGY tisztán absztrakt gradiens film grain-nel, objektum nélkül. "Csendes magabiztosság."
 - Kodak Portra 800 grain, egy key-light, mély feketébe esés, f/1.4 bokeh, semleges fény.
 - TRUE #04060a (nem szürke). Tilos: screen/UI/HUD/kód/panel/hologram/chart/logó/ember.
-- Forrás: `src/visuals/visual_generator.py` → `build_textfree_prompt` + `VOICE_SCENE`.
+- Forrás: `src/integrations/visuals/visual_generator.py` → `build_textfree_prompt` + `VOICE_SCENE`.

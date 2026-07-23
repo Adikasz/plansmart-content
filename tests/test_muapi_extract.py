@@ -1,9 +1,9 @@
-"""Offline unit tests for the pure extractor helpers in src.visuals.muapi_client.
+"""Offline unit tests for the pure extractor helpers in src.integrations.visuals.muapi_client.
 
 These cover _extract_request_id, _extract_image_url, _extract_cost and
 _is_placeholder — all pure dict-in / value-out helpers, no network involved.
 """
-from src.visuals.muapi_client import (
+from src.integrations.visuals.muapi_client import (
     MODEL_PRICING_USD,
     _extract_cost,
     _extract_image_url,

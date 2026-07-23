@@ -25,8 +25,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from src.outreach.prospect_verifier import verify_batch
-from src.storage import prospects as store
+from src.ai.outreach.prospect_verifier import verify_batch
+from src.core.storage import prospects as store
 from src.utils.logging import setup_logging
 
 load_dotenv(override=False)

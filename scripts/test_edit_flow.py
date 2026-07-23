@@ -26,9 +26,9 @@ load_dotenv(Path(__file__).resolve().parent.parent / ".env", override=False)
 from aiogram import Dispatcher  # noqa: E402
 from aiogram.types import Update  # noqa: E402
 
-from src.bots import telegram_bot as tb  # noqa: E402
-from src.storage import posts as ps  # noqa: E402
-from src.storage.db import get_client, has_service_key  # noqa: E402
+from src.integrations.bots import telegram_bot as tb  # noqa: E402
+from src.core.storage import posts as ps  # noqa: E402
+from src.core.storage.db import get_client, has_service_key  # noqa: E402
 
 logger = logging.getLogger("test_edit_flow")
 

@@ -19,11 +19,11 @@ from dotenv import load_dotenv  # noqa: E402
 
 load_dotenv(Path(__file__).resolve().parent.parent / ".env", override=False)
 
-from src.bots.telegram_bot import (  # noqa: E402
+from src.integrations.bots.telegram_bot import (  # noqa: E402
     ApprovalCB, POSTS_CHAT_ID, build_keyboard, format_approval_message, get_bot, send_for_approval,
 )
-from src.storage import posts as ps  # noqa: E402
-from src.storage.db import get_client, has_service_key  # noqa: E402
+from src.core.storage import posts as ps  # noqa: E402
+from src.core.storage.db import get_client, has_service_key  # noqa: E402
 
 logger = logging.getLogger("test_telegram")
 
@@ -101,7 +101,7 @@ async def main() -> int:
     logger.info("  ELO poszt elkuldve a posts csatornara: post_id=%s, message_id=%s", live["id"], sent.message_id)
     await bot.session.close()
 
-    logger.info("\nMost inditsd a botot (python -m src.bots.telegram_bot) es kattints a gombokra.")
+    logger.info("\nMost inditsd a botot (python -m src.integrations.bots.telegram_bot) es kattints a gombokra.")
     logger.info("A kattintasok az approvals tablaba kerulnek (post_id=%s).", live["id"])
     return 0
 

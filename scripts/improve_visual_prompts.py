@@ -24,7 +24,7 @@ from pathlib import Path
 from anthropic import AsyncAnthropic
 from dotenv import load_dotenv
 
-from src.generators.base_generator import _repair_and_parse
+from src.ai.generators.base_generator import _repair_and_parse
 
 logger = logging.getLogger("improve_visual_prompts")
 load_dotenv(override=False)

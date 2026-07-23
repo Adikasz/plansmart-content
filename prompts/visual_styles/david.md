@@ -55,4 +55,4 @@ A háttér FOTÓ, nem illusztráció (a "generic AI-art / pseudo-code panel" pan
   világító kábel a sötétben, VAGY makró egy NYÁK-él sekély fókusszal. Csak egy. Műhely-éjszaka hangulat.
 - Kodak Portra 800 film grain, egy key-light bal-felülről, mély feketébe esés, f/1.4 bokeh.
 - TRUE #04060a (nem szürke). Tilos: screen/UI/HUD/kód/panel/hologram/chart/logó/ember.
-- Forrás: `src/visuals/visual_generator.py` → `build_textfree_prompt` + `VOICE_SCENE`.
+- Forrás: `src/integrations/visuals/visual_generator.py` → `build_textfree_prompt` + `VOICE_SCENE`.

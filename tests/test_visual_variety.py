@@ -1,4 +1,4 @@
-"""Zero-network tests for src.visuals.visual_variety.
+"""Zero-network tests for src.integrations.visuals.visual_variety.
 
 Covers the deterministic no-immediate-repeat rotation:
   • _next_template / _next_mood wrap within the voice's allowed set / palette,
@@ -12,8 +12,8 @@ from __future__ import annotations
 
 import pytest
 
-import src.visuals.layout_templates as lt
-import src.visuals.visual_variety as vv
+import src.integrations.visuals.layout_templates as lt
+import src.integrations.visuals.visual_variety as vv
 
 VOICES = ("david", "adam", "plansmart")
 

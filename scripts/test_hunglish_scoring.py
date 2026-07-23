@@ -19,8 +19,8 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.optimization.text_evaluator import TextEvaluator, _hunglish_flags  # noqa: E402
-from src.optimization.text_improver import improve_post  # noqa: E402
+from src.ai.optimization.text_evaluator import TextEvaluator, _hunglish_flags  # noqa: E402
+from src.ai.optimization.text_improver import improve_post  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ SAMPLE_POSTS = [
 
 def _fetch_recent(limit: int = 5) -> list[dict]:
     try:
-        from src.storage.db import get_client, has_service_key
+        from src.core.storage.db import get_client, has_service_key
 
         c = get_client(use_service_key=has_service_key())
         r = (c.table("posts")

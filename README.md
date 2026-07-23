@@ -115,7 +115,7 @@ The engine runs **three voice prompts that never mix** — each a separate file 
    └──────────────────────────────────────────────────────────────┘
 ```
 
-Everything above runs in **one process, one event loop** (`python -m src.workers.main`): APScheduler cron jobs + the Telegram approval bot + an aiohttp health server.
+Everything above runs in **one process, one event loop** (`python -m src.core.workers.main`): APScheduler cron jobs + the Telegram approval bot + an aiohttp health server.
 
 ---
 
@@ -128,7 +128,7 @@ Everything above runs in **one process, one event loop** (`python -m src.workers
 **2 · Typed Pydantic `Settings` layer** — every environment variable is read once through a validated, cached `Settings` object. No scattered `os.environ.get`, no untyped config, no import-time crash on a missing secret (secrets are `Optional` and fail at the point of use, matching the lazy client pattern).
 
 ```python
-from src.config.settings import get_settings
+from src.core.config.settings import get_settings
 
 settings = get_settings()          # cached, validated, typed
 settings.collector_interval_hours  # int, clamped ≥ 1
@@ -218,13 +218,13 @@ cp .env.example .env         # credentials live ONLY in .env (git-ignored)
 python -m pytest             # → 276 passed
 
 # 5) Inspect the schedule without starting anything
-python -m src.workers.main --print-schedule
+python -m src.core.workers.main --print-schedule
 
 # 6) Run the full orchestrator locally (scheduler + bot + health)
-DRY_RUN=true python -m src.workers.main
+DRY_RUN=true python -m src.core.workers.main
 ```
 
-Every module is independently runnable for isolated testing, e.g. `python -m src.collectors.rss_collector`. Full walkthrough: [`docs/SETUP.md`](docs/SETUP.md).
+Every module is independently runnable for isolated testing, e.g. `python -m src.integrations.collectors.rss_collector`. Full walkthrough: [`docs/SETUP.md`](docs/SETUP.md).
 
 ## Configuration
 
@@ -236,7 +236,7 @@ Railway runs a **single monolith service** started by `railway.toml`:
 
 ```toml
 [deploy]
-startCommand = "python -m src.workers.main"
+startCommand = "python -m src.core.workers.main"
 ```
 
 One process, one event loop: APScheduler cron (collector / filter / breaking / morning) + Telegram approval bot + aiohttp health server on `/health` and `/status`. Push to `main` → Railway auto-redeploys. See [`docs/RAILWAY_DEPLOY.md`](docs/RAILWAY_DEPLOY.md).

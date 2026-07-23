@@ -1,4 +1,4 @@
-"""Pre-push safety check — a src/workers/main.py (vagy más belépési pont) teljes belső
+"""Pre-push safety check — a src/core/workers/main.py (vagy más belépési pont) teljes belső
 import-fáját bejárja, és jelzi ha ezek közül BÁRMELYIK fájl untracked vagy uncommitted
 git állapotban van.
 
@@ -8,8 +8,8 @@ crash-loopolt éles környezetben (portrait cutout / reactions_bot esete). Ez a
 script pontosan ezt a hibaosztályt fogja el push előtt.
 
 Futtatás:
-    python scripts/check_untracked_imports.py                     # alap: src/workers/main.py
-    python scripts/check_untracked_imports.py --entry src/bots/telegram_bot.py
+    python scripts/check_untracked_imports.py                     # alap: src/core/workers/main.py
+    python scripts/check_untracked_imports.py --entry src/integrations/bots/telegram_bot.py
 
 Kilépési kód: 0 ha minden import-fa fájl commitolva/tiszta, 1 ha van probléma.
 """
@@ -26,7 +26,7 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
     sys.stderr.reconfigure(encoding="utf-8")
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_ENTRY = "src/workers/main.py"
+DEFAULT_ENTRY = "src/core/workers/main.py"
 INTERNAL_PREFIXES = ("src.", "scripts.")  # csak a projekt-belső importokat követjük
 
 
@@ -46,8 +46,8 @@ def _extract_module_names(file_path: Path) -> set[str]:
         elif isinstance(node, ast.ImportFrom):
             if node.level == 0 and node.module:
                 modules.add(node.module)
-                # "from src.bots import reactions_bot" — a reactions_bot lehet egy önálló
-                # almodul-fájl (nem csak a src/bots csomag egy neve), ezt is jelöltként
+                # "from src.integrations.bots import reactions_bot" — a reactions_bot lehet egy önálló
+                # almodul-fájl (nem csak a src/integrations/bots csomag egy neve), ezt is jelöltként
                 # próbáljuk feloldani.
                 for alias in node.names:
                     if alias.name != "*":
@@ -56,7 +56,7 @@ def _extract_module_names(file_path: Path) -> set[str]:
 
 
 def _resolve_module_to_path(module: str) -> Path | None:
-    """Modulnév (pl. 'src.bots.reactions_bot') → repo-n belüli .py fájl útvonal, vagy None."""
+    """Modulnév (pl. 'src.integrations.bots.reactions_bot') → repo-n belüli .py fájl útvonal, vagy None."""
     parts = module.split(".")
     as_module = PROJECT_ROOT.joinpath(*parts).with_suffix(".py")
     if as_module.is_file():

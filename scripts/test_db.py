@@ -18,7 +18,7 @@ from pathlib import Path
 # Projekt gyökér a path-ra, hogy a `src` csomag importálható legyen szkriptként futtatva is.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.storage.db import get_client, has_service_key, table_exists  # noqa: E402
+from src.core.storage.db import get_client, has_service_key, table_exists  # noqa: E402
 
 logger = logging.getLogger("test_db")
 

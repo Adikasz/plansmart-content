@@ -1,6 +1,6 @@
 """Determinisztikus azonosító- és idő-segédek (tiszta függvények, nincs I/O).
 
-Korábban a src/storage/models.py-ban laktak; ide kerültek, hogy több domain
+Korábban a src/core/storage/models.py-ban laktak; ide kerültek, hogy több domain
 (collectors, storage) egy közös, önállóan tesztelhető helyről használja őket.
 A models.py visszafelé kompatibilisen re-exportálja a `make_id` / `_utcnow_iso` neveket.
 """

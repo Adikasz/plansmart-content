@@ -1,4 +1,4 @@
-"""Zero-network unit tests for src/visuals/layout_templates.py — pure constants/lookups.
+"""Zero-network unit tests for src/integrations/visuals/layout_templates.py — pure constants/lookups.
 
 Covers: templates_for (voice-specific + fallback), moods_for/mood_keys, accent_for/mood_bg
 (with unknown-key fallback to first mood), template_spec/layout_of/template_bg (unknown ->
@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.visuals.layout_templates import (
+from src.integrations.visuals.layout_templates import (
     DEFAULT_MOOD,
     MINIMAL_TYPOGRAPHIC,
     QUOTE_STYLE,

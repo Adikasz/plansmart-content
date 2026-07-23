@@ -23,11 +23,11 @@ from dotenv import load_dotenv  # noqa: E402
 
 load_dotenv(ROOT / ".env", override=False)
 
-from src.collectors.rss_collector import collect  # noqa: E402
-from src.filters.relevance_scorer import score_item  # noqa: E402
-from src.storage.db import get_client, has_service_key  # noqa: E402
-from src.storage.feed_items import dedupe_and_save  # noqa: E402
-from src.storage.models import OK, FIXED  # noqa: E402
+from src.integrations.collectors.rss_collector import collect  # noqa: E402
+from src.core.filters.relevance_scorer import score_item  # noqa: E402
+from src.core.storage.db import get_client, has_service_key  # noqa: E402
+from src.core.storage.feed_items import dedupe_and_save  # noqa: E402
+from src.core.storage.models import OK, FIXED  # noqa: E402
 
 logger = logging.getLogger("report_new_sources")
 
@@ -77,7 +77,7 @@ async def main(score_limit: int) -> int:
             pass
     logging.basicConfig(level="INFO", format="%(message)s")
     logging.getLogger("httpx").setLevel(logging.WARNING)
-    logging.getLogger("src.collectors.rss_collector").setLevel(logging.WARNING)
+    logging.getLogger("src.integrations.collectors.rss_collector").setLevel(logging.WARNING)
 
     client = get_client(use_service_key=has_service_key())
 

@@ -1,4 +1,4 @@
-"""Zero-network tests for src/config/settings.py.
+"""Zero-network tests for src/core/config/settings.py.
 
 Only the PURE `Settings.from_env(dict)` path + the `_as_*` helpers are exercised
 with explicit dicts, so nothing depends on the ambient os.environ. `get_settings()`
@@ -9,7 +9,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from src.config.settings import (
+from src.core.config.settings import (
     Settings,
     _as_bool,
     _as_float,

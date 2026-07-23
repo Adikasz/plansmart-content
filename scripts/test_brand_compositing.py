@@ -27,9 +27,9 @@ from PIL import Image, ImageDraw, ImageFilter
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.visuals import muapi_client, portrait as portrait_mod  # noqa: E402
-from src.visuals.text_overlay import TextOverlayComposer  # noqa: E402
-from src.visuals.visual_generator import build_textfree_prompt  # noqa: E402
+from src.integrations.visuals import muapi_client, portrait as portrait_mod  # noqa: E402
+from src.integrations.visuals.text_overlay import TextOverlayComposer  # noqa: E402
+from src.integrations.visuals.visual_generator import build_textfree_prompt  # noqa: E402
 
 logger = logging.getLogger(__name__)
 OUT_DIR = PROJECT_ROOT / "assets" / "generated" / "brand_test"

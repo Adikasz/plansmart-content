@@ -21,9 +21,9 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from src.optimization.text_ab_test import HOOK_LABEL, generate_variants
-from src.optimization.text_evaluator import SCORE_KEYS, TextEvaluator
-from src.optimization.text_improver import improve_post
+from src.ai.optimization.text_ab_test import HOOK_LABEL, generate_variants
+from src.ai.optimization.text_evaluator import SCORE_KEYS, TextEvaluator
+from src.ai.optimization.text_improver import improve_post
 
 logger = logging.getLogger("run_text_eval")
 load_dotenv(override=False)

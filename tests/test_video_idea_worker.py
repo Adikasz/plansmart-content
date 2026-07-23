@@ -1,9 +1,9 @@
-"""Zero-network tests for src.workers.video_idea_worker."""
+"""Zero-network tests for src.core.workers.video_idea_worker."""
 from __future__ import annotations
 
 import pytest
 
-from src.workers import video_idea_worker as worker
+from src.core.workers import video_idea_worker as worker
 
 
 # ── _adam_fit ─────────────────────────────────────────────────────────────

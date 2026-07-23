@@ -1,11 +1,11 @@
-"""Zero-network tests for src/config/loaders.py.
+"""Zero-network tests for src/core/config/loaders.py.
 
 Uses the checked-in config/*.yml and prompts/*.yml as read-only fixtures.
 No network, no external services.
 """
 from __future__ import annotations
 
-from src.config.loaders import (
+from src.core.config.loaders import (
     PROJECT_ROOT,
     load_accounts,
     load_config,

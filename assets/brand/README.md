@@ -21,4 +21,4 @@ Ide kerülnek a PlanSmart logó fájlok. A visual generator ezeket watermarkkén
 A visual generator a promptban `[BRAND_LOGO]` placeholder szöveget használ.
 Amint a valódi fájlok megérkeznek, a Muapi `/api/v1/upload_file` végponton
 feltöltjük őket, és image-to-image modellel (pl. `nano-banana-2`) tesszük rá a
-generált képekre. Lásd `src/visuals/muapi_client.py`.
+generált képekre. Lásd `src/integrations/visuals/muapi_client.py`.

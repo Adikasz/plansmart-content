@@ -17,7 +17,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from src.storage.db import get_client, has_service_key
+from src.core.storage.db import get_client, has_service_key
 
 logger = logging.getLogger("build_eval_dataset")
 load_dotenv(override=False)

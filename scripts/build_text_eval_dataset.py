@@ -15,9 +15,9 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from src.storage import feed_items as feed_store
-from src.storage.db import get_client, has_service_key
-from src.strategy import content_strategy
+from src.core.storage import feed_items as feed_store
+from src.core.storage.db import get_client, has_service_key
+from src.core.strategy import content_strategy
 
 logger = logging.getLogger("build_text_eval_dataset")
 load_dotenv(override=False)

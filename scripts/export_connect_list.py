@@ -25,7 +25,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from src.storage import prospects as store
+from src.core.storage import prospects as store
 
 load_dotenv(override=False)
 

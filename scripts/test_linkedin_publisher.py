@@ -27,7 +27,7 @@ os.environ["LINKEDIN_MOCK"] = "true"
 
 import yaml  # noqa: E402
 
-from src.publishers.linkedin_publisher import (  # noqa: E402
+from src.integrations.publishers.linkedin_publisher import (  # noqa: E402
     BASE_HEADERS, UGC_URL, build_ugc_payload, post_to_linkedin,
 )
 

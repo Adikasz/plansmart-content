@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import re
 
-from src.publishers.linkedin_publisher import (
+from src.integrations.publishers.linkedin_publisher import (
     _fake_share_urn,
     build_ugc_payload,
     compose_text,

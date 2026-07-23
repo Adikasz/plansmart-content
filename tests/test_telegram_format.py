@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from src.bots.telegram_bot import (
+from src.integrations.bots.telegram_bot import (
     ApprovalCB,
     build_keyboard,
     format_approval_message,

@@ -18,8 +18,8 @@ import sys
 
 from dotenv import load_dotenv
 
-from src.generators.base_generator import generate as generate_post
-from src.optimization.linkedin_optimizer import optimize_for_linkedin
+from src.ai.generators.base_generator import generate as generate_post
+from src.ai.optimization.linkedin_optimizer import optimize_for_linkedin
 
 logger = logging.getLogger("test_optimization")
 load_dotenv(override=False)

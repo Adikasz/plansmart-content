@@ -26,7 +26,7 @@ from dotenv import load_dotenv  # noqa: E402
 
 load_dotenv(ROOT / ".env", override=False)
 
-from src.storage.db import get_client, has_service_key  # noqa: E402
+from src.core.storage.db import get_client, has_service_key  # noqa: E402
 
 logger = logging.getLogger("cleanup_test_posts")
 

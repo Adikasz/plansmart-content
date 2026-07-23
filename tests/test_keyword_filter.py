@@ -1,11 +1,11 @@
-"""Zero-network unit tests for src.filters.keyword_filter.
+"""Zero-network unit tests for src.core.filters.keyword_filter.
 
 Minden config INLINE dict — a config/scoring.yml-t NEM olvassuk (kivéve a
 config=None fallback smoke-tesztet, ami lokális fájl, nem hálózat).
 """
 from __future__ import annotations
 
-from src.filters.keyword_filter import (
+from src.core.filters.keyword_filter import (
     BOOST_POINTS,
     KeywordResult,
     keyword_filter,

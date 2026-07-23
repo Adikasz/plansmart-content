@@ -11,14 +11,14 @@ import types
 import pytest
 from pydantic import ValidationError
 
-from src.filters.schemas import RelevanceScore, validate_score
-from src.generators.schemas import (
+from src.core.filters.schemas import RelevanceScore, validate_score
+from src.ai.generators.schemas import (
     GeneratedPost,
     HookVariant,
     validate_generated,
 )
-from src.publishers.schemas import LinkedInUGCResponse
-from src.visuals.schemas import MuapiResult
+from src.integrations.publishers.schemas import LinkedInUGCResponse
+from src.integrations.visuals.schemas import MuapiResult
 
 
 # ── generators.validate_generated ──────────────────────────────────────

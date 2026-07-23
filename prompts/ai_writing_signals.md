@@ -1,7 +1,7 @@
 # AI Writing Signals — 29-pattern reference
 
-Reference catalog for the `ai_signature_risk` evaluation dimension (`src/optimization/text_evaluator.py`)
-and the matching targeted-fix rewrite step (`src/optimization/text_improver.py`). Not a prompt that gets
+Reference catalog for the `ai_signature_risk` evaluation dimension (`src/ai/optimization/text_evaluator.py`)
+and the matching targeted-fix rewrite step (`src/ai/optimization/text_improver.py`). Not a prompt that gets
 sent to Claude verbatim — the evaluator's `SYSTEM_PROMPT` summarizes this list; this file is the detailed
 reference a human (or a future Claude session) reads to understand *why* a pattern is flagged and what a
 fix looks like.
@@ -220,7 +220,7 @@ A heading immediately followed by a sentence that just restates the heading.
 ## Quick keyword index (deterministic checks only)
 
 For implementers: the exact keyword/regex lists live in `_ai_signature_flags()` in
-`src/optimization/text_evaluator.py`. This table is a human-readable index, not the source of truth —
+`src/ai/optimization/text_evaluator.py`. This table is a human-readable index, not the source of truth —
 if the two disagree, the code wins.
 
 | # | Pattern | Trigger |

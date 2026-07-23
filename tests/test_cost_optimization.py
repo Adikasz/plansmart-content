@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.storage import cost_tracking as ct
+from src.core.storage import cost_tracking as ct
 from src.utils.anthropic_cache import cached_system
 
 
@@ -97,7 +97,7 @@ def capture_record_cost(monkeypatch):
     def _fake_record_cost(post_id, model, cost, *, kind="claude_api", client=None):
         calls.append({"post_id": post_id, "model": model, "cost": cost, "kind": kind})
 
-    import src.storage.posts as posts_store
+    import src.core.storage.posts as posts_store
 
     monkeypatch.setattr(posts_store, "record_cost", _fake_record_cost)
     return calls
@@ -185,7 +185,7 @@ class _FakeAsyncClient:
 
 @pytest.mark.asyncio
 async def test_anthropic_provider_calls_haiku_and_records(monkeypatch):
-    from src.visuals import visual_text_provider as vtp
+    from src.integrations.visuals import visual_text_provider as vtp
 
     fake = _FakeAsyncClient('{"main_text":"HELLO"}', usage=_Usage(10, 5))
     monkeypatch.setattr(vtp, "_anthropic_client", lambda: fake)
@@ -205,7 +205,7 @@ async def test_anthropic_provider_calls_haiku_and_records(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_openrouter_provider_raises_without_key():
-    from src.visuals.visual_text_provider import OpenRouterProvider
+    from src.integrations.visuals.visual_text_provider import OpenRouterProvider
 
     prov = OpenRouterProvider("deepseek/deepseek-chat", api_key=None)
     prov.api_key = None  # explicit: környezetből se legyen
@@ -217,7 +217,7 @@ async def test_openrouter_provider_raises_without_key():
 async def test_openrouter_provider_builds_payload_and_parses(monkeypatch):
     import httpx
 
-    from src.visuals.visual_text_provider import OpenRouterProvider
+    from src.integrations.visuals.visual_text_provider import OpenRouterProvider
 
     captured = {}
 
@@ -264,7 +264,7 @@ async def test_openrouter_provider_builds_payload_and_parses(monkeypatch):
 # ── extract_visual_text: default vs. cserélt szolgáltató ─────────────────
 @pytest.mark.asyncio
 async def test_extract_visual_text_default_path_unchanged(monkeypatch):
-    from src.visuals import visual_generator as vg
+    from src.integrations.visuals import visual_generator as vg
 
     fake = _FakeAsyncClient('{"main_text":"AMD $10B","sub_text":"supply chain","stat":"$10B"}',
                             usage=_Usage(50, 20))
@@ -280,7 +280,7 @@ async def test_extract_visual_text_default_path_unchanged(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_extract_visual_text_routes_through_explicit_provider(monkeypatch):
-    from src.visuals import visual_generator as vg
+    from src.integrations.visuals import visual_generator as vg
 
     class _Prov:
         name = "openrouter/test"
@@ -302,7 +302,7 @@ async def test_extract_visual_text_routes_through_explicit_provider(monkeypatch)
 
 @pytest.mark.asyncio
 async def test_extract_visual_text_provider_error_falls_back_to_heuristic(monkeypatch):
-    from src.visuals import visual_generator as vg
+    from src.integrations.visuals import visual_generator as vg
 
     class _BadProv:
         name = "openrouter/bad"

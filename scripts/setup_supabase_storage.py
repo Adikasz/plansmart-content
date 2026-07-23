@@ -10,7 +10,7 @@ import sys
 
 from dotenv import load_dotenv
 
-from src.visuals.uploader import BUCKET, ensure_bucket
+from src.integrations.visuals.uploader import BUCKET, ensure_bucket
 
 load_dotenv(override=False)
 logger = logging.getLogger("setup_supabase_storage")

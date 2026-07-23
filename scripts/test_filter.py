@@ -19,10 +19,10 @@ from dotenv import load_dotenv  # noqa: E402
 
 load_dotenv(Path(__file__).resolve().parent.parent / ".env", override=False)
 
-from src.filters import filter_worker  # noqa: E402
-from src.filters.dedup import is_duplicate  # noqa: E402
-from src.storage.db import get_client, has_service_key  # noqa: E402
-from src.storage.models import FeedItem  # noqa: E402
+from src.core.filters import filter_worker  # noqa: E402
+from src.core.filters.dedup import is_duplicate  # noqa: E402
+from src.core.storage.db import get_client, has_service_key  # noqa: E402
+from src.core.storage.models import FeedItem  # noqa: E402
 
 logger = logging.getLogger("test_filter")
 SAMPLE_SIZE = 10

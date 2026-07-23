@@ -77,42 +77,26 @@ plansmart-content/
 │   ├── filter_scoring.md
 │   └── topic_extraction.md
 │
-├── src/
-│   ├── collectors/            # Forrás-gyűjtők (egy fájl = egy forrástípus)
-│   │   ├── rss_collector.py
-│   │   ├── twitter_collector.py
-│   │   ├── linkedin_collector.py
-│   │   └── reddit_collector.py
+├── src/                       # V2: domain-bucketed (core / ai / integrations / utils)
+│   ├── core/                  # Domain-mag + orchestráció
+│   │   ├── config/            # Tipizált Settings + cache-elt YAML loaderek
+│   │   ├── filters/           # Szűrés, dedup, relevancia-scoring
+│   │   ├── storage/           # Supabase + SQLite réteg
+│   │   ├── strategy/          # Content strategy
+│   │   └── workers/           # Ütemezők + belépési pont (main.py)
 │   │
-│   ├── filters/               # Szűrés, dedup, scoring
-│   │   ├── dedup.py
-│   │   ├── keyword_filter.py
-│   │   └── relevance_scorer.py
+│   ├── ai/                    # LLM-vezérelt réteg
+│   │   ├── generators/        # 3 voice-specific generátor + video-ötlet
+│   │   ├── optimization/      # Szöveg/vizuál eval + A/B
+│   │   └── outreach/          # Prospect research + reakciók
 │   │
-│   ├── generators/            # 3 voice-specific generátor
-│   │   ├── base_generator.py  # Közös logika
-│   │   ├── david_generator.py
-│   │   ├── adam_generator.py
-│   │   └── plansmart_generator.py
+│   ├── integrations/          # Külső integrációk (API kliensek)
+│   │   ├── collectors/        # Forrás-gyűjtők (RSS, scraper)
+│   │   ├── publishers/        # LinkedIn publish + token store
+│   │   ├── visuals/           # Kép-generálás, portré, overlay
+│   │   └── bots/              # Telegram approval botok
 │   │
-│   ├── publishers/            # API kliensek a posztoláshoz
-│   │   ├── linkedin_publisher.py
-│   │   └── twitter_publisher.py
-│   │
-│   ├── storage/               # Supabase + SQLite réteg
-│   │   ├── db.py
-│   │   ├── feed_items.py
-│   │   ├── posts.py
-│   │   └── metrics.py
-│   │
-│   ├── bots/
-│   │   └── telegram_bot.py    # Approval UI
-│   │
-│   └── workers/               # Folyamatosan futó workerek
-│       ├── collector_worker.py
-│       ├── filter_worker.py
-│       ├── generator_worker.py
-│       └── publisher_worker.py
+│   └── utils/                 # Kereszt-metsző segédek (ids, json_repair, logging, cache)
 │
 ├── scripts/                   # Egyszeri / debug scriptek
 │   ├── test_rss.py
@@ -146,7 +130,7 @@ plansmart-content/
 
 ```bash
 # Egy modul önálló futtatása
-python -m src.collectors.rss_collector
+python -m src.integrations.collectors.rss_collector
 
 # Unit tesztek
 pytest tests/
@@ -162,7 +146,7 @@ python scripts/test_voice.py --feed-id <id>
 
 Moduláris config- és segéd-réteg + valódi offline teszt-suite:
 
-- **`src/config/`** — tipizált konfiguráció:
+- **`src/core/config/`** — tipizált konfiguráció:
   - `settings.py` — `Settings` (Pydantic) az összes env változóhoz, `get_settings()` cache-elve.
     Az import-idejű config-olvasás MÁR EZEN megy át az egész kódbázisban (workers, collectors,
     generators, bots, visuals stb.) — új kód is INNEN olvasson. KIVÉTEL (szándékos): a call-time
@@ -175,7 +159,7 @@ Moduláris config- és segéd-réteg + valódi offline teszt-suite:
 - **`src/utils/`** — kereszt-metsző segédek, projekt-belső (src.*) függőség NÉLKÜL:
   - `ids.py` (`make_id`, `utcnow_iso`), `json_repair.py` (LLM-JSON repair állapotgép), `logging.py` (`setup_logging`).
   - A történeti helyeken (`storage.models`, `generators.base_generator`) **re-export marad** — a régi
-    `from src.storage.models import make_id` / `from src.generators.base_generator import _repair_and_parse`
+    `from src.core.storage.models import make_id` / `from src.ai.generators.base_generator import _repair_and_parse`
     importok érintetlenek. Ne a régi helyre írj új logikát — a kanonikus otthon a `utils/`.
 - **`schemas.py` a domainekben** — a külső határok Pydantic validációja:
   `generators/schemas.py` (`GeneratedPost` — az LLM kimenet, a legkockázatosabb határ),
@@ -191,11 +175,11 @@ Railway-en **egy monolit service** fut (`plansmart-content`), amit a
 `railway.toml` `startCommand`-je indít:
 
 ```
-python -m src.workers.main
+python -m src.core.workers.main
 ```
 
 Ez egyetlen process, egy event loopban futtat mindent (lásd
-`src/workers/main.py`):
+`src/core/workers/main.py`):
 - **APScheduler** cron jobok: collector / filter / breaking / morning
 - **Telegram approval bot** (aiogram)
 - **health szerver** (aiohttp, `:$PORT`, `/health`, `/status`)

@@ -38,14 +38,14 @@ load_dotenv(ROOT / ".env", override=False)
 
 from scrape_brand_font import scrape as scrape_font  # noqa: E402
 from test_voice import _rank_candidates  # noqa: E402  (score>=7 jelöltek, on-the-fly pontozással)
-from src.generators.adam_generator import generate_adam  # noqa: E402
-from src.generators.base_generator import generate as generate_post  # noqa: E402
-from src.generators.david_generator import generate_david  # noqa: E402
-from src.generators.plansmart_generator import generate_plansmart  # noqa: E402
-from src.storage import posts as posts_store  # noqa: E402
-from src.storage.db import get_client, has_service_key  # noqa: E402
-from src.strategy import content_strategy  # noqa: E402
-from src.visuals import muapi_client, visual_generator  # noqa: E402
+from src.ai.generators.adam_generator import generate_adam  # noqa: E402
+from src.ai.generators.base_generator import generate as generate_post  # noqa: E402
+from src.ai.generators.david_generator import generate_david  # noqa: E402
+from src.ai.generators.plansmart_generator import generate_plansmart  # noqa: E402
+from src.core.storage import posts as posts_store  # noqa: E402
+from src.core.storage.db import get_client, has_service_key  # noqa: E402
+from src.core.strategy import content_strategy  # noqa: E402
+from src.integrations.visuals import muapi_client, visual_generator  # noqa: E402
 
 logger = logging.getLogger("test_visual")
 
@@ -195,7 +195,7 @@ def _write_preview(item, results: list[dict]) -> None:
 
 
 async def _send_telegram(item, results: list[dict]) -> None:
-    from src.bots.telegram_bot import POSTS_CHAT_ID, get_bot, send_for_approval
+    from src.integrations.bots.telegram_bot import POSTS_CHAT_ID, get_bot, send_for_approval
 
     if not POSTS_CHAT_ID:
         logger.warning("TELEGRAM_POSTS_CHAT_ID nincs beállítva — Telegram küldés kihagyva.")

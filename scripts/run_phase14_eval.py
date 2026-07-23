@@ -32,9 +32,9 @@ os.environ["TEXT_AUTO_IMPROVE"] = "false"
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.optimization.text_ab_test import generate_variants  # noqa: E402
-from src.optimization.text_evaluator import TextEvaluator  # noqa: E402
-from src.optimization.text_improver import improve_post  # noqa: E402
+from src.ai.optimization.text_ab_test import generate_variants  # noqa: E402
+from src.ai.optimization.text_evaluator import TextEvaluator  # noqa: E402
+from src.ai.optimization.text_improver import improve_post  # noqa: E402
 
 logger = logging.getLogger(__name__)
 DATASET = PROJECT_ROOT / "data" / "text_eval_dataset.json"

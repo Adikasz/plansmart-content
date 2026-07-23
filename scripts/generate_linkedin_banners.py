@@ -27,7 +27,7 @@ from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.visuals import muapi_client  # noqa: E402
+from src.integrations.visuals import muapi_client  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

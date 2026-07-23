@@ -11,7 +11,7 @@ Csak a modell minimális cache-elhető prefixe FÖLÖTT van hatása:
 Ez alatt a `cache_control` némán figyelmen kívül marad (nincs hiba, nincs nyereség) — ezért csak a
 nagy, ismételten küldött rendszerpromptokat érdemes így csomagolni (voice_*.md, _rewrite_system).
 
-A cache-token elszámolást lásd src/storage/cost_tracking.py (a cache-write 1.25×, a cache-read 0.1×
+A cache-token elszámolást lásd src/core/storage/cost_tracking.py (a cache-write 1.25×, a cache-read 0.1×
 az input-árazásnak) — caching bekapcsolása után az `usage.input_tokens` már CSAK a nem-cache-elt
 maradék, ezért a költséglogolásnak a cache-mezőket is olvasnia kell, különben alul-számol.
 """

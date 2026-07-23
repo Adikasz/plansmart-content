@@ -1,4 +1,4 @@
-"""Zero-network tests for src.storage.engagement_report (pure aggregation logic).
+"""Zero-network tests for src.core.storage.engagement_report (pure aggregation logic).
 
 Deliberately hand-builds engagement_rows/posts_by_id dicts instead of touching Supabase --
 this module never calls the DB itself, so every grouping/averaging/ranking edge case can be
@@ -8,7 +8,7 @@ never surfacing as hours_since_post).
 """
 from __future__ import annotations
 
-from src.storage import engagement_report as report
+from src.core.storage import engagement_report as report
 
 
 def _post(voice="david", hook_type="A", is_breaking=False, strategy_type="educational",

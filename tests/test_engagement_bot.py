@@ -1,10 +1,10 @@
-"""Zero-network tests for src.bots.engagement_bot (arg parsing + Telegram text formatting)."""
+"""Zero-network tests for src.integrations.bots.engagement_bot (arg parsing + Telegram text formatting)."""
 from __future__ import annotations
 
 import pytest
 
-from src.bots import engagement_bot as bot
-from src.storage import engagement_report as report
+from src.integrations.bots import engagement_bot as bot
+from src.core.storage import engagement_report as report
 
 
 # ── _parse_kv_args ───────────────────────────────────────────────────────

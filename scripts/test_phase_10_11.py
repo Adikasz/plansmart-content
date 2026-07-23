@@ -24,17 +24,17 @@ import sys
 
 from dotenv import load_dotenv
 
-from src.generators.base_generator import generate as generate_post
-from src.optimization.linkedin_optimizer import optimize_for_linkedin
-from src.storage.models import FeedItem, make_id
-from src.strategy import content_strategy
-from src.visuals import muapi_client
-from src.visuals import visual_generator as vg
-from src.workers import breaking_news_worker as bnw
-from src.workers import health
-from src.workers import main as orch
-from src.workers.generator_worker import GENERATORS, VOICE_PROMPTS
-from src.workers.morning_post_worker import hungarian_date
+from src.ai.generators.base_generator import generate as generate_post
+from src.ai.optimization.linkedin_optimizer import optimize_for_linkedin
+from src.core.storage.models import FeedItem, make_id
+from src.core.strategy import content_strategy
+from src.integrations.visuals import muapi_client
+from src.integrations.visuals import visual_generator as vg
+from src.core.workers import breaking_news_worker as bnw
+from src.core.workers import health
+from src.core.workers import main as orch
+from src.core.workers.generator_worker import GENERATORS, VOICE_PROMPTS
+from src.core.workers.morning_post_worker import hungarian_date
 
 logger = logging.getLogger("test_phase_10_11")
 load_dotenv(override=False)
@@ -196,7 +196,7 @@ async def section_health() -> None:
 
 
 async def _maybe_send(morning: list[dict], breaking: dict) -> None:
-    from src.workers.morning_post_worker import hungarian_date
+    from src.core.workers.morning_post_worker import hungarian_date
     bot = orch.tb.get_bot()
     header = f"☀️ Reggeli poszt — {hungarian_date()}\n\n"
     for r in morning:

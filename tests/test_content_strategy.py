@@ -1,4 +1,4 @@
-"""Zero-network tests for src.strategy.content_strategy.
+"""Zero-network tests for src.core.strategy.content_strategy.
 
 Reads the checked-in config/content_strategy.yml + prompts/*.yml from disk (allowed,
 no network). Uses accounts()/target_distribution() to get REAL account names so the
@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.strategy.content_strategy import (
+from src.core.strategy.content_strategy import (
     CONTENT_TYPES,
     _voice_ok,
     accounts,

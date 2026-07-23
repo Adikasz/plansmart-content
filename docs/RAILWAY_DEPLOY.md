@@ -1,6 +1,6 @@
 # Railway deploy — PlanSmart Content Engine
 
-A teljes rendszer **egy Railway service**-ként fut: a `src.workers.main` orchestrator
+A teljes rendszer **egy Railway service**-ként fut: a `src.core.workers.main` orchestrator
 egyetlen processben futtatja az APScheduler ütemezőt (collector / filter / breaking /
 morning), a Telegram approval botot és a health szervert (`:8080`).
 

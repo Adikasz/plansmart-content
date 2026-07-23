@@ -1,9 +1,9 @@
-"""Zero-network tests for src.bots.video_idea_bot (formatting + candidate-picking logic)."""
+"""Zero-network tests for src.integrations.bots.video_idea_bot (formatting + candidate-picking logic)."""
 from __future__ import annotations
 
 import pytest
 
-from src.bots import video_idea_bot as vb
+from src.integrations.bots import video_idea_bot as vb
 
 
 # ── format_video_idea_message ────────────────────────────────────────────
@@ -78,7 +78,7 @@ def test_video_idea_cb_prefix_is_distinct_from_approval_cb():
     # kritikus: a VideoIdeaCB-nek SAJÁT prefixe kell legyen, hogy a routing ne keveredjen a
     # telegram_bot.py ApprovalCB-jével (lásd a research report ajánlását -- ez a teszt védi
     # ezt a döntést egy jövőbeli véletlen prefix-ütközés ellen).
-    from src.bots.telegram_bot import ApprovalCB
+    from src.integrations.bots.telegram_bot import ApprovalCB
 
     packed = vb.VideoIdeaCB(action="approve", video_id="x").pack()
     assert packed.split(":")[0] != ApprovalCB(action="approve", post_id="x").pack().split(":")[0]
