@@ -134,6 +134,34 @@ def mark_breaking(item_id: str, client=None) -> None:
     ).eq("id", item_id).execute()
 
 
+def get_by_id(item_id: str, client=None) -> dict[str, Any] | None:
+    """Egy feed_items sor id szerint (pl. /create_video <voice> <feed_item_id> kényszerítéshez,
+    vagy a video-ötlet 🔄 Regenerate gombjához, ami ugyanazt a hírt kéri le újra)."""
+    resp = (client or _client()).table("feed_items").select("*").eq("id", item_id).limit(1).execute()
+    return (resp.data or [None])[0]
+
+
+def get_video_idea_candidates(
+    min_score: int = 7, window_days: int = 7, limit: int = 30, client=None
+) -> list[dict[str, Any]]:
+    """Video-ötlet jelöltek: status='filtered', score>=min, az utolsó `window_days` napban
+    begyűjtött elemek — legjobb pontszám előre.
+
+    A voice_fit['adam'] szűrést (és a video_ideas dedupot) a hívó végzi Pythonban — ebben a
+    kódbázisban SEHOL nincs JSONB-oszlop-szintű (pl. voice_fit->>adam) postgrest szűrés, lásd
+    get_breaking_candidates/_qualifies mintáját ugyanerre az elvre.
+    """
+    c = client or _client()
+    since_iso = (datetime.now(timezone.utc) - timedelta(days=window_days)).isoformat()
+    resp = (
+        c.table("feed_items").select("*")
+        .eq("status", "filtered").gte("score", min_score)
+        .gte("fetched_at", since_iso)
+        .order("score", desc=True).limit(limit).execute()
+    )
+    return resp.data or []
+
+
 def _connect_supabase():
     """Supabase kliens, ha elerheto (valid kulcs). Egyebkent None."""
     try:

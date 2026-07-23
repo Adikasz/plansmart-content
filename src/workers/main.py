@@ -33,6 +33,7 @@ from src.bots import metrics_bot
 from src.bots import prospect_review
 from src.bots import reactions_bot
 from src.bots import telegram_bot as tb
+from src.bots import video_idea_bot
 from src.config.settings import get_settings
 from src.utils.logging import setup_logging
 from src.workers import health
@@ -40,6 +41,7 @@ from src.workers.breaking_news_worker import run_breaking_check
 from src.workers.collector_worker import run_collector_cycle
 from src.workers.filter_worker import run_filter_cycle
 from src.workers.morning_post_worker import run_morning_posts
+from src.workers.video_idea_worker import run_video_idea_check
 from src.visuals import portrait as portrait_mod
 
 logger = logging.getLogger("workers.main")
@@ -82,6 +84,11 @@ SCHEDULE = [
      CronTrigger(hour=f"*/{INTERVAL_H}", minute=45, timezone=TZ)),
     ("morning", "reggeli poszt (3 fiók)",
      CronTrigger(hour=_MH, minute=_MM, timezone=TZ)),
+    # hétfő 08:05 -- NEM 08:00, mert az egybeesne a collector jobbal (ami INTERVAL_H óránként
+    # :00-kor fut, és 8 osztható a 2 órás alapértékkel); a :05 offset bármilyen INTERVAL_H
+    # mellett elkerüli a collector/filter/breaking :00/:30/:45 mintáját.
+    ("video_idea", "heti videó-ötlet (Ádám)",
+     CronTrigger(day_of_week="mon", hour=8, minute=5, timezone=TZ)),
 ]
 
 
@@ -116,9 +123,14 @@ async def _job_morning() -> None:
     await _run_job("morning", lambda: run_morning_posts())
 
 
+async def _job_video_idea() -> None:
+    await _run_job("video_idea", lambda: run_video_idea_check())
+
+
 JOB_FUNCS = {
     "collector": _job_collector, "filter": _job_filter,
     "breaking": _job_breaking, "morning": _job_morning,
+    "video_idea": _job_video_idea,
 }
 
 
@@ -192,6 +204,7 @@ async def _amain() -> None:
     dp.include_router(prospect_review.router)
     dp.include_router(metrics_bot.router)
     dp.include_router(engagement_bot.router)
+    dp.include_router(video_idea_bot.router)
     dp.include_router(tb.router)
 
     stop = asyncio.Event()
