@@ -87,7 +87,7 @@ def score_item(item: FeedItem) -> ScoreResult:
         system=_load_prompt(),
         messages=[{"role": "user", "content": payload}],
     )
-    record_claude_usage(msg, MODEL)
+    record_claude_usage(msg, MODEL, kind="relevance_scoring")
     data = _parse_json_strict(msg.content[0].text)
 
     return ScoreResult(

@@ -156,7 +156,7 @@ async def optimize_for_linkedin(
             system=system,
             messages=[{"role": "user", "content": user}],
         )
-        record_claude_usage(msg, MODEL)
+        record_claude_usage(msg, MODEL, kind="linkedin_optimize")
         raw_text = msg.content[0].text if msg.content else ""
         data = _repair_and_parse(raw_text)
     except Exception as exc:  # API/hálózati hiba

@@ -20,6 +20,7 @@ from src.config.settings import get_settings
 from src.generators.schemas import validate_generated
 from src.storage.cost_tracking import record_claude_usage
 from src.storage.models import FeedItem
+from src.utils.anthropic_cache import cached_system
 
 # A JSON parse/repair a src.utils.json_repair-ben lakik; itt re-exportáljuk, hogy a történeti
 # `from src.generators.base_generator import _repair_and_parse` importok (optimization, outreach,
@@ -140,10 +141,10 @@ async def generate(
     msg = await _client().messages.create(
         model=MODEL,
         max_tokens=MAX_TOKENS,
-        system=system,
+        system=cached_system(system),  # ~3.7k tokenes voice-prompt → prompt-caching (voice-onként)
         messages=[{"role": "user", "content": payload}],
     )
-    record_claude_usage(msg, MODEL)
+    record_claude_usage(msg, MODEL, kind="voice_generation")
     raw_text = msg.content[0].text if msg.content else ""
     stem = Path(voice_prompt_path).stem
 
@@ -255,7 +256,7 @@ async def generate_hook_variants(post_text: str) -> dict[str, Any] | None:
             system=HOOK_SYSTEM,
             messages=[{"role": "user", "content": f"POSZT:\n{post_text}"}],
         )
-        record_claude_usage(msg, MODEL)
+        record_claude_usage(msg, MODEL, kind="hook_variants")
         data = _repair_and_parse(msg.content[0].text if msg.content else "")
     except Exception as exc:
         logger.warning("[hook] variáns generálás hiba: %s", str(exc)[:120])

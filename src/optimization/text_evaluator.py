@@ -399,7 +399,7 @@ class TextEvaluator:
                 model=MODEL, max_tokens=MAX_TOKENS, system=SYSTEM_PROMPT,
                 messages=[{"role": "user", "content": user}],
             )
-            record_claude_usage(msg, MODEL)
+            record_claude_usage(msg, MODEL, kind="text_eval")
             data = _repair_and_parse(msg.content[0].text if msg.content else "")
         except Exception as exc:
             logger.warning("[text-eval] hiba (%s): %s", voice, str(exc)[:120])

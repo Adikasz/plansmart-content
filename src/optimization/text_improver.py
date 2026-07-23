@@ -18,6 +18,7 @@ from dotenv import load_dotenv
 
 from src.optimization.text_evaluator import TextEvaluator
 from src.storage.cost_tracking import record_claude_usage
+from src.utils.anthropic_cache import cached_system
 from src.utils.logging import setup_logging
 
 logger = logging.getLogger(__name__)
@@ -137,10 +138,10 @@ async def _rewrite(post: str, voice: str, content_type: str, scores: dict) -> st
     user += "Rewrite the post now, fixing the issues above. Return only the finished post."
 
     msg = await _client().messages.create(
-        model=MODEL, max_tokens=MAX_TOKENS, system=_rewrite_system(voice),
-        messages=[{"role": "user", "content": user}],
+        model=MODEL, max_tokens=MAX_TOKENS, system=cached_system(_rewrite_system(voice)),
+        messages=[{"role": "user", "content": user}],  # ~5.3k tokenes rewrite-prompt → caching
     )
-    record_claude_usage(msg, MODEL)
+    record_claude_usage(msg, MODEL, kind="text_improve")
     text = (msg.content[0].text if msg.content else "").strip()
     # Esetleges körítés levágása (idézőjel-keret).
     if text.startswith('"') and text.endswith('"') and text.count('"') == 2:

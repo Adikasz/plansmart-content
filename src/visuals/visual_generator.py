@@ -26,6 +26,7 @@ from src.storage.cost_tracking import record_claude_usage
 from src.utils.logging import setup_logging
 from src.visuals import layout_templates as lt
 from src.visuals import muapi_client
+from src.visuals.visual_text_provider import VisualTextProvider
 
 logger = logging.getLogger(__name__)
 load_dotenv(override=False)
@@ -121,24 +122,38 @@ def _post_text(post: dict[str, Any]) -> str:
     return f"{content}\n\n{tags}".strip()
 
 
-async def extract_visual_text(post_content: str) -> dict[str, Any]:
-    """A poszt tartalmából kinyeri a vizuálra kerülő MAGYAR overlay-szöveget (Haiku).
+async def extract_visual_text(
+    post_content: str, *, provider: VisualTextProvider | None = None
+) -> dict[str, Any]:
+    """A poszt tartalmából kinyeri a vizuálra kerülő ANGOL overlay-szöveget (Haiku).
 
     Visszaad: {"main_text": str, "sub_text": str, "stat": str | None}.
     Hiba esetén egyszerű heurisztika (első sorok), hogy a vizuál így is mehessen.
+
+    provider: cserélhető modell-szolgáltató (Part 4 — olcsóbb modell A/B). Alap = Anthropic/Haiku,
+    a jelenlegi viselkedés bit-azonosan. A parse + heurisztikus fallback minden szolgáltatóra közös.
     """
     text = (post_content or "").strip()
     try:
-        msg = await _client().messages.create(
-            model=HAIKU_MODEL,
-            max_tokens=300,
-            system=EXTRACT_SYSTEM,
-            messages=[{"role": "user", "content": text[:1500]}],
-        )
-        record_claude_usage(msg, HAIKU_MODEL)
-        data = _repair_and_parse(msg.content[0].text if msg.content else "")
+        if provider is None:
+            # Produkciós alap-út — BIT-AZONOS a korábbival (Haiku, saját cached kliens, cost-log).
+            msg = await _client().messages.create(
+                model=HAIKU_MODEL,
+                max_tokens=300,
+                system=EXTRACT_SYSTEM,
+                messages=[{"role": "user", "content": text[:1500]}],
+            )
+            record_claude_usage(msg, HAIKU_MODEL, kind="visual_text_extract")
+            raw = msg.content[0].text if msg.content else ""
+        else:
+            # Cserélt szolgáltató (A/B) — ugyanaz a prompt/parse, csak a modell más.
+            raw = await provider.complete(EXTRACT_SYSTEM, text[:1500], max_tokens=300)
+        data = _repair_and_parse(raw)
     except Exception as exc:
-        logger.warning("[visual-text] kinyerés hiba (%s) — heurisztika.", str(exc)[:90])
+        logger.warning(
+            "[visual-text] kinyerés hiba (%s: %s) — heurisztika.",
+            getattr(provider, "name", "anthropic/haiku"), str(exc)[:90],
+        )
         data = None
 
     if data and (data.get("main_text") or "").strip():

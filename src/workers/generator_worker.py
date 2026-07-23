@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import uuid
 from datetime import datetime, timedelta, timezone
 
 from dotenv import load_dotenv
@@ -22,6 +23,7 @@ from src.generators.base_generator import generate as generate_post
 from src.generators.david_generator import generate_david
 from src.generators.plansmart_generator import generate_plansmart
 from src.optimization.linkedin_optimizer import optimize_for_linkedin
+from src.storage import cost_tracking
 from src.storage import feed_items as feed_store
 from src.storage import posts as posts_store
 from src.storage.db import get_client, has_service_key
@@ -170,50 +172,59 @@ async def run_generator_cycle(
             if posts_store.has_recent_post(item.id, voice, today, client=client):
                 skipped_existing += 1
                 continue
+            # #4: pre-generált post_id a teljes generálási ablakra — a ContextVar-en át a
+            # record_claude_usage minden ez alatti Claude-hívást (voice-gen/eval/rewrite/optimizer/
+            # vizuál) EHHEZ a poszt-id-hez rendel, threading nélkül. A finally MINDIG visszaállít.
+            pid = uuid.uuid4().hex[:12]
+            token = cost_tracking.current_post_id.set(pid)
             try:
-                result = await gen(item)
-            except Exception as exc:
-                errors += 1
-                logger.warning("[generator] %s/%s hiba: %s", voice, item.id, str(exc)[:90])
-                continue
-            if not result:  # a hang skip-elte ezt a hírt
-                skipped_voice += 1
-                continue
+                try:
+                    result = await gen(item)
+                except Exception as exc:
+                    errors += 1
+                    logger.warning("[generator] %s/%s hiba: %s", voice, item.id, str(exc)[:90])
+                    continue
+                if not result:  # a hang skip-elte ezt a hírt
+                    skipped_voice += 1
+                    continue
 
-            post = tb._result_to_post(result, voice, "linkedin")
-            post.update({"feed_item_id": item.id, "score": item.score,
-                         "feed_item_url": item.url, "title": item.title})
-            if not (post.get("content") or "").strip():
-                skipped_voice += 1
-                continue
+                post = tb._result_to_post(result, voice, "linkedin")
+                post.update({"feed_item_id": item.id, "score": item.score,
+                             "feed_item_url": item.url, "title": item.title})
+                if not (post.get("content") or "").strip():
+                    skipped_voice += 1
+                    continue
 
-            if dry_run:
+                if dry_run:
+                    entry = {
+                        "voice": voice, "feed_item_id": item.id, "title": item.title,
+                        "score": item.score, "preview": post["content"][:140].replace("\n", " "),
+                    }
+                    generated.append(entry)
+                    sent += 1
+                    produced_any = True
+                    continue
+
+                post = await _optimize_post(post, "ai_news")
                 entry = {
                     "voice": voice, "feed_item_id": item.id, "title": item.title,
                     "score": item.score, "preview": post["content"][:140].replace("\n", " "),
+                    "hook_type": post.get("hook_type"), "tier": post.get("estimated_engagement_tier"),
                 }
+                post["id"] = pid  # a poszt-sor id-je egyezzen a költség-sorok post_id-jével
+                posts_store.insert_post(post)  # honorálja a megadott post['id']-t
+                await tb._attach_visual(post)  # Muapi blokk esetén csak warn, kép nélkül megy
+                _bump_and_maybe_quality()
+                if send:
+                    bot = bot or tb.get_bot()
+                    await tb.send_for_approval(post, tb.POSTS_CHAT_ID, bot)
+                entry["post_id"] = post["id"]
+                entry["visual"] = bool(post.get("visual_url"))
                 generated.append(entry)
                 sent += 1
                 produced_any = True
-                continue
-
-            post = await _optimize_post(post, "ai_news")
-            entry = {
-                "voice": voice, "feed_item_id": item.id, "title": item.title,
-                "score": item.score, "preview": post["content"][:140].replace("\n", " "),
-                "hook_type": post.get("hook_type"), "tier": post.get("estimated_engagement_tier"),
-            }
-            post["id"] = posts_store.insert_post(post)
-            await tb._attach_visual(post)  # Muapi blokk esetén csak warn, kép nélkül megy
-            _bump_and_maybe_quality()
-            if send:
-                bot = bot or tb.get_bot()
-                await tb.send_for_approval(post, tb.POSTS_CHAT_ID, bot)
-            entry["post_id"] = post["id"]
-            entry["visual"] = bool(post.get("visual_url"))
-            generated.append(entry)
-            sent += 1
-            produced_any = True
+            finally:
+                cost_tracking.current_post_id.reset(token)
 
         if produced_any and not dry_run:
             feed_store.mark_generated(item.id, client=client)
