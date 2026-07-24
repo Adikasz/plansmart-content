@@ -7,10 +7,17 @@ SOSEM dob — egy logolási hiba nem akaszthatja meg a tényleges generálást/p
 élnek (nincs központi enum) — ha egy modellnév változik, ITT is frissíteni kell, mert a
 kulcs maga a modellnév-string. Ismeretlen modellnél a becslés None (nem logolunk 0-t).
 """
+
 from __future__ import annotations
 
 import logging
 from contextvars import ContextVar
+from typing import TYPE_CHECKING
+
+from supabase import Client
+
+if TYPE_CHECKING:
+    from anthropic.types import Message
 
 logger = logging.getLogger(__name__)
 
@@ -59,12 +66,12 @@ def estimate_cost_usd(
 
 
 def record_claude_usage(
-    msg,
+    msg: Message,
     model: str,
     *,
     post_id: str | None = None,
     kind: str = "claude_api",
-    client=None,
+    client: Client | None = None,
 ) -> None:
     """Egy Anthropic Message válasz usage-éből (input_tokens/output_tokens) költség-sor
     logolása a costs táblába. Hívja MINDEN messages.create() hívás után, best-effort.

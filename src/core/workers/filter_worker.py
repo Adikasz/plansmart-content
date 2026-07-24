@@ -7,9 +7,11 @@ status='new' elemeken, és visszaírja az eredményt: score>=threshold → 'filt
 A main.py a collector után 30 perccel futtatja. Önállóan is fut:
     python -m src.core.workers.filter_worker
 """
+
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from dotenv import load_dotenv
 
@@ -26,7 +28,7 @@ load_dotenv(override=False)
 DEFAULT_LIMIT = get_settings().filter_batch_limit
 
 
-def run_filter_cycle(limit: int = DEFAULT_LIMIT, dry_run: bool = False) -> dict:
+def run_filter_cycle(limit: int = DEFAULT_LIMIT, dry_run: bool = False) -> dict[str, Any]:
     """Egy filter ciklus: pontatlan elemek lekérése, pontozás, visszaírás.
 
     dry_run=True: NEM ír vissza a feed_items-be, csak megmutatja, mi történne.
@@ -37,7 +39,7 @@ def run_filter_cycle(limit: int = DEFAULT_LIMIT, dry_run: bool = False) -> dict:
 
     rows = feed_store.get_unscored(limit=limit, client=client)
     filtered, skipped, errors = 0, 0, 0
-    queued: list[dict] = []
+    queued: list[dict[str, Any]] = []
 
     for row in rows:
         item = feed_store.row_to_item(row)
@@ -58,17 +60,33 @@ def run_filter_cycle(limit: int = DEFAULT_LIMIT, dry_run: bool = False) -> dict:
 
         if not dry_run:
             feed_store.update_score(
-                item.id, status=status, score=res.score, reason=res.reason,
-                voice_fit=res.voice_fit, topics=res.topics, urgency=res.urgency, client=client,
+                item.id,
+                status=status,
+                score=res.score,
+                reason=res.reason,
+                voice_fit=res.voice_fit,
+                topics=res.topics,
+                urgency=res.urgency,
+                client=client,
             )
 
     summary = {
-        "considered": len(rows), "filtered": filtered, "skipped": skipped,
-        "errors": errors, "threshold": threshold, "queued": queued, "dry_run": dry_run,
+        "considered": len(rows),
+        "filtered": filtered,
+        "skipped": skipped,
+        "errors": errors,
+        "threshold": threshold,
+        "queued": queued,
+        "dry_run": dry_run,
     }
     logger.info(
         "[filter]%s %d vizsgálva | %d filtered (>=%d) | %d skipped | %d hiba",
-        " [DRY]" if dry_run else "", len(rows), filtered, threshold, skipped, errors,
+        " [DRY]" if dry_run else "",
+        len(rows),
+        filtered,
+        threshold,
+        skipped,
+        errors,
     )
     return summary
 

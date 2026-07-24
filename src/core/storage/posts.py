@@ -2,19 +2,22 @@
 
 (PROJECT_PLAN.md / CLAUDE.md: src/core/storage/posts.py a posts táblához.)
 """
+
 from __future__ import annotations
 
 import logging
 import uuid
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, cast
+
+from supabase import Client
 
 from src.core.storage.db import get_client, has_service_key
 
 logger = logging.getLogger(__name__)
 
 
-def _c(client=None):
+def _c(client: Client | None = None) -> Client:
     return client or get_client(use_service_key=has_service_key())
 
 
@@ -22,7 +25,7 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def insert_post(post: dict[str, Any], client=None) -> str:
+def insert_post(post: dict[str, Any], client: Client | None = None) -> str:
     """Beszúr (upsert) egy posts sort; visszaadja az id-t. Hiányzó id-t generál."""
     post_id = post.get("id") or uuid.uuid4().hex[:12]
     row = {
@@ -77,15 +80,21 @@ def insert_post(post: dict[str, Any], client=None) -> str:
     return post_id
 
 
-def weekly_content_type_counts(voice: str, since_iso: str, client=None) -> dict[str, int]:
+def weekly_content_type_counts(
+    voice: str, since_iso: str, client: Client | None = None
+) -> dict[str, int]:
     """Az adott voice posztjainak strategy content_type szerinti darabszáma a hét óta.
 
     A 'skipped' posztokat nem számoljuk (nem mentek ki). A content_type a
     metadata.strategy_type-ból jön (lásd insert_post).
     """
     resp = (
-        _c(client).table("posts").select("metadata, status")
-        .eq("voice", voice).gte("generated_at", since_iso).execute()
+        _c(client)
+        .table("posts")
+        .select("metadata, status")
+        .eq("voice", voice)
+        .gte("generated_at", since_iso)
+        .execute()
     )
     counts: dict[str, int] = {}
     for row in resp.data or []:
@@ -98,7 +107,7 @@ def weekly_content_type_counts(voice: str, since_iso: str, client=None) -> dict[
 
 
 def used_seed_keys(
-    voice: str, content_type: str, since_iso: str | None = None, client=None
+    voice: str, content_type: str, since_iso: str | None = None, client: Client | None = None
 ) -> set[str]:
     """A már felhasznált seed-kulcsok (educational topic / case_study client / workshop topic).
 
@@ -123,7 +132,7 @@ def save_visual(
     base_image_url: str | None = None,
     visual_template: str | None = None,
     portrait_used: bool | None = None,
-    client=None,
+    client: Client | None = None,
 ) -> None:
     """A végleges (komponált) vizuál URL-jét menti; opcionálisan a nyers Muapi alapképet is.
 
@@ -155,7 +164,7 @@ def record_cost(
     cost_usd: float | None,
     request_id: str | None = None,
     kind: str = "muapi_image",
-    client=None,
+    client: Client | None = None,
 ) -> None:
     """Egy külső API hívás (pl. Muapi képgenerálás) költségének logolása a costs táblába.
 
@@ -173,12 +182,14 @@ def record_cost(
     ).execute()
 
 
-def get_post(post_id: str, client=None) -> dict[str, Any] | None:
+def get_post(post_id: str, client: Client | None = None) -> dict[str, Any] | None:
     resp = _c(client).table("posts").select("*").eq("id", post_id).limit(1).execute()
-    return (resp.data or [None])[0]
+    return cast("dict[str, Any] | None", (resp.data or [None])[0])
 
 
-def get_posts_by_ids(post_ids: list[str], client=None) -> dict[str, dict[str, Any]]:
+def get_posts_by_ids(
+    post_ids: list[str], client: Client | None = None
+) -> dict[str, dict[str, Any]]:
     """Több poszt lekérése id szerint egy dict-be ({id: row}) -- csak a report-hoz kellő
     mezőkkel (könnyebb payload, mint select("*")). 100-as csomagokban (in_ limit), mint a
     feed_items.dedupe_and_save mintája."""
@@ -187,15 +198,19 @@ def get_posts_by_ids(post_ids: list[str], client=None) -> dict[str, dict[str, An
     for i in range(0, len(post_ids), 100):
         chunk = post_ids[i : i + 100]
         resp = (
-            c.table("posts").select("id,voice,hook_type,is_breaking,metadata")
-            .in_("id", chunk).execute()
+            c.table("posts")
+            .select("id,voice,hook_type,is_breaking,metadata")
+            .in_("id", chunk)
+            .execute()
         )
         for row in resp.data or []:
             out[row["id"]] = row
     return out
 
 
-def update_post_status(post_id: str, status: str, client=None, **fields: Any) -> None:
+def update_post_status(
+    post_id: str, status: str, client: Client | None = None, **fields: Any
+) -> None:
     """Frissíti a posts.status-t (és opcionális mezőket: approved_at, approved_by, ...)."""
     patch: dict[str, Any] = {"status": status}
     patch.update({k: v for k, v in fields.items() if v is not None})
@@ -209,7 +224,7 @@ def record_approval(
     action: str,
     telegram_user_id: int | None = None,
     action_data: dict[str, Any] | None = None,
-    client=None,
+    client: Client | None = None,
 ) -> None:
     """Egy approval action rögzítése az approvals táblába."""
     _c(client).table("approvals").insert(
@@ -224,23 +239,30 @@ def record_approval(
     ).execute()
 
 
-def mark_approved(post_id: str, by: str, client=None) -> None:
+def mark_approved(post_id: str, by: str, client: Client | None = None) -> None:
     update_post_status(post_id, "approved", client=client, approved_at=_now(), approved_by=by)
 
 
-def has_recent_post(feed_item_id: str, voice: str, since_iso: str, client=None) -> bool:
+def has_recent_post(
+    feed_item_id: str, voice: str, since_iso: str, client: Client | None = None
+) -> bool:
     """Van-e már ehhez a hírhez ehhez a hanghoz generált poszt az adott időpont óta?"""
     if not feed_item_id:
         return False
     resp = (
-        _c(client).table("posts").select("id")
-        .eq("feed_item_id", feed_item_id).eq("voice", voice)
-        .gte("generated_at", since_iso).limit(1).execute()
+        _c(client)
+        .table("posts")
+        .select("id")
+        .eq("feed_item_id", feed_item_id)
+        .eq("voice", voice)
+        .gte("generated_at", since_iso)
+        .limit(1)
+        .execute()
     )
     return bool(resp.data)
 
 
-def has_post_for_feed_item(feed_item_id: str, client=None) -> bool:
+def has_post_for_feed_item(feed_item_id: str, client: Client | None = None) -> bool:
     """Van-e már BÁRMILYEN poszt ehhez a hírhez? (breaking dedup: max 1 / feed_item)."""
     if not feed_item_id:
         return False
@@ -250,21 +272,25 @@ def has_post_for_feed_item(feed_item_id: str, client=None) -> bool:
     return bool(resp.data)
 
 
-def breaking_count_since(since_iso: str, client=None) -> int:
+def breaking_count_since(since_iso: str, client: Client | None = None) -> int:
     """Kiküldött breaking posztok száma egy időpont óta (napi limit ellenőrzéshez)."""
     resp = (
-        _c(client).table("posts").select("id")
-        .eq("is_breaking", True).gte("sent_at", since_iso).execute()
+        _c(client)
+        .table("posts")
+        .select("id")
+        .eq("is_breaking", True)
+        .gte("sent_at", since_iso)
+        .execute()
     )
     return len(resp.data or [])
 
 
-def mark_sent(post_id: str, sent_at: str | None = None, client=None) -> None:
+def mark_sent(post_id: str, sent_at: str | None = None, client: Client | None = None) -> None:
     """A poszt sent_at mezőjének beállítása (Telegram kiküldés után)."""
     _c(client).table("posts").update({"sent_at": sent_at or _now()}).eq("id", post_id).execute()
 
 
-def mark_posted(post_id: str, by: str, client=None) -> None:
+def mark_posted(post_id: str, by: str, client: Client | None = None) -> None:
     """Phase 21b: a human ténylegesen posztolta LinkedInre KÉZZEL (a LinkedIn API még nem
     éles -- lásd approve_cb mock ága, ami approved-nál megáll).
 
@@ -279,11 +305,9 @@ def mark_posted(post_id: str, by: str, client=None) -> None:
     mark_sent(post_id, now, client=client)
 
 
-def status_counts_since(since_iso: str, client=None) -> dict[str, int]:
+def status_counts_since(since_iso: str, client: Client | None = None) -> dict[str, int]:
     """Posztok státusz-szerinti darabszáma egy időpont óta (pl. ma 00:00 UTC)."""
-    resp = (
-        _c(client).table("posts").select("status").gte("generated_at", since_iso).execute()
-    )
+    resp = _c(client).table("posts").select("status").gte("generated_at", since_iso).execute()
     counts: dict[str, int] = {}
     for row in resp.data or []:
         status = row.get("status") or "unknown"
@@ -291,12 +315,12 @@ def status_counts_since(since_iso: str, client=None) -> dict[str, int]:
     return counts
 
 
-def mark_published(post_id: str, by: str, client=None) -> None:
+def mark_published(post_id: str, by: str, client: Client | None = None) -> None:
     """A posztot 'published' státuszra állítja (sikeres LinkedIn posztolás után)."""
     update_post_status(post_id, "published", client=client, approved_at=_now(), approved_by=by)
 
 
-def generated_counts_by_voice_since(since_iso: str, client=None) -> dict[str, int]:
+def generated_counts_by_voice_since(since_iso: str, client: Client | None = None) -> dict[str, int]:
     """Generált posztok száma hangonként egy időpont óta (/metrics TARTALOM szekció)."""
     resp = _c(client).table("posts").select("voice").gte("generated_at", since_iso).execute()
     counts: dict[str, int] = {}
@@ -306,16 +330,14 @@ def generated_counts_by_voice_since(since_iso: str, client=None) -> dict[str, in
     return counts
 
 
-def approval_action_counts_since(since_iso: str, client=None) -> dict[str, int]:
+def approval_action_counts_since(since_iso: str, client: Client | None = None) -> dict[str, int]:
     """Az approvals tábla action-jeinek darabszáma egy időpont óta (actioned_at alapján).
 
     Az approvals minden emberi döntést rögzít időbélyeggel (approve/skip/edited/regenerate) —
     ez pontosabb "Ma/Ez a hét jóváhagyva" méréshez, mint a posts.status pillanatfelvétele
     (ami felülíródik, ha egy poszt később tovább lép státuszban).
     """
-    resp = (
-        _c(client).table("approvals").select("action").gte("actioned_at", since_iso).execute()
-    )
+    resp = _c(client).table("approvals").select("action").gte("actioned_at", since_iso).execute()
     counts: dict[str, int] = {}
     for row in resp.data or []:
         action = row.get("action") or "?"
@@ -323,17 +345,21 @@ def approval_action_counts_since(since_iso: str, client=None) -> dict[str, int]:
     return counts
 
 
-def published_count_since(since_iso: str, client=None) -> int:
+def published_count_since(since_iso: str, client: Client | None = None) -> int:
     """Manuálisan kiposztoltként jelölt posztok száma egy időpont óta (approved_at = a
     mark_published hívás időpontja, ÚJRA beírva minden publish-nál -- lásd mark_published)."""
     resp = (
-        _c(client).table("posts").select("id")
-        .eq("status", "published").gte("approved_at", since_iso).execute()
+        _c(client)
+        .table("posts")
+        .select("id")
+        .eq("status", "published")
+        .gte("approved_at", since_iso)
+        .execute()
     )
     return len(resp.data or [])
 
 
-def cost_summary_since(since_iso: str, client=None) -> dict[str, float]:
+def cost_summary_since(since_iso: str, client: Client | None = None) -> dict[str, float]:
     """Költség-összesítő kind szerint (claude_api / muapi_image / összesen) egy időpont óta."""
     resp = (
         _c(client).table("costs").select("kind,cost_usd").gte("generated_at", since_iso).execute()
@@ -347,15 +373,19 @@ def cost_summary_since(since_iso: str, client=None) -> dict[str, float]:
     return summary
 
 
-def daily_cost_breakdown(since_iso: str, client=None) -> list[dict[str, Any]]:
+def daily_cost_breakdown(since_iso: str, client: Client | None = None) -> list[dict[str, Any]]:
     """Napi bontású költség (generated_at napja szerint csoportosítva) egy időpont óta.
 
     Nincs külön "nap" oszlop a costs táblán -- a generated_at timestampből számoljuk, így
     nem kell séma-módosítás a napi bontáshoz.
     """
     resp = (
-        _c(client).table("costs").select("kind,cost_usd,generated_at")
-        .gte("generated_at", since_iso).order("generated_at").execute()
+        _c(client)
+        .table("costs")
+        .select("kind,cost_usd,generated_at")
+        .gte("generated_at", since_iso)
+        .order("generated_at")
+        .execute()
     )
     by_day: dict[str, dict[str, float]] = {}
     for row in resp.data or []:
@@ -370,9 +400,12 @@ def daily_cost_breakdown(since_iso: str, client=None) -> list[dict[str, Any]]:
     return [{"date": day, **vals} for day, vals in sorted(by_day.items())]
 
 
-def mark_edited(post_id: str, new_content: str, client=None) -> None:
+def mark_edited(post_id: str, new_content: str, client: Client | None = None) -> None:
     current = get_post(post_id, client=client) or {}
     update_post_status(
-        post_id, "edited", client=client,
-        edited_content=new_content, edit_count=(current.get("edit_count") or 0) + 1,
+        post_id,
+        "edited",
+        client=client,
+        edited_content=new_content,
+        edit_count=(current.get("edit_count") or 0) + 1,
     )

@@ -4,6 +4,7 @@
 - SourceResult: egy forrás lekérésének eredménye (belső DTO).
 - Státusz címkék + make_id segéd.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field

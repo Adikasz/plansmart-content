@@ -4,6 +4,7 @@ Ezek a modulok SEMMILYEN projekt-belső (src.*) modult nem importálnak, így b�
 biztonságosan használhatók import-ciklus nélkül. A történelmi otthonukban (storage.models,
 generators.base_generator) visszafelé kompatibilis re-export marad.
 """
+
 from __future__ import annotations
 
 from src.utils.ids import make_id, utcnow_iso

@@ -7,28 +7,35 @@ elküldi a Telegram approval csatornára. Ciklusonként max MAX_POSTS_PER_RUN po
 A main.py a collector után 1 órával futtatja. Önállóan is fut:
     python -m src.core.workers.generator_worker
 """
+
 from __future__ import annotations
 
 import asyncio
 import logging
 import uuid
 from datetime import datetime, timedelta, timezone
+from typing import TYPE_CHECKING, Any, cast
 
 from dotenv import load_dotenv
 
-from src.integrations.bots import telegram_bot as tb
-from src.core.config.settings import get_settings
 from src.ai.generators.adam_generator import generate_adam
 from src.ai.generators.base_generator import generate as generate_post
 from src.ai.generators.david_generator import generate_david
 from src.ai.generators.plansmart_generator import generate_plansmart
 from src.ai.optimization.linkedin_optimizer import optimize_for_linkedin
+from src.core.config.settings import get_settings
 from src.core.storage import cost_tracking
 from src.core.storage import feed_items as feed_store
 from src.core.storage import posts as posts_store
 from src.core.storage.db import get_client, has_service_key
 from src.core.strategy import content_strategy
+from src.integrations.bots import telegram_bot as tb
 from src.utils.logging import setup_logging
+
+if TYPE_CHECKING:
+    from supabase import Client
+
+    from src.core.storage.models import FeedItem
 
 logger = logging.getLogger(__name__)
 load_dotenv(override=False)
@@ -50,7 +57,9 @@ VOICE_PROMPTS = {
 }
 
 
-async def _optimize_post(post: dict, content_type: str, hook_bias: list[str] | None = None) -> dict:
+async def _optimize_post(
+    post: dict[str, Any], content_type: str, hook_bias: list[str] | None = None
+) -> dict[str, Any]:
     """LinkedIn-optimalizálás (Phase 7.7) a poszton — graceful degradation.
 
     A nyers tartalmat átstrukturálja a 2026 keretrendszerrel: a final_post lesz a poszt
@@ -65,12 +74,14 @@ async def _optimize_post(post: dict, content_type: str, hook_bias: list[str] | N
     if not raw:
         return post
     diag = await optimize_for_linkedin(
-        raw_post=raw, voice=post.get("voice", ""), content_type=content_type,
+        raw_post=raw,
+        voice=post.get("voice", ""),
+        content_type=content_type,
         topic_context={"title": post.get("title"), "url": post.get("feed_item_url")},
         hook_bias=hook_bias,
     )
     post["raw_content"] = raw
-    post["content"] = diag["final_post"]        # az optimalizált megy élesre + Telegramra
+    post["content"] = diag["final_post"]  # az optimalizált megy élesre + Telegramra
     post["final_content"] = diag["final_post"]
     post["hook_type"] = diag["hook_type"]
     post["hook_score"] = diag["hook_score"]
@@ -79,9 +90,14 @@ async def _optimize_post(post: dict, content_type: str, hook_bias: list[str] | N
     post["optimizer_warnings"] = diag["warnings"]
     logger.info(
         "[optimizer] %s/%s hook=%s (%d/10) szerkezet=%d/10 tier=%s %d kar | %d warning",
-        post.get("voice"), content_type, diag["hook_type"] or "—", diag["hook_score"],
-        diag["structure_score"], diag["estimated_engagement_tier"],
-        diag["character_count"], len(diag["warnings"]),
+        post.get("voice"),
+        content_type,
+        diag["hook_type"] or "—",
+        diag["hook_score"],
+        diag["structure_score"],
+        diag["estimated_engagement_tier"],
+        diag["character_count"],
+        len(diag["warnings"]),
     )
     return post
 
@@ -96,8 +112,8 @@ async def _run_quality_bg() -> None:
         from src.ai.optimization.quality_monitor import run_continuous_quality_check
         from src.ai.optimization.text_quality_monitor import run_continuous_text_check
 
-        await run_continuous_quality_check()   # vizuál minőség (Phase 12)
-        await run_continuous_text_check()      # szöveg minőség (Phase 13)
+        await run_continuous_quality_check()  # vizuál minőség (Phase 12)
+        await run_continuous_text_check()  # szöveg minőség (Phase 13)
     except Exception as exc:
         logger.warning("[quality] háttér-ellenőrzés hiba: %s", str(exc)[:100])
     finally:
@@ -136,8 +152,8 @@ async def run_generator_cycle(
     max_posts: int = MAX_POSTS_PER_RUN,
     voices: list[str] | None = None,
     item_limit: int = ITEM_LIMIT,
-    rows: list[dict] | None = None,
-) -> dict:
+    rows: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     """Egy generátor ciklus.
 
     dry_run=True: generál (valós Claude), de NEM ír DB-t, NEM küld Telegramra.
@@ -151,7 +167,7 @@ async def run_generator_cycle(
 
     if rows is None:
         rows = feed_store.get_for_generation(limit=item_limit, client=client)
-    generated: list[dict] = []
+    generated: list[dict[str, Any]] = []
     skipped_existing, skipped_voice, errors = 0, 0, 0
     sent = 0
     bot = None
@@ -189,16 +205,25 @@ async def run_generator_cycle(
                     continue
 
                 post = tb._result_to_post(result, voice, "linkedin")
-                post.update({"feed_item_id": item.id, "score": item.score,
-                             "feed_item_url": item.url, "title": item.title})
+                post.update(
+                    {
+                        "feed_item_id": item.id,
+                        "score": item.score,
+                        "feed_item_url": item.url,
+                        "title": item.title,
+                    }
+                )
                 if not (post.get("content") or "").strip():
                     skipped_voice += 1
                     continue
 
                 if dry_run:
                     entry = {
-                        "voice": voice, "feed_item_id": item.id, "title": item.title,
-                        "score": item.score, "preview": post["content"][:140].replace("\n", " "),
+                        "voice": voice,
+                        "feed_item_id": item.id,
+                        "title": item.title,
+                        "score": item.score,
+                        "preview": post["content"][:140].replace("\n", " "),
                     }
                     generated.append(entry)
                     sent += 1
@@ -207,9 +232,13 @@ async def run_generator_cycle(
 
                 post = await _optimize_post(post, "ai_news")
                 entry = {
-                    "voice": voice, "feed_item_id": item.id, "title": item.title,
-                    "score": item.score, "preview": post["content"][:140].replace("\n", " "),
-                    "hook_type": post.get("hook_type"), "tier": post.get("estimated_engagement_tier"),
+                    "voice": voice,
+                    "feed_item_id": item.id,
+                    "title": item.title,
+                    "score": item.score,
+                    "preview": post["content"][:140].replace("\n", " "),
+                    "hook_type": post.get("hook_type"),
+                    "tier": post.get("estimated_engagement_tier"),
                 }
                 post["id"] = pid  # a poszt-sor id-je egyezzen a költség-sorok post_id-jével
                 posts_store.insert_post(post)  # honorálja a megadott post['id']-t
@@ -230,25 +259,39 @@ async def run_generator_cycle(
             feed_store.mark_generated(item.id, client=client)
 
     summary = {
-        "candidates": len(rows), "generated": len(generated), "sent_to_telegram": (0 if dry_run or not send else sent),
-        "skipped_existing": skipped_existing, "skipped_voice_skip": skipped_voice, "errors": errors,
-        "voices": voices, "max_posts": max_posts, "dry_run": dry_run, "posts": generated,
+        "candidates": len(rows),
+        "generated": len(generated),
+        "sent_to_telegram": (0 if dry_run or not send else sent),
+        "skipped_existing": skipped_existing,
+        "skipped_voice_skip": skipped_voice,
+        "errors": errors,
+        "voices": voices,
+        "max_posts": max_posts,
+        "dry_run": dry_run,
+        "posts": generated,
     }
     logger.info(
         "[generator]%s %d jelölt | %d poszt generálva | %d már megvolt | %d voice-skip | %d hiba",
-        " [DRY]" if dry_run else "", len(rows), len(generated), skipped_existing, skipped_voice, errors,
+        " [DRY]" if dry_run else "",
+        len(rows),
+        len(generated),
+        skipped_existing,
+        skipped_voice,
+        errors,
     )
     return summary
 
 
 # ── Stratégia-vezérelt ciklus (content_strategy) ───────────────────────
-def _news_pool(client) -> list:
+def _news_pool(client: Client) -> list[FeedItem]:
     """Generálásra váró 'filtered' hírek FeedItem listája (ai_news forrás)."""
     rows = feed_store.get_for_generation(limit=ITEM_LIMIT, client=client)
     return [feed_store.row_to_item(r) for r in rows]
 
 
-def _resolve_content(account: str, ctype: str, client, used_news: set[str]):
+def _resolve_content(
+    account: str, ctype: str, client: Client, used_news: set[str]
+) -> tuple[FeedItem | None, dict[str, Any] | None, str | None, str]:
     """Eldönti a content forrást: (feed_item, seed_instruction, seed_key, resolved_type).
 
     ai_news → friss feed_item; egyébként seed YAML. Ha a választott típushoz nincs
@@ -278,7 +321,7 @@ async def run_strategy_cycle(
     send: bool = True,
     max_posts: int = MAX_POSTS_PER_RUN,
     accounts: list[str] | None = None,
-) -> dict:
+) -> dict[str, Any]:
     """Stratégia-vezérelt generálás: fiókonként a legnagyobb hiányú content_type.
 
     Algoritmus (content_strategy.yml alapján):
@@ -291,8 +334,8 @@ async def run_strategy_cycle(
     week_start = _week_start_iso()
     client = get_client(use_service_key=has_service_key())
 
-    generated: list[dict] = []
-    plan: list[dict] = []
+    generated: list[dict[str, Any]] = []
+    plan: list[dict[str, Any]] = []
     used_news: set[str] = set()
     sent = 0
     bot = None
@@ -304,8 +347,13 @@ async def run_strategy_cycle(
         weekly_done = sum(counts.values())
         weekly_target = content_strategy.weekly_target(account)
         ctype = content_strategy.next_content_type(account, counts)
-        rec = {"account": account, "next_type": ctype, "weekly_done": weekly_done,
-               "weekly_target": weekly_target, "status": None}
+        rec = {
+            "account": account,
+            "next_type": ctype,
+            "weekly_done": weekly_done,
+            "weekly_target": weekly_target,
+            "status": None,
+        }
 
         if weekly_target and weekly_done >= weekly_target:
             rec["status"] = "weekly_target_reached"
@@ -324,7 +372,9 @@ async def run_strategy_cycle(
                 result = await GENERATORS[account](feed_item)
                 fi_id, fi_url, score = feed_item.id, feed_item.url, feed_item.score
             else:
-                result = await generate_post(seed, VOICE_PROMPTS[account])
+                # seed is non-None here: the earlier `feed_item is None and seed is None`
+                # guard `continue`s, so in this else-branch (feed_item is None) seed is set.
+                result = await generate_post(cast("dict[str, Any]", seed), VOICE_PROMPTS[account])
                 fi_id, fi_url, score = None, "", None
         except Exception as exc:
             rec["status"] = f"error: {str(exc)[:60]}"
@@ -337,11 +387,16 @@ async def run_strategy_cycle(
             continue
 
         post = tb._result_to_post(result, account, "linkedin")
-        post.update({
-            "feed_item_id": fi_id, "score": score, "feed_item_url": fi_url,
-            "strategy_type": resolved, "seed_key": seed_key,
-            "title": feed_item.title if feed_item is not None else seed_key,
-        })
+        post.update(
+            {
+                "feed_item_id": fi_id,
+                "score": score,
+                "feed_item_url": fi_url,
+                "strategy_type": resolved,
+                "seed_key": seed_key,
+                "title": feed_item.title if feed_item is not None else seed_key,
+            }
+        )
         if resolved == "workshop_promo":
             post["workshop_mentioned"] = True
         if not (post.get("content") or "").strip():
@@ -359,9 +414,14 @@ async def run_strategy_cycle(
             if send:
                 bot = bot or tb.get_bot()
                 await tb.send_for_approval(post, tb.POSTS_CHAT_ID, bot)
-        entry = {"account": account, "content_type": resolved, "seed_key": seed_key,
-                 "preview": post["content"][:140].replace("\n", " "),
-                 "hook_type": post.get("hook_type"), "tier": post.get("estimated_engagement_tier")}
+        entry = {
+            "account": account,
+            "content_type": resolved,
+            "seed_key": seed_key,
+            "preview": post["content"][:140].replace("\n", " "),
+            "hook_type": post.get("hook_type"),
+            "tier": post.get("estimated_engagement_tier"),
+        }
         if not dry_run:
             entry["post_id"] = post["id"]
         generated.append(entry)
@@ -369,12 +429,20 @@ async def run_strategy_cycle(
         plan.append(rec)
 
     summary = {
-        "generated": len(generated), "sent_to_telegram": (0 if dry_run or not send else sent),
-        "plan": plan, "posts": generated, "dry_run": dry_run,
+        "generated": len(generated),
+        "sent_to_telegram": (0 if dry_run or not send else sent),
+        "plan": plan,
+        "posts": generated,
+        "dry_run": dry_run,
     }
-    logger.info("[strategy]%s %d poszt generálva | terv: %s",
-                " [DRY]" if dry_run else "", len(generated),
-                ", ".join(f"{p['account']}→{p.get('resolved_type', p['next_type'])}({p['status']})" for p in plan))
+    logger.info(
+        "[strategy]%s %d poszt generálva | terv: %s",
+        " [DRY]" if dry_run else "",
+        len(generated),
+        ", ".join(
+            f"{p['account']}→{p.get('resolved_type', p['next_type'])}({p['status']})" for p in plan
+        ),
+    )
     return summary
 
 

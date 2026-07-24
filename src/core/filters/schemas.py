@@ -4,6 +4,7 @@ A relevance_scorer._parse_json_strict() nyers `dict`-et ad; ez a séma megköti 
 score tartományát (0–10) és a metaadat-mezők típusát. A meglévő `ScoreResult` dataclass
 belső DTO marad; ez a modell a HATÁR (LLM JSON) validálására szolgál — új kód ezt hívhatja.
 """
+
 from __future__ import annotations
 
 from typing import Any

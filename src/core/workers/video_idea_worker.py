@@ -17,18 +17,20 @@ Találat esetén: talking-point váz Ádám hangján -> Telegram (POSTS_CHAT_ID,
 Önálló futtatás (dry-run, nem küld/ír):
     python -m src.core.workers.video_idea_worker
 """
+
 from __future__ import annotations
 
 import asyncio
 import logging
+from typing import Any
 
 from dotenv import load_dotenv
 
-from src.integrations.bots import video_idea_bot as vb
 from src.ai.generators.video_idea_generator import generate_video_idea
 from src.core.storage import feed_items as feed_store
 from src.core.storage import video_ideas as video_store
 from src.core.storage.db import get_client, has_service_key
+from src.integrations.bots import video_idea_bot as vb
 from src.utils.logging import setup_logging
 
 logger = logging.getLogger(__name__)
@@ -40,12 +42,14 @@ VIDEO_IDEA_WINDOW_DAYS = 7
 VIDEO_IDEA_CANDIDATE_LIMIT = 30
 
 
-def _adam_fit(row: dict) -> bool:
+def _adam_fit(row: dict[str, Any]) -> bool:
     voice_fit = row.get("voice_fit") or {}
     return bool(voice_fit.get(VIDEO_IDEA_VOICE))
 
 
-async def run_video_idea_check(dry_run: bool = False, send: bool = True, item: dict | None = None) -> dict:
+async def run_video_idea_check(
+    dry_run: bool = False, send: bool = True, item: dict[str, Any] | None = None
+) -> dict[str, Any]:
     """Egy heti videó-ötlet-keresési ciklus.
 
     dry_run=True: generál (valódi Claude-hívás), de NEM ír DB-t, NEM küld Telegramra.
@@ -57,14 +61,16 @@ async def run_video_idea_check(dry_run: bool = False, send: bool = True, item: d
         candidates = [item]
     else:
         candidates = feed_store.get_video_idea_candidates(
-            min_score=VIDEO_IDEA_MIN_SCORE, window_days=VIDEO_IDEA_WINDOW_DAYS,
-            limit=VIDEO_IDEA_CANDIDATE_LIMIT, client=client,
+            min_score=VIDEO_IDEA_MIN_SCORE,
+            window_days=VIDEO_IDEA_WINDOW_DAYS,
+            limit=VIDEO_IDEA_CANDIDATE_LIMIT,
+            client=client,
         )
 
     qualified = [r for r in candidates if _adam_fit(r)]
     logger.info("[video-idea] %d jelölt | %d adam voice_fit", len(candidates), len(qualified))
 
-    produced: dict | None = None
+    produced: dict[str, Any] | None = None
     tried = 0
     for row in qualified:
         if not dry_run and video_store.has_video_idea_for_feed_item(row["id"], client=client):
@@ -72,13 +78,18 @@ async def run_video_idea_check(dry_run: bool = False, send: bool = True, item: d
         tried += 1
         idea = await generate_video_idea(row, voice=VIDEO_IDEA_VOICE)
         if not idea or idea.get("skip"):
-            logger.info("[video-idea] kihagyva (%s): %s", (row.get("title") or "")[:60],
-                        (idea or {}).get("reason", "nincs indoklás"))
+            logger.info(
+                "[video-idea] kihagyva (%s): %s",
+                (row.get("title") or "")[:60],
+                (idea or {}).get("reason", "nincs indoklás"),
+            )
             continue
 
         entry = {
-            "feed_item_id": row["id"], "feed_item_title": row.get("title"),
-            "voice": VIDEO_IDEA_VOICE, "hook": idea.get("hook"),
+            "feed_item_id": row["id"],
+            "feed_item_title": row.get("title"),
+            "voice": VIDEO_IDEA_VOICE,
+            "hook": idea.get("hook"),
             "fabrication_risk": idea.get("fabrication_risk"),
         }
 
@@ -94,8 +105,10 @@ async def run_video_idea_check(dry_run: bool = False, send: bool = True, item: d
             # Ritka verseny-helyzet: időközben (a Claude-hívás alatt) már létrejött egy
             # video_idea ugyanehhez a feed_item_id-hoz (pl. egy egyidejű /create_video).
             # Nem hiba -- a dedup a DB szinten is helyesen érvényesült, csak nincs mit tenni.
-            logger.info("[video-idea] már létezett video_idea ehhez a hírhez (verseny-helyzet), kihagyva: %s",
-                       row.get("title") or row["id"])
+            logger.info(
+                "[video-idea] már létezett video_idea ehhez a hírhez (verseny-helyzet), kihagyva: %s",
+                row.get("title") or row["id"],
+            )
             continue
         entry["video_id"] = idea_id
         if send:
@@ -104,11 +117,17 @@ async def run_video_idea_check(dry_run: bool = False, send: bool = True, item: d
         break
 
     summary = {
-        "candidates": len(candidates), "qualified": len(qualified), "tried": tried,
-        "produced": produced, "dry_run": dry_run,
+        "candidates": len(candidates),
+        "qualified": len(qualified),
+        "tried": tried,
+        "produced": produced,
+        "dry_run": dry_run,
     }
-    logger.info("[video-idea]%s %s", " [DRY]" if dry_run else "",
-               "talalt jelolt" if produced else "nincs alkalmas jelolt")
+    logger.info(
+        "[video-idea]%s %s",
+        " [DRY]" if dry_run else "",
+        "talalt jelolt" if produced else "nincs alkalmas jelolt",
+    )
     return summary
 
 

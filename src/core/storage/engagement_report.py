@@ -5,6 +5,7 @@ DB-t saját maga (a hívó, src/integrations/bots/engagement_bot.py tölti be az
 lehetővé, hogy a csoportosítási/átlagolási/rangsorolási logika saját, zero-network tesztekkel
 ellenőrizhető legyen a valódi Supabase-től függetlenül.
 """
+
 from __future__ import annotations
 
 from typing import Any, Callable
@@ -16,8 +17,11 @@ MIN_TRUSTWORTHY_N = 5
 ADVISORY_MIN_N = "15-20"
 
 HOOK_LABEL = {
-    "A": "kontrariánus", "B": "kíváncsiság-rés", "C": "adat/konkrét szám",
-    "D": "személyes sztori", "E": "gyakorlati ígéret",
+    "A": "kontrariánus",
+    "B": "kíváncsiság-rés",
+    "C": "adat/konkrét szám",
+    "D": "személyes sztori",
+    "E": "gyakorlati ígéret",
 }
 METRICS: tuple[str, ...] = ("views", "likes", "comments", "shares")
 
@@ -35,7 +39,7 @@ def _engagement_score(item: dict[str, Any]) -> float:
     return sum((item.get(k) or 0) for k in ("likes", "comments", "shares"))
 
 
-def _snapshot_priority(row: dict[str, Any]) -> tuple:
+def _snapshot_priority(row: dict[str, Any]) -> tuple[bool, Any, Any]:
     """Nagyobb = jobb jelölt a poszt reprezentatív pillanatfelvételének."""
     is_final = bool(row.get("is_final_snapshot"))
     hours = row.get("hours_since_post")
@@ -103,7 +107,7 @@ def _best_combo(items: list[dict[str, Any]]) -> dict[str, Any] | None:
         key = (it["voice"], it.get("hook_type") or "ismeretlen", it["content_type"])
         combos.setdefault(key, []).append(it)
 
-    def _rank(kv: tuple[tuple, list[dict[str, Any]]]) -> float:
+    def _rank(kv: tuple[tuple[str, str, str], list[dict[str, Any]]]) -> float:
         return _avg([_engagement_score(it) for it in kv[1]]) or 0.0
 
     best_key, best_items = max(combos.items(), key=_rank)

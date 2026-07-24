@@ -3,6 +3,7 @@
 Egy FeedItem-et pontoz 0-10 skálán, és visszaadja a voice_fit / topics / urgency
 mezőket is. A modelltől KIZÁRÓLAG JSON-t várunk, és szigorúan parse-oljuk.
 """
+
 from __future__ import annotations
 
 import json
@@ -10,9 +11,10 @@ import logging
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from anthropic import Anthropic
+from anthropic.types import TextBlock
 from dotenv import load_dotenv
 
 from src.core.storage.cost_tracking import record_claude_usage
@@ -60,11 +62,11 @@ def _parse_json_strict(text: str) -> dict[str, Any]:
             t = t[4:]
         t = t.strip()
     try:
-        return json.loads(t)
+        return cast(dict[str, Any], json.loads(t))
     except json.JSONDecodeError:
         start, end = t.find("{"), t.rfind("}")
         if start != -1 and end > start:
-            return json.loads(t[start : end + 1])
+            return cast(dict[str, Any], json.loads(t[start : end + 1]))
         raise
 
 
@@ -88,7 +90,9 @@ def score_item(item: FeedItem) -> ScoreResult:
         messages=[{"role": "user", "content": payload}],
     )
     record_claude_usage(msg, MODEL, kind="relevance_scoring")
-    data = _parse_json_strict(msg.content[0].text)
+    # A create() egyetlen text blokkot ad vissza (nincs tool-use ebben a hívásban);
+    # a cast a TextBlock invariánst rögzíti a union .text eléréséhez (runtime no-op).
+    data = _parse_json_strict(cast(TextBlock, msg.content[0]).text)
 
     return ScoreResult(
         score=int(data["score"]),

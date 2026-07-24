@@ -14,12 +14,14 @@ Belépési pont:
     python -m src.core.workers.main                   # éles: ütemező + bot + health
     python -m src.core.workers.main --print-schedule  # csak az ütemezést írja ki, majd kilép
 """
+
 from __future__ import annotations
 
 import argparse
 import asyncio
 import logging
 import signal
+from collections.abc import Awaitable, Callable
 from datetime import datetime, timedelta
 
 import pytz
@@ -28,21 +30,23 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from dotenv import load_dotenv
 
-from src.integrations.bots import engagement_bot
-from src.integrations.bots import metrics_bot
-from src.integrations.bots import prospect_review
-from src.integrations.bots import reactions_bot
-from src.integrations.bots import telegram_bot as tb
-from src.integrations.bots import video_idea_bot
 from src.core.config.settings import get_settings
-from src.utils.logging import setup_logging
 from src.core.workers import health
 from src.core.workers.breaking_news_worker import run_breaking_check
 from src.core.workers.collector_worker import run_collector_cycle
 from src.core.workers.filter_worker import run_filter_cycle
 from src.core.workers.morning_post_worker import run_morning_posts
 from src.core.workers.video_idea_worker import run_video_idea_check
+from src.integrations.bots import (
+    engagement_bot,
+    metrics_bot,
+    prospect_review,
+    reactions_bot,
+    video_idea_bot,
+)
+from src.integrations.bots import telegram_bot as tb
 from src.integrations.visuals import portrait as portrait_mod
+from src.utils.logging import setup_logging
 
 logger = logging.getLogger("workers.main")
 load_dotenv(override=False)
@@ -52,7 +56,7 @@ INTERVAL_H = get_settings().collector_interval_hours
 MORNING_TIME = get_settings().morning_post_time
 
 
-def _tz():
+def _tz() -> pytz.BaseTzInfo:
     name = get_settings().timezone  # TIMEZONE, majd SCHEDULER_TZ, majd Europe/Budapest fallback
     try:
         return pytz.timezone(name)
@@ -76,24 +80,31 @@ _MH, _MM = _morning_hm()
 
 # (id, leírás, cron trigger)
 SCHEDULE = [
-    ("collector", "RSS + creator gyűjtés",
-     CronTrigger(hour=f"*/{INTERVAL_H}", minute=0, timezone=TZ)),
-    ("filter", "szűrés + pontozás",
-     CronTrigger(hour=f"*/{INTERVAL_H}", minute=30, timezone=TZ)),
-    ("breaking", "breaking news (24/7)",
-     CronTrigger(hour=f"*/{INTERVAL_H}", minute=45, timezone=TZ)),
-    ("morning", "reggeli poszt (3 fiók)",
-     CronTrigger(hour=_MH, minute=_MM, timezone=TZ)),
+    (
+        "collector",
+        "RSS + creator gyűjtés",
+        CronTrigger(hour=f"*/{INTERVAL_H}", minute=0, timezone=TZ),
+    ),
+    ("filter", "szűrés + pontozás", CronTrigger(hour=f"*/{INTERVAL_H}", minute=30, timezone=TZ)),
+    (
+        "breaking",
+        "breaking news (24/7)",
+        CronTrigger(hour=f"*/{INTERVAL_H}", minute=45, timezone=TZ),
+    ),
+    ("morning", "reggeli poszt (3 fiók)", CronTrigger(hour=_MH, minute=_MM, timezone=TZ)),
     # hétfő 08:05 -- NEM 08:00, mert az egybeesne a collector jobbal (ami INTERVAL_H óránként
     # :00-kor fut, és 8 osztható a 2 órás alapértékkel); a :05 offset bármilyen INTERVAL_H
     # mellett elkerüli a collector/filter/breaking :00/:30/:45 mintáját.
-    ("video_idea", "heti videó-ötlet (Ádám)",
-     CronTrigger(day_of_week="mon", hour=8, minute=5, timezone=TZ)),
+    (
+        "video_idea",
+        "heti videó-ötlet (Ádám)",
+        CronTrigger(day_of_week="mon", hour=8, minute=5, timezone=TZ),
+    ),
 ]
 
 
 # ── Job futtatás start/end logolással + health STATE frissítéssel ──────
-async def _run_job(job_id: str, coro_factory) -> None:
+async def _run_job(job_id: str, coro_factory: Callable[[], Awaitable[object]]) -> None:
     start = datetime.now(TZ)
     logger.info("[job:%s] ▶ START %s", job_id, start.strftime("%Y-%m-%d %H:%M:%S %Z"))
     try:
@@ -128,8 +139,10 @@ async def _job_video_idea() -> None:
 
 
 JOB_FUNCS = {
-    "collector": _job_collector, "filter": _job_filter,
-    "breaking": _job_breaking, "morning": _job_morning,
+    "collector": _job_collector,
+    "filter": _job_filter,
+    "breaking": _job_breaking,
+    "morning": _job_morning,
     "video_idea": _job_video_idea,
 }
 
@@ -144,7 +157,9 @@ def _print_schedule() -> None:
         nxt = trigger.get_next_fire_time(None, now)
         logger.info(
             "%-11s  %-26s  %-26s  %s",
-            job_id, desc, str(trigger).replace("cron[", "").rstrip("]"),
+            job_id,
+            desc,
+            str(trigger).replace("cron[", "").rstrip("]"),
             nxt.strftime("%Y-%m-%d %H:%M %Z") if nxt else "—",
         )
 
@@ -191,7 +206,12 @@ async def _amain() -> None:
 
     bot = tb.get_bot()
     me = await bot.get_me()
-    logger.info("\nTelegram bot: @%s | posts=%s | reactions=%s", me.username, tb.POSTS_CHAT_ID, tb.REACTIONS_CHAT_ID)
+    logger.info(
+        "\nTelegram bot: @%s | posts=%s | reactions=%s",
+        me.username,
+        tb.POSTS_CHAT_ID,
+        tb.REACTIONS_CHAT_ID,
+    )
     logger.info("Orchestrator elindult — SIGINT/SIGTERM a leállításhoz.\n")
 
     dp = Dispatcher()
@@ -209,7 +229,7 @@ async def _amain() -> None:
 
     stop = asyncio.Event()
 
-    def _request_stop(*_a) -> None:
+    def _request_stop(*_a: object) -> None:
         logger.info("Leállítási jelzés — kecses leállítás…")
         stop.set()
 
@@ -244,8 +264,12 @@ async def _amain() -> None:
 def main() -> int:
     setup_logging()  # UTF-8 streamek + basicConfig(%(message)s, LOG_LEVEL) + zajos libek WARNING-ra
 
-    ap = argparse.ArgumentParser(description="PlanSmart worker orchestrator (APScheduler + Telegram + health).")
-    ap.add_argument("--print-schedule", action="store_true", help="csak az ütemezést írja ki, majd kilép")
+    ap = argparse.ArgumentParser(
+        description="PlanSmart worker orchestrator (APScheduler + Telegram + health)."
+    )
+    ap.add_argument(
+        "--print-schedule", action="store_true", help="csak az ütemezést írja ki, majd kilép"
+    )
     args = ap.parse_args()
 
     if args.print_schedule:

@@ -6,11 +6,14 @@ prospect_interactions táblákra (lásd az egyes storage modulokat). A formázá
 szöveggé alakítás) a bot rétegben él (src/integrations/bots/metrics_bot.py) -- ez a modul csak dict-eket ad
 vissza, hogy önállóan is tesztelhető/hívható legyen (pl. python -m src.core.storage.metrics).
 """
+
 from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any
+
+from supabase import Client
 
 from src.core.storage import posts as posts_store
 from src.core.storage import prospect_interactions as interactions_store
@@ -33,7 +36,7 @@ def week_start_iso(now: datetime | None = None) -> str:
     return monday.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
 
 
-def collect(since_iso: str, client=None) -> dict[str, Any]:
+def collect(since_iso: str, client: Client | None = None) -> dict[str, Any]:
     """Egy időszak (since_iso óta, UTC ISO) teljes metrikacsomagja: content + outreach + cost."""
     by_voice = posts_store.generated_counts_by_voice_since(since_iso, client=client)
     actions = posts_store.approval_action_counts_since(since_iso, client=client)
@@ -70,15 +73,17 @@ def collect(since_iso: str, client=None) -> dict[str, Any]:
     return {"since": since_iso, "content": content, "outreach": outreach, "costs": costs}
 
 
-def collect_today(client=None) -> dict[str, Any]:
+def collect_today(client: Client | None = None) -> dict[str, Any]:
     return collect(today_start_iso(), client=client)
 
 
-def collect_week(client=None) -> dict[str, Any]:
+def collect_week(client: Client | None = None) -> dict[str, Any]:
     return collect(week_start_iso(), client=client)
 
 
 if __name__ == "__main__":
     import json
 
-    print(json.dumps({"today": collect_today(), "week": collect_week()}, indent=2, ensure_ascii=False))
+    print(
+        json.dumps({"today": collect_today(), "week": collect_week()}, indent=2, ensure_ascii=False)
+    )

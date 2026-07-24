@@ -4,6 +4,7 @@ A config/scoring.yml skip_keywords és boost_keywords listáit használja:
 - skip_keyword találat  -> azonnali "skip" (nem megy a drága scorerre)
 - boost_keyword találat -> "pass" + boost (+2 a relevancia score-hoz)
 """
+
 from __future__ import annotations
 
 import re

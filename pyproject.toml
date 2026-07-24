@@ -19,3 +19,34 @@ ignore = ["E501"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.12"
+# Third-party libs ship no stubs (aiogram, supabase, feedparser, rembg, apscheduler…).
+ignore_missing_imports = true
+# Imported-but-not-yet-strict modules are followed silently so each batch stays scoped.
+follow_imports = "silent"
+# Global-only strictness flags (not permitted in per-module overrides). Harmless on the
+# lenient baseline; they mainly bite once a module opts into annotations below.
+warn_redundant_casts = true
+warn_unused_configs = true
+extra_checks = true
+
+# Strictness is rolled out one bucket per batch (Phase 2, incremental):
+#   Batch 2A → src.core.* + src.utils.*        (this override)
+#   Batch 2B → src.ai.*   + src.integrations.* (added when hardened)
+# NOTE: `disallow_untyped_calls` is intentionally deferred to the final batch — core
+# still calls into not-yet-typed ai/integrations functions, so enabling it now would
+# force either premature 2B typing or `# type: ignore` noise. Flipped on repo-wide in 2B.
+[[tool.mypy.overrides]]
+module = ["src.core.*", "src.utils.*"]
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_decorators = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+check_untyped_defs = true
+warn_return_any = true
+warn_unused_ignores = true
+no_implicit_reexport = true
+strict_equality = true

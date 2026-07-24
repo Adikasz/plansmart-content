@@ -3,6 +3,7 @@
 A filter_worker egy FeedItem-en végigfuttatja a 3 lépést. Csak a mindhárom
 lépésen átmenő (nem duplikált, nem skip-elt) elem jut el a Claude-pontozásig.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

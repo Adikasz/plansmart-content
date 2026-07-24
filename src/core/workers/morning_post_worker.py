@@ -13,24 +13,31 @@ Tartalom-forrás fiókonként:
 Önálló futtatás (dry-run, nem küld/ír):
     python -m src.core.workers.morning_post_worker
 """
+
 from __future__ import annotations
 
 import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
+from typing import TYPE_CHECKING, Any, cast
 
 import pytz
 from dotenv import load_dotenv
 
-from src.integrations.bots import telegram_bot as tb
-from src.core.config.settings import get_settings
 from src.ai.generators.base_generator import generate as generate_post
+from src.core.config.settings import get_settings
 from src.core.storage import feed_items as feed_store
 from src.core.storage import posts as posts_store
 from src.core.storage.db import get_client, has_service_key
 from src.core.strategy import content_strategy
-from src.utils.logging import setup_logging
 from src.core.workers.generator_worker import GENERATORS, VOICE_PROMPTS, _optimize_post
+from src.integrations.bots import telegram_bot as tb
+from src.utils.logging import setup_logging
+
+if TYPE_CHECKING:
+    from supabase import Client
+
+    from src.core.storage.models import FeedItem
 
 logger = logging.getLogger(__name__)
 load_dotenv(override=False)
@@ -40,13 +47,23 @@ EDUCATIONAL_REUSE_DAYS = 30
 TZ_NAME = get_settings().timezone
 
 HU_MONTHS = [
-    "január", "február", "március", "április", "május", "június",
-    "július", "augusztus", "szeptember", "október", "november", "december",
+    "január",
+    "február",
+    "március",
+    "április",
+    "május",
+    "június",
+    "július",
+    "augusztus",
+    "szeptember",
+    "október",
+    "november",
+    "december",
 ]
 HU_WEEKDAYS = ["hétfő", "kedd", "szerda", "csütörtök", "péntek", "szombat", "vasárnap"]
 
 
-def _tz():
+def _tz() -> pytz.BaseTzInfo:
     try:
         return pytz.timezone(TZ_NAME)
     except Exception:
@@ -73,27 +90,33 @@ def _days_ago_iso(days: int) -> str:
     return (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
 
 
-def _seed_for(account: str, ctype: str, client) -> dict | None:
+def _seed_for(account: str, ctype: str, client: Client) -> dict[str, Any] | None:
     """Seed dict a megadott (nem-news) típushoz, a használt kulcsok kihagyásával."""
     since = _days_ago_iso(EDUCATIONAL_REUSE_DAYS) if ctype == "educational" else None
     used = posts_store.used_seed_keys(account, ctype, since, client=client)
     return content_strategy.get_seed(ctype, account, used)
 
 
-def _build_attempts(account: str, ctype: str, top_item, client) -> list[tuple]:
+def _build_attempts(
+    account: str, ctype: str, top_item: FeedItem | None, client: Client
+) -> list[tuple[str, Any, str, str]]:
     """Sorrendezett tartalom-jelöltek: (kind, payload, resolved_type, seed_key).
 
     Az első működő (nem-skip, nem üres) generálás nyer. Mindig van fallback:
     educational seed, majd a friss top hír.
     """
-    attempts: list[tuple] = []
+    attempts: list[tuple[str, Any, str, str]] = []
 
     if ctype == "ai_news":
         if top_item is not None:
             attempts.append(("news", top_item, "ai_news", top_item.id))
     elif ctype == "consultant_builder":
-        used = posts_store.used_seed_keys(account, "educational", _days_ago_iso(EDUCATIONAL_REUSE_DAYS), client=client)
-        seed = content_strategy.get_educational_seed_by_category("consultant_builder", account, used)
+        used = posts_store.used_seed_keys(
+            account, "educational", _days_ago_iso(EDUCATIONAL_REUSE_DAYS), client=client
+        )
+        seed = content_strategy.get_educational_seed_by_category(
+            "consultant_builder", account, used
+        )
         if seed is not None:
             attempts.append(("seed", seed, "educational", seed["seed_key"]))
     else:  # educational | case_study | workshop_promo
@@ -118,7 +141,9 @@ def _build_attempts(account: str, ctype: str, top_item, client) -> list[tuple]:
     return unique
 
 
-async def _generate_from_attempts(account: str, attempts: list[tuple]):
+async def _generate_from_attempts(
+    account: str, attempts: list[tuple[str, Any, str, str]]
+) -> tuple[Any, str | None, str | None, FeedItem | None]:
     """Végigpróbálja a jelölteket; visszaadja (result, resolved_type, seed_key, feed_item|None)."""
     for kind, payload, resolved, seed_key in attempts:
         try:
@@ -136,7 +161,9 @@ async def _generate_from_attempts(account: str, attempts: list[tuple]):
     return None, None, None, None
 
 
-async def run_morning_posts(dry_run: bool = False, send: bool = True, accounts: list[str] | None = None) -> dict:
+async def run_morning_posts(
+    dry_run: bool = False, send: bool = True, accounts: list[str] | None = None
+) -> dict[str, Any]:
     """Egy reggeli ciklus: fiókonként 1 poszt → optimalizál → vizuál → Telegram (POSTS)."""
     accounts = accounts or MORNING_ACCOUNTS
     client = get_client(use_service_key=has_service_key())
@@ -147,8 +174,8 @@ async def run_morning_posts(dry_run: bool = False, send: bool = True, accounts: 
     top_item = feed_store.row_to_item(news_rows[0]) if news_rows else None
     header = f"☀️ Reggeli poszt — {hungarian_date()}\n\n"
 
-    produced: list[dict] = []
-    plan: list[dict] = []
+    produced: list[dict[str, Any]] = []
+    plan: list[dict[str, Any]] = []
 
     for account in accounts:
         counts = posts_store.weekly_content_type_counts(account, week_start, client=client)
@@ -164,13 +191,16 @@ async def run_morning_posts(dry_run: bool = False, send: bool = True, accounts: 
             continue
 
         post = tb._result_to_post(result, account, "linkedin")
-        post.update({
-            "feed_item_id": feed_item.id if feed_item else None,
-            "score": feed_item.score if feed_item else None,
-            "feed_item_url": feed_item.url if feed_item else "",
-            "title": feed_item.title if feed_item else seed_key,
-            "strategy_type": resolved, "seed_key": seed_key,
-        })
+        post.update(
+            {
+                "feed_item_id": feed_item.id if feed_item else None,
+                "score": feed_item.score if feed_item else None,
+                "feed_item_url": feed_item.url if feed_item else "",
+                "title": feed_item.title if feed_item else seed_key,
+                "strategy_type": resolved,
+                "seed_key": seed_key,
+            }
+        )
         if resolved == "workshop_promo":
             post["workshop_mentioned"] = True
         if not (post.get("content") or "").strip():
@@ -178,14 +208,25 @@ async def run_morning_posts(dry_run: bool = False, send: bool = True, accounts: 
             plan.append(rec)
             continue
 
-        post = await _optimize_post(post, resolved)
-        rec.update({"resolved_type": resolved, "seed_key": seed_key,
-                    "hook_type": post.get("hook_type"), "tier": post.get("estimated_engagement_tier"),
-                    "status": "generated"})
+        # resolved is a concrete str once `result` is truthy (checked above): the
+        # (None, None, None, None) sentinel is the only branch with resolved=None.
+        post = await _optimize_post(post, cast(str, resolved))
+        rec.update(
+            {
+                "resolved_type": resolved,
+                "seed_key": seed_key,
+                "hook_type": post.get("hook_type"),
+                "tier": post.get("estimated_engagement_tier"),
+                "status": "generated",
+            }
+        )
 
         entry = {
-            "account": account, "content_type": resolved, "seed_key": seed_key,
-            "hook_type": post.get("hook_type"), "tier": post.get("estimated_engagement_tier"),
+            "account": account,
+            "content_type": resolved,
+            "seed_key": seed_key,
+            "hook_type": post.get("hook_type"),
+            "tier": post.get("estimated_engagement_tier"),
             "preview": post["content"][:140].replace("\n", " "),
         }
 
@@ -205,13 +246,24 @@ async def run_morning_posts(dry_run: bool = False, send: bool = True, accounts: 
         plan.append(rec)
 
     summary = {
-        "date": hungarian_date(), "accounts": accounts, "generated": len(produced),
+        "date": hungarian_date(),
+        "accounts": accounts,
+        "generated": len(produced),
         "sent": (0 if dry_run or not send else len(produced)),
-        "posts": produced, "plan": plan, "dry_run": dry_run,
+        "posts": produced,
+        "plan": plan,
+        "dry_run": dry_run,
     }
-    logger.info("[morning]%s %d/%d poszt | %s", " [DRY]" if dry_run else "",
-                len(produced), len(accounts),
-                ", ".join(f"{p['account']}→{p.get('resolved_type', p['recommended_type'])}({p['status']})" for p in plan))
+    logger.info(
+        "[morning]%s %d/%d poszt | %s",
+        " [DRY]" if dry_run else "",
+        len(produced),
+        len(accounts),
+        ", ".join(
+            f"{p['account']}→{p.get('resolved_type', p['recommended_type'])}({p['status']})"
+            for p in plan
+        ),
+    )
     return summary
 
 

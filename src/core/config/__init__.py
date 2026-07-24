@@ -1,8 +1,9 @@
 """Moduláris, tipizált konfigurációs réteg.
 
-  • settings.py — env változók egy validált Pydantic objektumban (Settings, get_settings)
-  • loaders.py  — cache-elt YAML betöltők (a szétszórt yaml.safe_load kiváltása)
+• settings.py — env változók egy validált Pydantic objektumban (Settings, get_settings)
+• loaders.py  — cache-elt YAML betöltők (a szétszórt yaml.safe_load kiváltása)
 """
+
 from __future__ import annotations
 
 from src.core.config.loaders import (

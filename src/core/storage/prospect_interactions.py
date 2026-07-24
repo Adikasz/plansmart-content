@@ -4,12 +4,15 @@ Ugyanaz a minta mint prospects.py: get_client(use_service_key=has_service_key())
 insert, minden függvény client= paraméterrel tesztelhető. A tábla sémáját a
 scripts/migration_21_prospect_tracking.sql hozza létre.
 """
+
 from __future__ import annotations
 
 import logging
 import uuid
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, cast
+
+from supabase import Client
 
 from src.core.storage.db import get_client, has_service_key, table_exists
 
@@ -20,8 +23,13 @@ TABLE = "prospect_interactions"
 # A 6 élet-ciklus típus (a migráció CHECK-je + a /update_prospect gombok) + 'note': kizárólag
 # jegyzet, NEM stage-váltás -- a current_stage/status_summary a 'note' sorokat átugorja.
 INTERACTION_TYPES = (
-    "connection_sent", "connection_accepted", "replied",
-    "meeting_booked", "went_cold", "not_interested", "note",
+    "connection_sent",
+    "connection_accepted",
+    "replied",
+    "meeting_booked",
+    "went_cold",
+    "not_interested",
+    "note",
 )
 _STAGE_TYPES = tuple(t for t in INTERACTION_TYPES if t != "note")
 
@@ -36,12 +44,15 @@ _BUCKET_LABEL = {
     "not_interested": "Lezárva (nem érdekli)",
 }
 BUCKET_ORDER = [
-    "Küldve, nincs válasz", "Elfogadta, nem beszélgettünk", "Aktív beszélgetés",
-    "Meeting/hívás foglalva", "Lezárva (nem érdekli)",
+    "Küldve, nincs válasz",
+    "Elfogadta, nem beszélgettünk",
+    "Aktív beszélgetés",
+    "Meeting/hívás foglalva",
+    "Lezárva (nem érdekli)",
 ]
 
 
-def _c(client=None):
+def _c(client: Client | None = None) -> Client:
     return client or get_client(use_service_key=has_service_key())
 
 
@@ -49,50 +60,61 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def table_ready(client=None) -> bool:
+def table_ready(client: Client | None = None) -> bool:
     """True, ha a prospect_interactions tábla létezik (a migration_21 lefutott)."""
     return table_exists(_c(client), TABLE)
 
 
 def log_interaction(
-    prospect_id: str, interaction_type: str, notes: str | None = None, client=None
+    prospect_id: str,
+    interaction_type: str,
+    notes: str | None = None,
+    client: Client | None = None,
 ) -> str:
     """Egy interakció rögzítése mai dátummal. interaction_type: lásd INTERACTION_TYPES."""
     if interaction_type not in INTERACTION_TYPES:
         raise ValueError(f"Ismeretlen interaction_type: {interaction_type!r}")
     row_id = uuid.uuid4().hex[:12]
-    _c(client).table(TABLE).insert({
-        "id": row_id,
-        "prospect_id": prospect_id,
-        "interaction_type": interaction_type,
-        "notes": notes,
-        "interaction_date": _now(),
-    }).execute()
+    _c(client).table(TABLE).insert(
+        {
+            "id": row_id,
+            "prospect_id": prospect_id,
+            "interaction_type": interaction_type,
+            "notes": notes,
+            "interaction_date": _now(),
+        }
+    ).execute()
     return row_id
 
 
-def delete_interaction(interaction_id: str, client=None) -> None:
+def delete_interaction(interaction_id: str, client: Client | None = None) -> None:
     """Egy interakció-sor törlése (teszt/cleanup célra)."""
     _c(client).table(TABLE).delete().eq("id", interaction_id).execute()
 
 
-def history_for(prospect_id: str, client=None) -> list[dict[str, Any]]:
+def history_for(prospect_id: str, client: Client | None = None) -> list[dict[str, Any]]:
     """Egy prospect ÖSSZES interakciója, legújabb elöl."""
     resp = (
-        _c(client).table(TABLE).select("*")
-        .eq("prospect_id", prospect_id).order("interaction_date", desc=True).execute()
+        _c(client)
+        .table(TABLE)
+        .select("*")
+        .eq("prospect_id", prospect_id)
+        .order("interaction_date", desc=True)
+        .execute()
     )
-    return resp.data or []
+    return cast("list[dict[str, Any]]", resp.data or [])
 
 
-def all_interactions(client=None) -> list[dict[str, Any]]:
+def all_interactions(client: Client | None = None) -> list[dict[str, Any]]:
     """MINDEN interakció, kis adatmennyiség -- kliens-oldali csoportosításhoz (status_summary)."""
     resp = _c(client).table(TABLE).select("prospect_id,interaction_type,interaction_date").execute()
-    return resp.data or []
+    return cast("list[dict[str, Any]]", resp.data or [])
 
 
 def current_stage(
-    prospect_id: str, interactions: list[dict[str, Any]] | None = None, client=None
+    prospect_id: str,
+    interactions: list[dict[str, Any]] | None = None,
+    client: Client | None = None,
 ) -> str | None:
     """Egy prospect JELENLEGI stage-e: a legutóbbi NEM-'note' interaction_type. None, ha nincs."""
     rows = interactions if interactions is not None else history_for(prospect_id, client=client)
@@ -100,7 +122,7 @@ def current_stage(
     if not stage_rows:
         return None
     stage_rows.sort(key=lambda r: r.get("interaction_date") or "", reverse=True)
-    return stage_rows[0]["interaction_type"]
+    return cast("str", stage_rows[0]["interaction_type"])
 
 
 def bucket_label(stage: str | None) -> str:
@@ -108,7 +130,7 @@ def bucket_label(stage: str | None) -> str:
     return _BUCKET_LABEL.get(stage or "connection_sent", "Küldve, nincs válasz")
 
 
-def status_summary(client=None) -> dict[str, int]:
+def status_summary(client: Client | None = None) -> dict[str, int]:
     """/prospects_status bucket-számlálás.
 
     Minden "sent"-en túli prospect a legutóbbi (nem-'note') interaction_type-ja szerint egy
@@ -121,10 +143,11 @@ def status_summary(client=None) -> dict[str, int]:
 
     c = _c(client)
     sent_or_beyond = [
-        p for p in prospects_store.all_full(client=c)
+        p
+        for p in prospects_store.all_full(client=c)
         if p.get("status") in ("sent", "connected", "declined")
     ]
-    interactions_by_prospect: dict[str, list[dict]] = {}
+    interactions_by_prospect: dict[str, list[dict[str, Any]]] = {}
     for row in all_interactions(client=c):
         interactions_by_prospect.setdefault(row["prospect_id"], []).append(row)
 
@@ -136,10 +159,14 @@ def status_summary(client=None) -> dict[str, int]:
     return counts
 
 
-def replied_count_since(since_iso: str, client=None) -> int:
+def replied_count_since(since_iso: str, client: Client | None = None) -> int:
     """Hány EGYEDI prospect kapott 'replied' interakciót az adott időpont óta (/metrics-hez)."""
     resp = (
-        _c(client).table(TABLE).select("prospect_id")
-        .eq("interaction_type", "replied").gte("interaction_date", since_iso).execute()
+        _c(client)
+        .table(TABLE)
+        .select("prospect_id")
+        .eq("interaction_type", "replied")
+        .gte("interaction_date", since_iso)
+        .execute()
     )
     return len({r["prospect_id"] for r in (resp.data or [])})

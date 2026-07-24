@@ -7,11 +7,12 @@ A generator_worker és a /strategy parancs is ezt használja:
 
 A content_type-ok: educational | workshop_promo | case_study | ai_news.
 """
+
 from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from src.core.config import loaders
 
@@ -25,8 +26,10 @@ CONTENT_TYPES = ["educational", "workshop_promo", "case_study", "ai_news"]
 
 # Magyar címkék a /strategy kimenethez.
 TYPE_LABEL = {
-    "educational": "oktató", "workshop_promo": "workshop",
-    "case_study": "case study", "ai_news": "news",
+    "educational": "oktató",
+    "workshop_promo": "workshop",
+    "case_study": "case study",
+    "ai_news": "news",
 }
 
 
@@ -35,9 +38,9 @@ def load_strategy() -> dict[str, Any]:
     return loaders.load_content_strategy()
 
 
-def _load_yaml(path: str, key: str) -> list[dict]:
+def _load_yaml(path: str, key: str) -> list[dict[str, Any]]:
     """Egy prompts/config YAML adott kulcsú listája (a közös, cache-elt betöltőn át)."""
-    return loaders.load_yaml(path).get(key, [])
+    return cast(list[dict[str, Any]], loaders.load_yaml(path).get(key, []))
 
 
 def target_distribution(account: str) -> dict[str, float]:
@@ -88,10 +91,7 @@ def distribution_report(account: str, counts: dict[str, int]) -> dict[str, Any]:
     """A /strategy parancshoz: cél vs tényleges eloszlás + következő javaslat."""
     target = target_distribution(account)
     total = sum(counts.values())
-    actual = {
-        ctype: (counts.get(ctype, 0) / total if total else 0.0)
-        for ctype in target
-    }
+    actual = {ctype: (counts.get(ctype, 0) / total if total else 0.0) for ctype in target}
     return {
         "account": account,
         "target": target,
@@ -104,19 +104,21 @@ def distribution_report(account: str, counts: dict[str, int]) -> dict[str, Any]:
 
 
 # ── Seed források (nem-news content_type-ok) ───────────────────────────
-def _educational_topics() -> list[dict]:
+def _educational_topics() -> list[dict[str, Any]]:
     return _load_yaml("prompts/educational_topics.yml", "educational_topics")
 
 
-def _case_studies() -> list[dict]:
+def _case_studies() -> list[dict[str, Any]]:
     return _load_yaml("prompts/case_studies.yml", "case_studies")
 
 
-def _workshop_topics() -> list[dict]:
+def _workshop_topics() -> list[dict[str, Any]]:
     return _load_yaml("prompts/workshop_topics.yml", "workshop_topics")
 
 
-def _pick(entries: list[dict], voice: str, key_field: str, used: set[str]) -> dict | None:
+def _pick(
+    entries: list[dict[str, Any]], voice: str, key_field: str, used: set[str]
+) -> dict[str, Any] | None:
     """Első olyan entry, ami illik a voice-ra ÉS a kulcsa nincs a 'used' halmazban."""
     for e in entries:
         if _voice_ok(e.get("voice_fit"), voice) and str(e.get(key_field, "")) not in used:
@@ -124,7 +126,7 @@ def _pick(entries: list[dict], voice: str, key_field: str, used: set[str]) -> di
     return None
 
 
-def _seed_instruction(content_type: str, entry: dict) -> tuple[str, str]:
+def _seed_instruction(content_type: str, entry: dict[str, Any]) -> tuple[str, str]:
     """(instruction_text, seed_key) felépítése egy seed entry-ből."""
     if content_type == "educational":
         key = entry["topic"]
@@ -159,7 +161,9 @@ def _seed_instruction(content_type: str, entry: dict) -> tuple[str, str]:
     return txt, key
 
 
-def get_educational_seed_by_category(category: str, voice: str, used_keys: set[str]) -> dict | None:
+def get_educational_seed_by_category(
+    category: str, voice: str, used_keys: set[str]
+) -> dict[str, Any] | None:
     """Educational seed egy adott kategóriából (pl. 'consultant_builder') — vagy None.
 
     A morning_post_worker 'consultant_builder' content_type-hoz használja: az
@@ -180,7 +184,7 @@ def get_educational_seed_by_category(category: str, voice: str, used_keys: set[s
     }
 
 
-def get_seed(content_type: str, voice: str, used_keys: set[str]) -> dict | None:
+def get_seed(content_type: str, voice: str, used_keys: set[str]) -> dict[str, Any] | None:
     """manual_instruction seed a nem-news típusokhoz.
 
     Visszaad: {"type":"manual_instruction","instruction","content_type","seed_key"}

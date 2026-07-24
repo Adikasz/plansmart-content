@@ -2,11 +2,14 @@
 
 (PROJECT_PLAN.md Fázis 1: storage modul a feed_items táblához; Fázis 10: worker queryk.)
 """
+
 from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from typing import Any, cast
+
+from supabase import Client
 
 from src.core.storage.models import FeedItem
 
@@ -17,7 +20,7 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def _client():
+def _client() -> Client:
     from src.core.storage.db import get_client, has_service_key
 
     return get_client(use_service_key=has_service_key())
@@ -41,14 +44,18 @@ def row_to_item(row: dict[str, Any]) -> FeedItem:
     )
 
 
-def get_unscored(limit: int = 50, client=None) -> list[dict[str, Any]]:
+def get_unscored(limit: int = 50, client: Client | None = None) -> list[dict[str, Any]]:
     """Még nem pontozott elemek (status='new') — a filter_worker bemenete."""
     c = client or _client()
     resp = (
-        c.table("feed_items").select("*").eq("status", "new")
-        .order("fetched_at", desc=True).limit(limit).execute()
+        c.table("feed_items")
+        .select("*")
+        .eq("status", "new")
+        .order("fetched_at", desc=True)
+        .limit(limit)
+        .execute()
     )
-    return resp.data or []
+    return cast("list[dict[str, Any]]", resp.data or [])
 
 
 def update_score(
@@ -60,50 +67,68 @@ def update_score(
     voice_fit: dict[str, bool] | None = None,
     topics: list[str] | None = None,
     urgency: str | None = None,
-    client=None,
+    client: Client | None = None,
 ) -> None:
     """A filter eredmény visszaírása a feed_items sorba (status: 'filtered' | 'skipped')."""
     patch: dict[str, Any] = {"status": status, "scored_at": _now_iso()}
     for key, val in (
-        ("score", score), ("score_reason", reason), ("voice_fit", voice_fit),
-        ("topics", topics), ("urgency", urgency),
+        ("score", score),
+        ("score_reason", reason),
+        ("voice_fit", voice_fit),
+        ("topics", topics),
+        ("urgency", urgency),
     ):
         if val is not None:
             patch[key] = val
     (client or _client()).table("feed_items").update(patch).eq("id", item_id).execute()
 
 
-def get_for_generation(limit: int = 20, min_score: int = 6, client=None) -> list[dict[str, Any]]:
+def get_for_generation(
+    limit: int = 20, min_score: int = 6, client: Client | None = None
+) -> list[dict[str, Any]]:
     """Generálásra váró elemek: status='filtered', score>=min, még nem használt — legjobb előre."""
     c = client or _client()
     resp = (
-        c.table("feed_items").select("*")
-        .eq("status", "filtered").gte("score", min_score).eq("used_for_posts", False)
-        .order("score", desc=True).limit(limit).execute()
+        c.table("feed_items")
+        .select("*")
+        .eq("status", "filtered")
+        .gte("score", min_score)
+        .eq("used_for_posts", False)
+        .order("score", desc=True)
+        .limit(limit)
+        .execute()
     )
-    return resp.data or []
+    return cast("list[dict[str, Any]]", resp.data or [])
 
 
-def mark_generated(item_id: str, client=None) -> None:
+def mark_generated(item_id: str, client: Client | None = None) -> None:
     """Az elem generálás után: status='generated', used_for_posts=True."""
     (client or _client()).table("feed_items").update(
         {"status": "generated", "used_for_posts": True}
     ).eq("id", item_id).execute()
 
 
-def get_recent_top(since_iso: str, min_score: int = 6, limit: int = 20, client=None) -> list[dict[str, Any]]:
+def get_recent_top(
+    since_iso: str, min_score: int = 6, limit: int = 20, client: Client | None = None
+) -> list[dict[str, Any]]:
     """Friss (since óta), generálásra váró elemek — legjobb pontszám előre (reggeli poszt)."""
     c = client or _client()
     resp = (
-        c.table("feed_items").select("*")
-        .eq("status", "filtered").gte("score", min_score).eq("used_for_posts", False)
-        .gte("fetched_at", since_iso).order("score", desc=True).limit(limit).execute()
+        c.table("feed_items")
+        .select("*")
+        .eq("status", "filtered")
+        .gte("score", min_score)
+        .eq("used_for_posts", False)
+        .gte("fetched_at", since_iso)
+        .order("score", desc=True)
+        .limit(limit)
+        .execute()
     )
-    return resp.data or []
+    return cast("list[dict[str, Any]]", resp.data or [])
 
 
 def get_breaking_candidates(
-    min_score: int = 8, limit: int = 30, window_hours: int = 48, client=None
+    min_score: int = 8, limit: int = 30, window_hours: int = 48, client: Client | None = None
 ) -> list[dict[str, Any]]:
     """Breaking news jelöltek: score>=min, még nem 'breaking'-elt, ÉS az utolsó `window_hours`
     órában begyűjtött elemek — legjobb pontszám előre EZEN a szűkített ablakon belül.
@@ -119,30 +144,34 @@ def get_breaking_candidates(
     c = client or _client()
     since_iso = (datetime.now(timezone.utc) - timedelta(hours=window_hours)).isoformat()
     resp = (
-        c.table("feed_items").select("*")
-        .gte("score", min_score).eq("breaking", False)
+        c.table("feed_items")
+        .select("*")
+        .gte("score", min_score)
+        .eq("breaking", False)
         .gte("fetched_at", since_iso)
-        .order("score", desc=True).limit(limit).execute()
+        .order("score", desc=True)
+        .limit(limit)
+        .execute()
     )
-    return resp.data or []
+    return cast("list[dict[str, Any]]", resp.data or [])
 
 
-def mark_breaking(item_id: str, client=None) -> None:
+def mark_breaking(item_id: str, client: Client | None = None) -> None:
     """Az elemet breaking-ként jelöli (dedup: max 1 breaking / feed_item)."""
-    (client or _client()).table("feed_items").update(
-        {"breaking": True}
-    ).eq("id", item_id).execute()
+    (client or _client()).table("feed_items").update({"breaking": True}).eq("id", item_id).execute()
 
 
-def get_by_id(item_id: str, client=None) -> dict[str, Any] | None:
+def get_by_id(item_id: str, client: Client | None = None) -> dict[str, Any] | None:
     """Egy feed_items sor id szerint (pl. /create_video <voice> <feed_item_id> kényszerítéshez,
     vagy a video-ötlet 🔄 Regenerate gombjához, ami ugyanazt a hírt kéri le újra)."""
-    resp = (client or _client()).table("feed_items").select("*").eq("id", item_id).limit(1).execute()
-    return (resp.data or [None])[0]
+    resp = (
+        (client or _client()).table("feed_items").select("*").eq("id", item_id).limit(1).execute()
+    )
+    return cast("dict[str, Any] | None", (resp.data or [None])[0])
 
 
 def get_video_idea_candidates(
-    min_score: int = 7, window_days: int = 7, limit: int = 30, client=None
+    min_score: int = 7, window_days: int = 7, limit: int = 30, client: Client | None = None
 ) -> list[dict[str, Any]]:
     """Video-ötlet jelöltek: status='filtered', score>=min, az utolsó `window_days` napban
     begyűjtött elemek — legjobb pontszám előre.
@@ -154,15 +183,19 @@ def get_video_idea_candidates(
     c = client or _client()
     since_iso = (datetime.now(timezone.utc) - timedelta(days=window_days)).isoformat()
     resp = (
-        c.table("feed_items").select("*")
-        .eq("status", "filtered").gte("score", min_score)
+        c.table("feed_items")
+        .select("*")
+        .eq("status", "filtered")
+        .gte("score", min_score)
         .gte("fetched_at", since_iso)
-        .order("score", desc=True).limit(limit).execute()
+        .order("score", desc=True)
+        .limit(limit)
+        .execute()
     )
-    return resp.data or []
+    return cast("list[dict[str, Any]]", resp.data or [])
 
 
-def _connect_supabase():
+def _connect_supabase() -> Client | None:
     """Supabase kliens, ha elerheto (valid kulcs). Egyebkent None."""
     try:
         from src.core.storage.db import get_client, has_service_key
@@ -187,8 +220,10 @@ def dedupe_and_save(items: list[FeedItem]) -> dict[str, Any]:
     client = _connect_supabase()
     if client is None:
         return {
-            "connected": False, "new": len(by_id),
-            "duplicates": in_run_dupes, "saved": 0,
+            "connected": False,
+            "new": len(by_id),
+            "duplicates": in_run_dupes,
+            "saved": 0,
         }
 
     ids = list(by_id.keys())
@@ -208,11 +243,15 @@ def dedupe_and_save(items: list[FeedItem]) -> dict[str, Any]:
     except Exception as exc:
         logger.warning("Supabase mentes hiba (%s) — kihagyva.", str(exc)[:60])
         return {
-            "connected": False, "new": len(by_id),
-            "duplicates": in_run_dupes, "saved": 0,
+            "connected": False,
+            "new": len(by_id),
+            "duplicates": in_run_dupes,
+            "saved": 0,
         }
 
     return {
-        "connected": True, "new": len(new_items),
-        "duplicates": (len(by_id) - len(new_items)) + in_run_dupes, "saved": saved,
+        "connected": True,
+        "new": len(new_items),
+        "duplicates": (len(by_id) - len(new_items)) + in_run_dupes,
+        "saved": saved,
     }

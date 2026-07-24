@@ -7,6 +7,7 @@ egyébként az anon key használandó.
 Önállóan futtatható gyors kapcsolat-teszthez:
     python -m src.core.storage.db
 """
+
 from __future__ import annotations
 
 import logging
@@ -30,8 +31,7 @@ def _require_env(name: str) -> str:
     value = os.environ.get(name)
     if not value:
         raise RuntimeError(
-            f"Hiányzó környezeti változó: {name}. "
-            "Töltsd ki a .env fájlt a .env.example alapján."
+            f"Hiányzó környezeti változó: {name}. " "Töltsd ki a .env fájlt a .env.example alapján."
         )
     return value
 

@@ -3,14 +3,19 @@
 is_duplicate(url_hash) -> True ha már létezik a feed_items-ben, False ha új.
 A FeedItem.id maga az URL-hash (sha256[:16]), így azt adjuk át.
 """
+
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from supabase import Client
 
 logger = logging.getLogger(__name__)
 
 
-def is_duplicate(url_hash: str, client=None) -> bool:
+def is_duplicate(url_hash: str, client: Client | None = None) -> bool:
     """True, ha a megadott id (URL-hash) már szerepel a feed_items táblában."""
     if client is None:
         from src.core.storage.db import get_client, has_service_key

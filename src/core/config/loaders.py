@@ -6,11 +6,12 @@ hibatűrő belépési pontot ad. Behavior-preserving: `load_yaml(path)` == `yaml
 
 A relatív útvonalak a repo gyökeréhez képest oldódnak fel (ahogy a hívó modulok is tették).
 """
+
 from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import yaml
 
@@ -43,7 +44,7 @@ def load_scoring() -> dict[str, Any]:
 
 def load_accounts() -> dict[str, Any]:
     """config/accounts.yml `accounts` szekciója (üres dict, ha hiányzik)."""
-    return load_config("accounts.yml").get("accounts", {})
+    return cast(dict[str, Any], load_config("accounts.yml").get("accounts", {}))
 
 
 def load_sources() -> dict[str, Any]:
@@ -54,6 +55,6 @@ def load_content_strategy() -> dict[str, Any]:
     return load_config("content_strategy.yml")
 
 
-def load_prompt_list(filename: str, key: str) -> list[dict]:
+def load_prompt_list(filename: str, key: str) -> list[dict[str, Any]]:
     """prompts/<filename> adott kulcsú listája (pl. 'educational_topics.yml', 'educational_topics')."""
-    return load_yaml(PROMPTS_DIR / filename).get(key, [])
+    return cast(list[dict[str, Any]], load_yaml(PROMPTS_DIR / filename).get(key, []))

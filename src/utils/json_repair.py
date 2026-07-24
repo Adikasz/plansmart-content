@@ -8,6 +8,7 @@ meglévő `from src.ai.generators.base_generator import _repair_and_parse` impor
 
 A repair lépések (a modell tipikus hibáira hangolva) változatlanul kerültek át.
 """
+
 from __future__ import annotations
 
 import json
@@ -57,10 +58,10 @@ def _escape_inner_quotes(s: str) -> str:
                 j += 1
             nxt = s[j] if j < n else ""
             if nxt in ",:}]" or nxt == "":
-                out.append(c)        # szerkezeti zárás
+                out.append(c)  # szerkezeti zárás
                 in_str = False
             else:
-                out.append('\\"')    # tartalmi idézőjel -> escape
+                out.append('\\"')  # tartalmi idézőjel -> escape
         else:
             out.append(c)
         i += 1

@@ -8,6 +8,7 @@ Végpontok:
 A main.py a scheduler mellett, ugyanabban az event loopban futtatja (asyncio.gather).
 A job wrapperek a record_run()-nal frissítik a STATE-et.
 """
+
 from __future__ import annotations
 
 import logging
@@ -73,7 +74,13 @@ def _queue_sizes() -> dict[str, int | None]:
 
         c = get_client(use_service_key=has_service_key())
         new = c.table("feed_items").select("id").eq("status", "new").execute()
-        filt = c.table("feed_items").select("id").eq("status", "filtered").eq("used_for_posts", False).execute()
+        filt = (
+            c.table("feed_items")
+            .select("id")
+            .eq("status", "filtered")
+            .eq("used_for_posts", False)
+            .execute()
+        )
         sizes["unscored_new"] = len(new.data or [])
         sizes["ready_filtered"] = len(filt.data or [])
     except Exception as exc:
@@ -82,26 +89,30 @@ def _queue_sizes() -> dict[str, int | None]:
 
 
 async def handle_health(_request: web.Request) -> web.Response:
-    return web.json_response({
-        "status": "ok",
-        "timestamp": _now_iso(),
-        "scheduler_running": STATE.get("scheduler_running", False),
-        "started_at": STATE.get("started_at"),
-    })
+    return web.json_response(
+        {
+            "status": "ok",
+            "timestamp": _now_iso(),
+            "scheduler_running": STATE.get("scheduler_running", False),
+            "started_at": STATE.get("started_at"),
+        }
+    )
 
 
 async def handle_status(_request: web.Request) -> web.Response:
-    return web.json_response({
-        "timestamp": _now_iso(),
-        "scheduler_running": STATE.get("scheduler_running", False),
-        "started_at": STATE.get("started_at"),
-        "last_collector_run": STATE.get("last_collector_run"),
-        "last_filter_run": STATE.get("last_filter_run"),
-        "last_breaking_run": STATE.get("last_breaking_run"),
-        "last_morning_post": STATE.get("last_morning_post"),
-        "breaking_count_today": _breaking_count_today(),
-        "queue_sizes": _queue_sizes(),
-    })
+    return web.json_response(
+        {
+            "timestamp": _now_iso(),
+            "scheduler_running": STATE.get("scheduler_running", False),
+            "started_at": STATE.get("started_at"),
+            "last_collector_run": STATE.get("last_collector_run"),
+            "last_filter_run": STATE.get("last_filter_run"),
+            "last_breaking_run": STATE.get("last_breaking_run"),
+            "last_morning_post": STATE.get("last_morning_post"),
+            "breaking_count_today": _breaking_count_today(),
+            "queue_sizes": _queue_sizes(),
+        }
+    )
 
 
 def build_app() -> web.Application:

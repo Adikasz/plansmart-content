@@ -4,6 +4,7 @@ Korábban a src/core/storage/models.py-ban laktak; ide kerültek, hogy több dom
 (collectors, storage) egy közös, önállóan tesztelhető helyről használja őket.
 A models.py visszafelé kompatibilisen re-exportálja a `make_id` / `_utcnow_iso` neveket.
 """
+
 from __future__ import annotations
 
 import hashlib

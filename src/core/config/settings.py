@@ -13,6 +13,7 @@ ahogy a projekt lazy @lru_cache kliensei (storage.db, anthropic) is működnek.
 pydantic-settings NINCS a pinned függőségek közt (csak pydantic 2.7) — ezért sima
 `BaseModel` + `from_env()` classmethod, extra függőség és deploy-kockázat nélkül.
 """
+
 from __future__ import annotations
 
 import os
@@ -137,7 +138,8 @@ class Settings(BaseModel):
             calendly_url=e.get("CALENDLY_URL", "") or "",
             portrait_cutout_dir=e.get("PORTRAIT_CUTOUT_DIR", "") or "",
             log_level=e.get("LOG_LEVEL", "INFO") or "INFO",
-            timezone=e.get("TIMEZONE", e.get("SCHEDULER_TZ", "Europe/Budapest")) or "Europe/Budapest",
+            timezone=e.get("TIMEZONE", e.get("SCHEDULER_TZ", "Europe/Budapest"))
+            or "Europe/Budapest",
             port=_as_int(e.get("PORT", e.get("HEALTH_PORT")), 8080),
             collector_interval_hours=max(1, _as_int(e.get("COLLECTOR_INTERVAL_HOURS"), 2)),
             morning_post_time=e.get("MORNING_POST_TIME", "07:30") or "07:30",
@@ -154,7 +156,9 @@ class Settings(BaseModel):
             rss_max_items=_as_int(e.get("RSS_MAX_ITEMS"), 50),
             rss_max_retries=_as_int(e.get("RSS_MAX_RETRIES"), 3),
             rss_user_agent=g("RSS_USER_AGENT"),
-            generation_voices=[v.strip() for v in e.get("GENERATION_VOICES", "david,adam").split(",") if v.strip()],
+            generation_voices=[
+                v.strip() for v in e.get("GENERATION_VOICES", "david,adam").split(",") if v.strip()
+            ],
             max_posts_per_run=_as_int(e.get("MAX_POSTS_PER_RUN"), 3),
             generator_item_limit=_as_int(e.get("GENERATOR_ITEM_LIMIT"), 20),
             quality_eval_every=_as_int(e.get("QUALITY_EVAL_EVERY"), 50),

@@ -13,29 +13,43 @@ MAX_BREAKING_PER_DAY (alapból 3), időkorlát nélkül (24/7).
 Önálló futtatás (dry-run, nem küld/ír):
     python -m src.core.workers.breaking_news_worker
 """
+
 from __future__ import annotations
 
 import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
+from typing import Any
 
 import pytz
 from dotenv import load_dotenv
 
-from src.integrations.bots import telegram_bot as tb
 from src.core.config.settings import get_settings
 from src.core.storage import feed_items as feed_store
 from src.core.storage import posts as posts_store
 from src.core.storage.db import get_client, has_service_key
-from src.utils.logging import setup_logging
 from src.core.workers.generator_worker import GENERATORS, _optimize_post
+from src.integrations.bots import telegram_bot as tb
+from src.utils.logging import setup_logging
 
 logger = logging.getLogger(__name__)
 load_dotenv(override=False)
 
 BREAKING_KEYWORDS = [
-    "OpenAI", "Anthropic", "Google", "Apple", "GPT", "Claude", "Gemini",
-    "ChatGPT", "Sora", "DeepMind", "Meta AI", "Mistral", "Cohere", "Hugging Face",
+    "OpenAI",
+    "Anthropic",
+    "Google",
+    "Apple",
+    "GPT",
+    "Claude",
+    "Gemini",
+    "ChatGPT",
+    "Sora",
+    "DeepMind",
+    "Meta AI",
+    "Mistral",
+    "Cohere",
+    "Hugging Face",
 ]
 BREAKING_VOICE = "adam"  # ő a news reactor
 BREAKING_MIN_SCORE = 8
@@ -47,7 +61,7 @@ BREAKING_NEWS_ENABLED = get_settings().breaking_news_enabled
 TZ_NAME = get_settings().timezone
 
 
-def _tz():
+def _tz() -> pytz.BaseTzInfo:
     try:
         return pytz.timezone(TZ_NAME)
     except Exception:
@@ -71,19 +85,19 @@ def _parse_dt(value: str | None) -> datetime | None:
         return None
 
 
-def _has_keyword(row: dict) -> bool:
+def _has_keyword(row: dict[str, Any]) -> bool:
     blob = f"{row.get('title') or ''} {row.get('content') or ''}".lower()
     return any(kw.lower() in blob for kw in BREAKING_KEYWORDS)
 
 
-def _breaking_prefix(row: dict) -> str:
+def _breaking_prefix(row: dict[str, Any]) -> str:
     """A reactions csatorna üzenet-előtagja: forrás + (budapesti) idő."""
     source = row.get("source_name") or "ismeretlen forrás"
     now_local = datetime.now(_tz()).strftime("%H:%M")
     return f"🚨 BREAKING — Azonnali hír\n📰 Forrás: {source}\n⏰ {now_local}\n\n"
 
 
-def _is_fresh(row: dict, now: datetime) -> bool:
+def _is_fresh(row: dict[str, Any], now: datetime) -> bool:
     """published_at (vagy fallback fetched_at) az elmúlt BREAKING_WINDOW_HOURS órán belül."""
     dt = _parse_dt(row.get("published_at")) or _parse_dt(row.get("fetched_at"))
     if dt is None:
@@ -91,15 +105,15 @@ def _is_fresh(row: dict, now: datetime) -> bool:
     return (now - dt) <= timedelta(hours=BREAKING_WINDOW_HOURS)
 
 
-def _qualifies(row: dict, now: datetime) -> bool:
+def _qualifies(row: dict[str, Any], now: datetime) -> bool:
     return (
-        (row.get("score") or 0) >= BREAKING_MIN_SCORE
-        and _has_keyword(row)
-        and _is_fresh(row, now)
+        (row.get("score") or 0) >= BREAKING_MIN_SCORE and _has_keyword(row) and _is_fresh(row, now)
     )
 
 
-async def run_breaking_check(dry_run: bool = False, send: bool = True, item: dict | None = None) -> dict:
+async def run_breaking_check(
+    dry_run: bool = False, send: bool = True, item: dict[str, Any] | None = None
+) -> dict[str, Any]:
     """Egy breaking-ellenőrzési ciklus.
 
     dry_run=True: generál + optimalizál + vizuál-prompt, de NEM ír DB-t, NEM küld Telegramra.
@@ -114,7 +128,9 @@ async def run_breaking_check(dry_run: bool = False, send: bool = True, item: dic
 
     sent_today = 0 if dry_run else posts_store.breaking_count_since(_day_start_iso(), client=client)
     if sent_today >= MAX_BREAKING_PER_DAY:
-        logger.info("[breaking] napi limit elérve (%d/%d) — kihagyva.", sent_today, MAX_BREAKING_PER_DAY)
+        logger.info(
+            "[breaking] napi limit elérve (%d/%d) — kihagyva.", sent_today, MAX_BREAKING_PER_DAY
+        )
         return {"enabled": True, "sent": 0, "limit_reached": True, "candidates": 0}
 
     if item is not None:
@@ -123,9 +139,11 @@ async def run_breaking_check(dry_run: bool = False, send: bool = True, item: dic
         candidates = feed_store.get_breaking_candidates(min_score=BREAKING_MIN_SCORE, client=client)
 
     qualified = [r for r in candidates if _qualifies(r, now)]
-    logger.info("[breaking] %d jelölt | %d megfelel a kritériumoknak", len(candidates), len(qualified))
+    logger.info(
+        "[breaking] %d jelölt | %d megfelel a kritériumoknak", len(candidates), len(qualified)
+    )
 
-    produced: list[dict] = []
+    produced: list[dict[str, Any]] = []
     for row in qualified:
         if sent_today + len(produced) >= MAX_BREAKING_PER_DAY:
             logger.info("[breaking] napi limit elérve futás közben — leállás.")
@@ -141,18 +159,26 @@ async def run_breaking_check(dry_run: bool = False, send: bool = True, item: dic
             continue
 
         post = tb._result_to_post(result, BREAKING_VOICE, "linkedin")
-        post.update({
-            "feed_item_id": item_obj.id, "score": item_obj.score,
-            "feed_item_url": item_obj.url, "title": item_obj.title, "is_breaking": True,
-        })
+        post.update(
+            {
+                "feed_item_id": item_obj.id,
+                "score": item_obj.score,
+                "feed_item_url": item_obj.url,
+                "title": item_obj.title,
+                "is_breaking": True,
+            }
+        )
         if not (post.get("content") or "").strip():
             continue
 
         post = await _optimize_post(post, "ai_news", hook_bias=BREAKING_HOOK_BIAS)
 
         entry = {
-            "feed_item_id": item_obj.id, "title": item_obj.title, "score": item_obj.score,
-            "source": row.get("source_name"), "hook_type": post.get("hook_type"),
+            "feed_item_id": item_obj.id,
+            "title": item_obj.title,
+            "score": item_obj.score,
+            "source": row.get("source_name"),
+            "hook_type": post.get("hook_type"),
             "tier": post.get("estimated_engagement_tier"),
             "preview": post["content"][:140].replace("\n", " "),
         }
@@ -174,8 +200,12 @@ async def run_breaking_check(dry_run: bool = False, send: bool = True, item: dic
         produced.append(entry)
 
     summary = {
-        "enabled": True, "candidates": len(candidates), "qualified": len(qualified),
-        "sent": (0 if dry_run else len(produced)), "produced": produced, "dry_run": dry_run,
+        "enabled": True,
+        "candidates": len(candidates),
+        "qualified": len(qualified),
+        "sent": (0 if dry_run else len(produced)),
+        "produced": produced,
+        "dry_run": dry_run,
     }
     logger.info("[breaking]%s %d breaking poszt", " [DRY]" if dry_run else "", len(produced))
     return summary

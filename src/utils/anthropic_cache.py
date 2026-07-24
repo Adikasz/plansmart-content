@@ -15,6 +15,7 @@ A cache-token elszámolást lásd src/core/storage/cost_tracking.py (a cache-wri
 az input-árazásnak) — caching bekapcsolása után az `usage.input_tokens` már CSAK a nem-cache-elt
 maradék, ezért a költséglogolásnak a cache-mezőket is olvasnia kell, különben alul-számol.
 """
+
 from __future__ import annotations
 
 from typing import Any

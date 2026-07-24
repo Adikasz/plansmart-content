@@ -8,12 +8,15 @@ src/core/storage/engagement_report.representative_snapshot_per_post a riporthoz 
 
 A tábla sémáját a scripts/migration_22_engagement.sql hozza létre.
 """
+
 from __future__ import annotations
 
 import logging
 import uuid
 from datetime import datetime, timezone
 from typing import Any
+
+from supabase import Client
 
 from src.core.storage.db import get_client, has_service_key, table_exists
 
@@ -23,7 +26,7 @@ TABLE = "engagement_metrics"
 FINAL_SNAPSHOT_HOURS = 48
 
 
-def _c(client=None):
+def _c(client: Client | None = None) -> Client:
     return client or get_client(use_service_key=has_service_key())
 
 
@@ -31,7 +34,7 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def _parse_dt(value: str | None):
+def _parse_dt(value: str | None) -> datetime | None:
     if not value:
         return None
     try:
@@ -41,7 +44,7 @@ def _parse_dt(value: str | None):
         return None
 
 
-def table_ready(client=None) -> bool:
+def table_ready(client: Client | None = None) -> bool:
     """True, ha az engagement_metrics tábla létezik (a migration_22 lefutott)."""
     return table_exists(_c(client), TABLE)
 
@@ -54,7 +57,7 @@ def log(
     comments: int | None = None,
     shares: int | None = None,
     is_final_snapshot: bool | None = None,
-    client=None,
+    client: Client | None = None,
 ) -> dict[str, Any]:
     """Egy engagement pillanatfelvétel mentése.
 
@@ -91,21 +94,25 @@ def log(
         hours_since_post = max(0, int((now - sent_at).total_seconds() // 3600))
 
     if is_final_snapshot is None:
-        is_final_snapshot = hours_since_post is not None and hours_since_post >= FINAL_SNAPSHOT_HOURS
+        is_final_snapshot = (
+            hours_since_post is not None and hours_since_post >= FINAL_SNAPSHOT_HOURS
+        )
 
     row_id = uuid.uuid4().hex[:12]
-    c.table(TABLE).insert({
-        "id": row_id,
-        "post_id": post_id,
-        "voice": post.get("voice"),
-        "measured_at": _now(),
-        "hours_since_post": hours_since_post,
-        "views": views,
-        "likes": likes,
-        "comments": comments,
-        "shares": shares,
-        "is_final_snapshot": bool(is_final_snapshot),
-    }).execute()
+    c.table(TABLE).insert(
+        {
+            "id": row_id,
+            "post_id": post_id,
+            "voice": post.get("voice"),
+            "measured_at": _now(),
+            "hours_since_post": hours_since_post,
+            "views": views,
+            "likes": likes,
+            "comments": comments,
+            "shares": shares,
+            "is_final_snapshot": bool(is_final_snapshot),
+        }
+    ).execute()
 
     return {
         "id": row_id,
@@ -115,21 +122,25 @@ def log(
     }
 
 
-def delete_row(row_id: str, client=None) -> None:
+def delete_row(row_id: str, client: Client | None = None) -> None:
     """Egy engagement sor törlése (teszt/cleanup célra)."""
     _c(client).table(TABLE).delete().eq("id", row_id).execute()
 
 
-def for_post(post_id: str, client=None) -> list[dict[str, Any]]:
+def for_post(post_id: str, client: Client | None = None) -> list[dict[str, Any]]:
     """Egy poszt ÖSSZES pillanatfelvétele, legújabb elöl."""
     resp = (
-        _c(client).table(TABLE).select("*")
-        .eq("post_id", post_id).order("measured_at", desc=True).execute()
+        _c(client)
+        .table(TABLE)
+        .select("*")
+        .eq("post_id", post_id)
+        .order("measured_at", desc=True)
+        .execute()
     )
     return resp.data or []
 
 
-def all_rows(client=None) -> list[dict[str, Any]]:
+def all_rows(client: Client | None = None) -> list[dict[str, Any]]:
     """MINDEN engagement_metrics sor (a /engagement_report bemenete)."""
     resp = _c(client).table(TABLE).select("*").execute()
     return resp.data or []

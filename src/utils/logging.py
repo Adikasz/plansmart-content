@@ -8,11 +8,14 @@ A projekt konvenciója (CLAUDE.md: „Print helyett logging"):
 Fokozatosan bevezethető: a meglévő inline basicConfig hívások ezzel válthatók ki, de
 nem kötelező — a modul önmagában (import-mellékhatás nélkül) használható.
 """
+
 from __future__ import annotations
 
+import io
 import logging
 import os
 import sys
+from typing import cast
 
 # A projektben ismerten zajos loggerek (a runtime logot elárasztanák DEBUG/INFO szinten).
 NOISY_LOGGERS = ("aiogram", "apscheduler", "aiohttp", "httpx")
@@ -34,7 +37,9 @@ def setup_logging(
     if reconfigure_streams:
         for stream in (sys.stdout, sys.stderr):
             try:
-                stream.reconfigure(encoding="utf-8", errors="replace")
+                # A reconfigure csak a TextIOWrapper-en van; a cast runtime no-op, a
+                # duck-typing viselkedést a try/except őrzi meg (nem-wrapper -> AttributeError).
+                cast(io.TextIOWrapper, stream).reconfigure(encoding="utf-8", errors="replace")
             except (AttributeError, ValueError):
                 pass
 
