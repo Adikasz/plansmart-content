@@ -16,6 +16,7 @@ Ugyanaz a nyers httpx REST + pause_turn loop mint a prospect_research-nél (a pi
 anthropic==0.28.0 nem tudja a szerver-oldali web_search-t) — a low-level konstansokat
 onnan importáljuk, hogy egy helyen legyenek.
 """
+
 from __future__ import annotations
 
 import logging
@@ -39,8 +40,8 @@ from src.ai.outreach.prospect_research import (
 logger = logging.getLogger(__name__)
 
 VERDICTS = ("verified", "stale", "unverifiable")
-MAX_TOKENS = 4000                # elég nagy, hogy egy adag ÖSSZES verdiktje elférjen (ne csonkolódjon)
-DEFAULT_MAX_SEARCHES = 10        # adagonként (≈ 1-2 keresés / személy)
+MAX_TOKENS = 4000  # elég nagy, hogy egy adag ÖSSZES verdiktje elférjen (ne csonkolódjon)
+DEFAULT_MAX_SEARCHES = 10  # adagonként (≈ 1-2 keresés / személy)
 
 SYSTEM_PROMPT = (
     "You are an INDEPENDENT verification analyst doing a skeptical QA pass. You are given a list "
@@ -85,7 +86,7 @@ def _tool_def(max_searches: int) -> dict[str, Any]:
 
 async def verify_batch(
     items: list[dict[str, Any]], max_searches: int = DEFAULT_MAX_SEARCHES
-) -> tuple[dict[int, dict], dict]:
+) -> tuple[dict[int, dict[str, Any]], dict[str, Any]]:
     """Egy adag jelölt független ellenőrzése. items: [{idx,name,title,company,country}, ...].
 
     Visszaad: (verdicts_by_idx, meta). verdicts_by_idx[idx] = {verdict, reason, source}.
@@ -111,8 +112,10 @@ async def verify_batch(
     searches = in_tok = out_tok = 0
     last_content: list[dict[str, Any]] = []
     async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT_S) as client:
-        for rnd in range(1, MAX_ROUNDS + 1):
-            resp = await client.post(API_URL, headers=headers, json={**body_base, "messages": messages})
+        for rnd in range(1, MAX_ROUNDS + 1):  # noqa: B007  # rnd a cikluson kívül (meta "rounds") kell
+            resp = await client.post(
+                API_URL, headers=headers, json={**body_base, "messages": messages}
+            )
             if resp.status_code != 200:
                 raise RuntimeError(f"Anthropic API {resp.status_code}: {resp.text[:300]}")
             data = resp.json()
@@ -130,7 +133,7 @@ async def verify_batch(
     text = _final_text(last_content)
     parsed = _repair_and_parse(text) or {}
     rows = parsed.get("results", []) if isinstance(parsed, dict) else []
-    by_idx: dict[int, dict] = {}
+    by_idx: dict[int, dict[str, Any]] = {}
     for r in rows:
         try:
             idx = int(r.get("idx"))
@@ -138,14 +141,17 @@ async def verify_batch(
             continue
         verdict = str(r.get("verdict") or "").strip().lower()
         if verdict not in VERDICTS:
-            verdict = "unverifiable"      # ismeretlen verdikt → konzervatív
+            verdict = "unverifiable"  # ismeretlen verdikt → konzervatív
         by_idx[idx] = {
             "verdict": verdict,
             "reason": str(r.get("reason") or "").strip(),
             "source": str(r.get("source") or "").strip(),
         }
     meta = {
-        "searches": searches, "in_tokens": in_tok, "out_tokens": out_tok,
-        "rounds": rnd, "parsed_ok": bool(by_idx),
+        "searches": searches,
+        "in_tokens": in_tok,
+        "out_tokens": out_tok,
+        "rounds": rnd,
+        "parsed_ok": bool(by_idx),
     }
     return by_idx, meta

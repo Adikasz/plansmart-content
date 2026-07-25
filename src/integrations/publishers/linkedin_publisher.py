@@ -7,6 +7,7 @@ FIGYELEM: éles API hívás csak valós access tokennel. Addig dry_run=True (moc
 Megjegyzés: a LinkedInnek van újabb /rest/posts API-ja is; itt a kérésnek
 megfelelően a /v2/ugcPosts végpontot használjuk.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -14,9 +15,11 @@ import json
 import logging
 import os
 from datetime import datetime, timezone
+from typing import Any, cast
 
 import httpx
 from dotenv import load_dotenv
+from supabase import Client
 
 from src.core.storage.db import get_client, has_service_key
 
@@ -52,7 +55,9 @@ def compose_text(content: str, hashtags: list[str] | None = None) -> str:
     return f"{body}\n\n{tags}".strip() if tags else body
 
 
-def build_ugc_payload(author_urn: str, content: str, hashtags: list[str] | None = None) -> dict:
+def build_ugc_payload(
+    author_urn: str, content: str, hashtags: list[str] | None = None
+) -> dict[str, Any]:
     """A /v2/ugcPosts request body — text-only share, PUBLIC láthatóság."""
     return {
         "author": author_urn,
@@ -71,7 +76,9 @@ def _post_url(post_urn: str) -> str:
     return f"https://www.linkedin.com/feed/update/{post_urn}"
 
 
-def _log_published(post_id: str | None, post_urn: str, platform: str, client=None) -> None:
+def _log_published(
+    post_id: str | None, post_urn: str, platform: str, client: Client | None = None
+) -> None:
     client = client or get_client(use_service_key=has_service_key())
     client.table("published").insert(
         {
@@ -106,13 +113,21 @@ async def post_to_linkedin(
     """
     payload = build_ugc_payload(author_urn, content, hashtags)
     if image_url:
-        logger.info("image_url megadva, de a kép-posztolás még nincs bekötve — text-only megy: %s", image_url)
+        logger.info(
+            "image_url megadva, de a kép-posztolás még nincs bekötve — text-only megy: %s",
+            image_url,
+        )
 
     if _mock_enabled(mock):
-        fake_urn = _fake_share_urn(author_urn, payload["specificContent"]["com.linkedin.ugc.ShareContent"]["shareCommentary"]["text"])
+        fake_urn = _fake_share_urn(
+            author_urn,
+            payload["specificContent"]["com.linkedin.ugc.ShareContent"]["shareCommentary"]["text"],
+        )
         logger.info(
             "[LINKEDIN_MOCK] POST %s\n%s\n-> %s (mock, nincs éles hívás)",
-            UGC_URL, json.dumps(payload, ensure_ascii=False, indent=2), fake_urn,
+            UGC_URL,
+            json.dumps(payload, ensure_ascii=False, indent=2),
+            fake_urn,
         )
         return fake_urn
 
@@ -128,4 +143,4 @@ async def post_to_linkedin(
 
     _log_published(post_id, post_urn, platform)
     logger.info("LinkedIn poszt kész: %s (post_id=%s)", post_urn, post_id)
-    return post_urn
+    return cast(str, post_urn)

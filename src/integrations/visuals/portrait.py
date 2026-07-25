@@ -12,6 +12,7 @@ tábla (túléli a Railway redeployt); ha a Supabase elérhetetlen, a régi lok�
 Önálló futtatás (cache előmelegítés + állapot kiírás):
     python -m src.integrations.visuals.portrait
 """
+
 from __future__ import annotations
 
 import json
@@ -21,11 +22,15 @@ import shutil
 from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, cast
 
 from PIL import Image
 
 from src.core.config.settings import get_settings
 from src.utils.logging import setup_logging
+
+if TYPE_CHECKING:
+    from supabase import Client
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +45,11 @@ SEED_DIR = BRAND_DIR / "cutouts_seed"
 # Éles override: perzisztens Railway volume-ra mutathat, ha valaha szükség lenne rá — alapból
 # a lokális (ephemeral, redeploykor törlődő) útvonal, mert a SEED_DIR-ből való másolás úgyis
 # minden cold boot-on újraépíti a cache-t, gyorsan és rembg nélkül.
-CUTOUT_DIR = Path(get_settings().portrait_cutout_dir) if get_settings().portrait_cutout_dir else BRAND_DIR / "cutouts"
+CUTOUT_DIR = (
+    Path(get_settings().portrait_cutout_dir)
+    if get_settings().portrait_cutout_dir
+    else BRAND_DIR / "cutouts"
+)
 STATE_FILE = PROJECT_ROOT / "data" / "portrait_state.json"  # csak fallback (Supabase az elsődleges)
 STATE_TABLE = "portrait_counters"
 
@@ -67,11 +76,11 @@ def remove_background(image_path: str | Path) -> Image.Image:
     src = Image.open(image_path).convert("RGBA")
     cut = remove(src, session=_session())
     bbox = cut.getchannel("A").getbbox()  # az átlátszó margó levágása
-    return cut.crop(bbox) if bbox else cut
+    return cast("Image.Image", cut.crop(bbox) if bbox else cut)
 
 
 @lru_cache(maxsize=1)
-def _session():
+def _session() -> Any:  # rembg session — untyped third-party dependency
     from rembg import new_session
 
     return new_session("u2net")
@@ -84,15 +93,23 @@ def get_cutout(voice: str, *, force_refresh: bool = False) -> Path | None:
     (pl. új voice, még nincs seed), lefuttatja a rembg-et és a másolt eredményt menti seedként
     is, hogy legközelebb (és a következő redeploy után) onnan töltődjön.
     """
-    logger.info("[PORTRAIT-TRACE] get_cutout entry: voice=%s force_refresh=%s CUTOUT_DIR=%s SEED_DIR=%s",
-                voice, force_refresh, CUTOUT_DIR, SEED_DIR)
+    logger.info(
+        "[PORTRAIT-TRACE] get_cutout entry: voice=%s force_refresh=%s CUTOUT_DIR=%s SEED_DIR=%s",
+        voice,
+        force_refresh,
+        CUTOUT_DIR,
+        SEED_DIR,
+    )
     if voice not in PORTRAIT_SOURCES:
         logger.info("[PORTRAIT-TRACE] get_cutout: voice=%s not in PORTRAIT_SOURCES -> None", voice)
         return None
     src = BRAND_DIR / PORTRAIT_SOURCES[voice]
     logger.info("[PORTRAIT-TRACE] get_cutout: src=%s exists=%s", src, src.exists())
     if not src.exists():
-        logger.warning("[PORTRAIT-TRACE] get_cutout: SOURCE PHOTO MISSING at %s -> None (smoking gun candidate)", src)
+        logger.warning(
+            "[PORTRAIT-TRACE] get_cutout: SOURCE PHOTO MISSING at %s -> None (smoking gun candidate)",
+            src,
+        )
         logger.warning("[portrait] hiányzó forrás-portré: %s", src)
         return None
     out = CUTOUT_DIR / f"{voice}.png"
@@ -103,9 +120,13 @@ def get_cutout(voice: str, *, force_refresh: bool = False) -> Path | None:
     try:
         CUTOUT_DIR.mkdir(parents=True, exist_ok=True)
     except Exception as exc:
-        logger.warning("[PORTRAIT-TRACE] get_cutout: CUTOUT_DIR.mkdir(%s) RAISED %s: %s "
-                       "(smoking gun candidate — volume/permission issue)",
-                       CUTOUT_DIR, type(exc).__name__, str(exc)[:200])
+        logger.warning(
+            "[PORTRAIT-TRACE] get_cutout: CUTOUT_DIR.mkdir(%s) RAISED %s: %s "
+            "(smoking gun candidate — volume/permission issue)",
+            CUTOUT_DIR,
+            type(exc).__name__,
+            str(exc)[:200],
+        )
         raise
 
     seed = SEED_DIR / f"{voice}.png"
@@ -116,7 +137,9 @@ def get_cutout(voice: str, *, force_refresh: bool = False) -> Path | None:
         logger.info("[PORTRAIT-TRACE] get_cutout: copied seed -> %s, returning it", out)
         return out
 
-    logger.info("[PORTRAIT-TRACE] get_cutout: no cache, no seed -> falling back to rembg (slow path)")
+    logger.info(
+        "[PORTRAIT-TRACE] get_cutout: no cache, no seed -> falling back to rembg (slow path)"
+    )
     logger.info("[portrait] háttér-eltávolítás (%s) — egyszeri, cache-elt…", voice)
     cut = remove_background(src)
     cut.save(out, "PNG")
@@ -140,7 +163,7 @@ def preprocess_all(force_refresh: bool = False) -> dict[str, Path]:
 #   count = előző_count + 1
 #   ha count >= threshold → portré, majd reset (count=0, új véletlen threshold 3/4)
 #   különben → nincs portré, az új count/threshold mentése.
-def _decide(entry: dict | None) -> tuple[bool, int, int]:
+def _decide(entry: dict[str, Any] | None) -> tuple[bool, int, int]:
     """A {count, threshold} állapotból: (kell_portré?, új_count, új_threshold)."""
     entry = entry or {}
     count = int(entry.get("count", 0)) + 1
@@ -151,39 +174,50 @@ def _decide(entry: dict | None) -> tuple[bool, int, int]:
 
 
 # ── Supabase állapot (elsődleges — túléli a Railway redeployt) ─────────
-def _sb_client():
+def _sb_client() -> Client:
     from src.core.storage.db import get_client, has_service_key
 
     return get_client(use_service_key=has_service_key())
 
 
-def _sb_get(voice: str) -> dict | None:
+def _sb_get(voice: str) -> dict[str, Any] | None:
     """A voice {count, threshold} sora Supabase-ből, vagy None ha még nincs.
 
     Kapcsolati / API hibát FELDOB — a hívó (should_include_portrait) fogja el és
     esik vissza a lokális JSON-ra.
     """
-    resp = _sb_client().table(STATE_TABLE).select("count,threshold").eq("voice", voice).limit(1).execute()
+    resp = (
+        _sb_client()
+        .table(STATE_TABLE)
+        .select("count,threshold")
+        .eq("voice", voice)
+        .limit(1)
+        .execute()
+    )
     rows = resp.data or []
     return rows[0] if rows else None
 
 
 def _sb_upsert(voice: str, count: int, threshold: int) -> None:
-    _sb_client().table(STATE_TABLE).upsert({
-        "voice": voice, "count": count, "threshold": threshold,
-        "updated_at": datetime.now(timezone.utc).isoformat(),
-    }).execute()
+    _sb_client().table(STATE_TABLE).upsert(
+        {
+            "voice": voice,
+            "count": count,
+            "threshold": threshold,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+    ).execute()
 
 
 # ── Lokális JSON fallback (ha a Supabase elérhetetlen) ─────────────────
-def _load_state() -> dict:
+def _load_state() -> dict[str, Any]:
     try:
-        return json.loads(STATE_FILE.read_text(encoding="utf-8"))
+        return cast("dict[str, Any]", json.loads(STATE_FILE.read_text(encoding="utf-8")))
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
 
 
-def _save_state(state: dict) -> None:
+def _save_state(state: dict[str, Any]) -> None:
     STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
     STATE_FILE.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -200,8 +234,11 @@ def should_include_portrait(voice: str, *, force: bool = False) -> bool:
     """
     logger.info("[PORTRAIT-TRACE] should_include_portrait entry: voice=%s force=%s", voice, force)
     include = voice in PORTRAIT_VOICES
-    logger.info("[PORTRAIT-TRACE] should_include_portrait: voice=%s -> %s (always-on, counter not consulted)",
-                voice, include)
+    logger.info(
+        "[PORTRAIT-TRACE] should_include_portrait: voice=%s -> %s (always-on, counter not consulted)",
+        voice,
+        include,
+    )
     return include
 
 

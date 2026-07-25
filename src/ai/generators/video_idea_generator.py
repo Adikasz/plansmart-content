@@ -13,15 +13,17 @@ stb. -- ezek zajt adnának egy vázlatpont-struktúrán). Ha fabrikációt jelez
 újrapróbálkozás fut (nem a teljes improve_post() loop, ami LinkedIn-poszt-alakú kimenetet
 várna és szétesne a struktúrán) -- lásd _generate_once fabrication_reason paramétere.
 """
+
 from __future__ import annotations
 
 import json
 import logging
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from anthropic import AsyncAnthropic
+from anthropic.types import TextBlock
 from dotenv import load_dotenv
 
 from src.ai.generators.base_generator import _repair_and_parse
@@ -155,41 +157,58 @@ def _is_valid_shape(data: dict[str, Any]) -> bool:
     if not isinstance(data.get("hook"), str) or not data["hook"].strip():
         return False
     points = data.get("talking_points")
-    if not isinstance(points, list) or not points or not all(isinstance(p, str) and p.strip() for p in points):
+    if (
+        not isinstance(points, list)
+        or not points
+        or not all(isinstance(p, str) and p.strip() for p in points)
+    ):
         return False
     return True
 
 
 async def _generate_once(
-    system: str, payload: str, fabrication_reason: str | None = None, previous_data: dict[str, Any] | None = None,
+    system: str,
+    payload: str,
+    fabrication_reason: str | None = None,
+    previous_data: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     user_content = payload
     if fabrication_reason:
         previous_json = json.dumps(previous_data or {}, ensure_ascii=False, indent=2)
-        user_content += FABRICATION_FIX_TEMPLATE.format(reason=fabrication_reason, previous_json=previous_json)
+        user_content += FABRICATION_FIX_TEMPLATE.format(
+            reason=fabrication_reason, previous_json=previous_json
+        )
 
     msg = await _client().messages.create(
-        model=MODEL, max_tokens=MAX_TOKENS, system=cached_system(system),  # ~3.8k tok, retry-ismételt
+        model=MODEL,
+        max_tokens=MAX_TOKENS,
+        system=cached_system(system),  # ~3.8k tok, retry-ismételt
         messages=[{"role": "user", "content": user_content}],
     )
     record_claude_usage(msg, MODEL, kind="video_idea")
-    raw_text = msg.content[0].text if msg.content else ""
+    raw_text = cast(TextBlock, msg.content[0]).text if msg.content else ""
     data = _repair_and_parse(raw_text)
     if data is None:
         truncated = msg.stop_reason == "max_tokens"
         logger.error(
             "[video-idea] JSON parse SIKERTELEN%s — nyers válasz (első 800 kar):\n%s",
-            " [max_tokens-nél elvágva]" if truncated else "", (raw_text or "")[:800],
+            " [max_tokens-nél elvágva]" if truncated else "",
+            (raw_text or "")[:800],
         )
         return None
     if not data.get("skip") and not _is_valid_shape(data):
-        logger.error("[video-idea] a modell válasza érvényes JSON, de hiányzik/hibás a "
-                     "kötelező mező (hook/talking_points) — kihagyva: %s", str(data)[:400])
+        logger.error(
+            "[video-idea] a modell válasza érvényes JSON, de hiányzik/hibás a "
+            "kötelező mező (hook/talking_points) — kihagyva: %s",
+            str(data)[:400],
+        )
         return None
     return data
 
 
-async def generate_video_idea(feed_item: dict[str, Any], voice: str = "adam") -> dict[str, Any] | None:
+async def generate_video_idea(
+    feed_item: dict[str, Any], voice: str = "adam"
+) -> dict[str, Any] | None:
     """Egy feed_item-ből video-ötlet vázlat generálása a megadott hangon.
 
     Visszaad: a video_ideas séma mezőit tartalmazó dict (hook, talking_points, closing_thought,
@@ -200,8 +219,10 @@ async def generate_video_idea(feed_item: dict[str, Any], voice: str = "adam") ->
     voice: egyelőre KIZÁRÓLAG "adam" támogatott (ValueError másra).
     """
     if voice not in VOICE_PROMPTS:
-        raise ValueError(f"Video-ötlet generálás egyelőre csak ezekre a hangokra támogatott: "
-                         f"{sorted(VOICE_PROMPTS)} (kapott: {voice!r})")
+        raise ValueError(
+            f"Video-ötlet generálás egyelőre csak ezekre a hangokra támogatott: "
+            f"{sorted(VOICE_PROMPTS)} (kapott: {voice!r})"
+        )
 
     system = _build_system_prompt(voice)
     payload = _build_payload(feed_item)
@@ -213,25 +234,36 @@ async def generate_video_idea(feed_item: dict[str, Any], voice: str = "adam") ->
     _clamp_duration(data)
     evaluator = TextEvaluator()
     check_text = _fabrication_check_text(data)
-    eval_result = await evaluator.evaluate_post(check_text, voice, "ai_news", has_manual_source=False)
+    eval_result = await evaluator.evaluate_post(
+        check_text, voice, "ai_news", has_manual_source=False
+    )
     data["fabrication_risk"] = bool(eval_result.get("fabrication_risk"))
     data["fabrication_reason"] = eval_result.get("fabrication_reason") or ""
 
     if data["fabrication_risk"]:
-        logger.warning("[video-idea] fabrikáció-kockázat, javító újrapróbálkozás: %s",
-                       data["fabrication_reason"])
+        logger.warning(
+            "[video-idea] fabrikáció-kockázat, javító újrapróbálkozás: %s",
+            data["fabrication_reason"],
+        )
         fixed = await _generate_once(
-            system, payload, fabrication_reason=data["fabrication_reason"], previous_data=data,
+            system,
+            payload,
+            fabrication_reason=data["fabrication_reason"],
+            previous_data=data,
         )
         if fixed and not fixed.get("skip"):
             _clamp_duration(fixed)
             check_text2 = _fabrication_check_text(fixed)
-            eval_result2 = await evaluator.evaluate_post(check_text2, voice, "ai_news", has_manual_source=False)
+            eval_result2 = await evaluator.evaluate_post(
+                check_text2, voice, "ai_news", has_manual_source=False
+            )
             fixed["fabrication_risk"] = bool(eval_result2.get("fabrication_risk"))
             fixed["fabrication_reason"] = eval_result2.get("fabrication_reason") or ""
             data = fixed
             if data["fabrication_risk"]:
-                logger.warning("[video-idea] fabrikáció-kockázat MEGMARADT a javítás után is — %s",
-                               data["fabrication_reason"])
+                logger.warning(
+                    "[video-idea] fabrikáció-kockázat MEGMARADT a javítás után is — %s",
+                    data["fabrication_reason"],
+                )
 
     return data

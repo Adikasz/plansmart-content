@@ -3,6 +3,7 @@
 Támogatja a legacy __NEXT_DATA__-t és az app-router __next_f RSC-payloadot is.
 A fő belépő a fetch_nextjs_json(), amit az rss_collector hív a /news végű URL-ekre.
 """
+
 from __future__ import annotations
 
 import json
@@ -17,16 +18,20 @@ from src.core.storage.models import FIXED, OK, STILL_FAILING, FeedItem, SourceRe
 logger = logging.getLogger(__name__)
 
 
-def _walk_for_posts(data: Any) -> list[dict]:
+def _walk_for_posts(data: Any) -> list[dict[str, Any]]:
     """A legnagyobb olyan listat keresi, ahol az elemek title + slug/publishedOn mezosek."""
-    best: list[dict] = []
+    best: list[dict[str, Any]] = []
 
     def walk(obj: Any) -> None:
         nonlocal best
         if isinstance(obj, list):
             if obj and all(isinstance(x, dict) for x in obj):
                 keys: set[str] = set().union(*(x.keys() for x in obj))
-                if "title" in keys and ("slug" in keys or "publishedOn" in keys) and len(obj) > len(best):
+                if (
+                    "title" in keys
+                    and ("slug" in keys or "publishedOn" in keys)
+                    and len(obj) > len(best)
+                ):
                     best = obj
             for x in obj:
                 walk(x)
@@ -38,7 +43,7 @@ def _walk_for_posts(data: Any) -> list[dict]:
     return best
 
 
-def _posts_from_next_data(html: str) -> list[dict]:
+def _posts_from_next_data(html: str) -> list[dict[str, Any]]:
     """Legacy pages-router: <script id="__NEXT_DATA__"> JSON (pl. props.pageProps...sections[].posts)."""
     m = re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', html, re.S)
     if not m:
@@ -89,13 +94,13 @@ def _next_f_blob(html: str) -> str:
     return "".join(out)
 
 
-def _posts_from_next_f(html: str) -> list[dict]:
+def _posts_from_next_f(html: str) -> list[dict[str, Any]]:
     """App-router: a __next_f blobbol brace-matchinggel kinyeri a poszt-objektumokat."""
     blob = _next_f_blob(html)
     if not blob:
         return []
     dec = json.JSONDecoder()
-    posts: list[dict] = []
+    posts: list[dict[str, Any]] = []
     seen: set[str] = set()
     pos = 0
     while True:
@@ -123,7 +128,7 @@ def _posts_from_next_f(html: str) -> list[dict]:
     return posts
 
 
-def _extract_nextjs_posts(html: str) -> list[dict]:
+def _extract_nextjs_posts(html: str) -> list[dict[str, Any]]:
     """Next.js poszt-lista: eloszor __NEXT_DATA__, aztan app-router __next_f."""
     return _posts_from_next_data(html) or _posts_from_next_f(html)
 
@@ -136,7 +141,11 @@ async def fetch_nextjs_json(client: httpx.AsyncClient, source: dict[str, Any]) -
     published_at = publishedOn. Sosem dob — a hibat statuszban adja vissza.
     """
     # Lazy import a korkoros import elkerulesere: az rss_collector mar importalja ezt a modult.
-    from src.integrations.collectors.rss_collector import DEFAULT_MAX_ITEMS, _exc_brief, _get_with_retry
+    from src.integrations.collectors.rss_collector import (
+        DEFAULT_MAX_ITEMS,
+        _exc_brief,
+        _get_with_retry,
+    )
 
     name = source.get("name") or source.get("url", "unknown")
     ok_label = FIXED if source.get("previously_broken") else OK
@@ -154,7 +163,9 @@ async def fetch_nextjs_json(client: httpx.AsyncClient, source: dict[str, Any]) -
     posts = _extract_nextjs_posts(resp.text)
     if not posts:
         logger.info("Ures Next.js oldal [%s]: 0 poszt", name)
-        return SourceResult(name=name, label=STILL_FAILING, error="0 poszt (__NEXT_DATA__/__next_f)")
+        return SourceResult(
+            name=name, label=STILL_FAILING, error="0 poszt (__NEXT_DATA__/__next_f)"
+        )
 
     # Legujabb elol: publishedOn szerint csokkeno (ISO8601 -> lexikografikus sort helyes).
     posts.sort(key=lambda p: p.get("publishedOn") or "", reverse=True)

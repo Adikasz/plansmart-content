@@ -2,6 +2,7 @@
 
 Vékony wrapper a base_generator köré a prompts/voice_adam.md prompttal.
 """
+
 from __future__ import annotations
 
 from typing import Any

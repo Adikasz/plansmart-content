@@ -12,11 +12,14 @@ config/accounts.yml `linkedin_urn` mezőjében.
 Önálló füstteszt:
     python -m src.integrations.publishers.token_store
 """
+
 from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from typing import Any, cast
+
+from supabase import Client
 
 from src.core.storage.db import get_client, has_service_key
 from src.utils.logging import setup_logging
@@ -28,7 +31,7 @@ DEFAULT_TTL_DAYS = 60
 TABLE = "tokens"
 
 
-def _c(client=None):
+def _c(client: Client | None = None) -> Client:
     return client or get_client(use_service_key=has_service_key())
 
 
@@ -58,7 +61,7 @@ def save_token(
     account_id: str,
     access_token: str,
     expires_at: str | datetime | None = None,
-    client=None,
+    client: Client | None = None,
 ) -> dict[str, Any]:
     """Token mentése/frissítése (upsert) account_id-ra a `tokens` táblába.
 
@@ -76,7 +79,7 @@ def save_token(
     return row
 
 
-def get_token(account_id: str, client=None) -> dict[str, Any] | None:
+def get_token(account_id: str, client: Client | None = None) -> dict[str, Any] | None:
     """Token lekérése account_id-ra. None, ha nincs. Warn-ol, ha < 7 nap / lejárt."""
     resp = _c(client).table(TABLE).select("*").eq("account_id", account_id).limit(1).execute()
     row = (resp.data or [None])[0]
@@ -91,18 +94,26 @@ def get_token(account_id: str, client=None) -> dict[str, Any] | None:
         elif days < WARN_THRESHOLD_DAYS:
             logger.warning(
                 "Token hamarosan lejár: account=%s (%.1f nap van hátra) — refresh kell",
-                account_id, days,
+                account_id,
+                days,
             )
-    return row
+    return cast("dict[str, Any] | None", row)
 
 
-def token_status(account_id: str, client=None) -> dict[str, Any]:
+def token_status(account_id: str, client: Client | None = None) -> dict[str, Any]:
     """Token állapot a /status parancshoz — warning-spam nélkül, hibatűrően.
 
     Visszaad: {account, exists, days_left, expires_at} vagy {account, error}.
     """
     try:
-        resp = _c(client).table(TABLE).select("expires_at").eq("account_id", account_id).limit(1).execute()
+        resp = (
+            _c(client)
+            .table(TABLE)
+            .select("expires_at")
+            .eq("account_id", account_id)
+            .limit(1)
+            .execute()
+        )
     except Exception as exc:  # pl. a tokens tábla még nincs migrálva
         return {"account": account_id, "error": str(exc)[:80]}
     row = (resp.data or [None])[0]

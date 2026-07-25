@@ -5,10 +5,12 @@ a /log_stats paranccsal. Ez a fájl a megjelenítési réteg a src/core/storage/
 + src/core/storage/engagement_report.py (tiszta aggregáció) fölött. Külön Router — a
 src/core/workers/main.py fűzi be a többi mellé (nincs catch-all handler).
 """
+
 from __future__ import annotations
 
 import html
 import logging
+from typing import Any
 
 from aiogram import Router
 from aiogram.filters import Command, CommandObject
@@ -36,10 +38,21 @@ LOG_STATS_USAGE = (
 
 VOICE_ORDER = ("david", "adam", "plansmart")
 HOOK_ORDER = ("A", "B", "C", "D", "E")
-CONTENT_TYPE_ORDER = ("educational", "workshop_promo", "case_study", "ai_news", "ai_news_breaking", "egyeb")
+CONTENT_TYPE_ORDER = (
+    "educational",
+    "workshop_promo",
+    "case_study",
+    "ai_news",
+    "ai_news_breaking",
+    "egyeb",
+)
 CONTENT_TYPE_LABEL = {
-    "educational": "oktató", "workshop_promo": "workshop", "case_study": "case study",
-    "ai_news": "news", "ai_news_breaking": "breaking news", "egyeb": "egyéb",
+    "educational": "oktató",
+    "workshop_promo": "workshop",
+    "case_study": "case study",
+    "ai_news": "news",
+    "ai_news_breaking": "breaking news",
+    "egyeb": "egyéb",
 }
 TEMPLATE_ORDER = ("STAT_CARD", "QUOTE_STYLE", "SPLIT_COMPARISON", "MINIMAL_TYPOGRAPHIC")
 
@@ -74,7 +87,7 @@ def _parse_int(s: str | None) -> int | None:
     try:
         return int(s)
     except ValueError:
-        raise ValueError(f"'{s}' nem egész szám")
+        raise ValueError(f"'{s}' nem egész szám") from None
 
 
 @router.message(Command("log_stats"))
@@ -121,7 +134,11 @@ async def log_stats_cmd(message: Message, command: CommandObject) -> None:
 
     try:
         result = engagement_store.log(
-            post_id, views=views, likes=likes, comments=comments, shares=shares,
+            post_id,
+            views=views,
+            likes=likes,
+            comments=comments,
+            shares=shares,
             is_final_snapshot=is_final,
         )
     except ValueError as exc:
@@ -132,8 +149,13 @@ async def log_stats_cmd(message: Message, command: CommandObject) -> None:
         return
 
     given = [
-        f"{label}: {v}" for label, v in
-        (("views", views), ("likes", likes), ("comments", comments), ("shares", shares))
+        f"{label}: {v}"
+        for label, v in (
+            ("views", views),
+            ("likes", likes),
+            ("comments", comments),
+            ("shares", shares),
+        )
         if v is not None
     ]
     hours = result["hours_since_post"]
@@ -149,7 +171,7 @@ def _fmt_avg(v: float | None) -> str:
     return "—" if v is None else str(v)
 
 
-def _fmt_group_line(label: str, stats: dict | None) -> str:
+def _fmt_group_line(label: str, stats: dict[str, Any] | None) -> str:
     if stats is None or stats["n"] == 0:
         return f"  {label}: nincs adat"
     metrics = " | ".join(f"{m}: {_fmt_avg(stats.get(f'avg_{m}'))}" for m in report.METRICS)
@@ -157,7 +179,7 @@ def _fmt_group_line(label: str, stats: dict | None) -> str:
     return f"  {label}: {metrics} (n={stats['n']}){caveat}"
 
 
-def _format_advisory(best_combo: dict | None) -> str:
+def _format_advisory(best_combo: dict[str, Any] | None) -> str:
     if best_combo is None:
         return "💡 Még nincs elég adat a legjobban teljesítő kombináció meghatározásához."
     hook_label = report.HOOK_LABEL.get(best_combo["hook_type"], best_combo["hook_type"])
@@ -170,7 +192,7 @@ def _format_advisory(best_combo: dict | None) -> str:
     )
 
 
-def format_report(data: dict) -> str:
+def format_report(data: dict[str, Any]) -> str:
     if data["total_posts_with_engagement"] == 0:
         return (
             "📈 <b>Engagement report</b>\n\n"
@@ -205,8 +227,10 @@ def format_report(data: dict) -> str:
     for t in TEMPLATE_ORDER:
         lines.append(_fmt_group_line(f"  · {t}", data["by_visual"]["by_template"].get(t)))
     if data["by_visual"]["missing_n"]:
-        lines.append(f"  <i>({data['by_visual']['missing_n']} poszt vizuál-metaadat nélkül, kihagyva "
-                      f"-- csak az ezután generáltaknál elérhető)</i>")
+        lines.append(
+            f"  <i>({data['by_visual']['missing_n']} poszt vizuál-metaadat nélkül, kihagyva "
+            f"-- csak az ezután generáltaknál elérhető)</i>"
+        )
 
     lines += ["", _format_advisory(data["best_combo"])]
     return "\n".join(lines)

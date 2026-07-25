@@ -22,14 +22,16 @@ ez sima szöveggenerálás, nem kell hozzá server-tool (szemben a prospect_rese
 Önálló teszt:
     python -m src.ai.outreach.note_generator
 """
+
 from __future__ import annotations
 
 import asyncio
 import logging
 from functools import lru_cache
-from typing import Any
+from typing import Any, cast
 
 from anthropic import AsyncAnthropic
+from anthropic.types import TextBlock
 from dotenv import load_dotenv
 
 from src.core.storage import prospects as store
@@ -44,20 +46,24 @@ CHAR_LIMIT = 300  # LinkedIn kapcsolatkérő üzenet karakter-limit
 
 # Melyik alapító küldi (voice) kategóriánként.
 VOICE_FOR_CATEGORY = {
-    "hu_sme_owner": "adam",     # üzleti tulaj → stratéga, tulaj-tulajnak
+    "hu_sme_owner": "adam",  # üzleti tulaj → stratéga, tulaj-tulajnak
     "intl_sme_owner": "adam",
-    "ai_specialist": "david",   # technikai → builder
+    "ai_specialist": "david",  # technikai → builder
     "industry_peer": "david",
 }
 
 # Az alapító hangjának TÖMÖR leírása a rövid üzenethez (NEM a teljes voice_*.md — az posztokra van).
 VOICE_DESC = {
-    "adam": ("You are Ádám, co-founder of PlanSmart — a business strategist. You write owner-to-owner, "
-             "peer to peer, never top-down or salesy. Pragmatic, warm, concrete. You connect because "
-             "you find the person's business or thinking genuinely interesting."),
-    "david": ("You are Dávid, co-founder of PlanSmart — a hands-on builder/engineer. You write directly "
-              "and concretely, engineer to engineer, no marketing fluff. You connect because their work, "
-              "tooling, or ideas genuinely interest you."),
+    "adam": (
+        "You are Ádám, co-founder of PlanSmart — a business strategist. You write owner-to-owner, "
+        "peer to peer, never top-down or salesy. Pragmatic, warm, concrete. You connect because "
+        "you find the person's business or thinking genuinely interesting."
+    ),
+    "david": (
+        "You are Dávid, co-founder of PlanSmart — a hands-on builder/engineer. You write directly "
+        "and concretely, engineer to engineer, no marketing fluff. You connect because their work, "
+        "tooling, or ideas genuinely interest you."
+    ),
 }
 
 
@@ -76,8 +82,12 @@ def note_language_for(prospect: dict[str, Any]) -> str:
 
 
 def _system(voice: str, language: str) -> str:
-    lang_line = ("Write the note in HUNGARIAN (natural, native, informal-professional 'ön'-less warmth "
-                 "as peers)." if language == "hu" else "Write the note in ENGLISH.")
+    lang_line = (
+        "Write the note in HUNGARIAN (natural, native, informal-professional 'ön'-less warmth "
+        "as peers)."
+        if language == "hu"
+        else "Write the note in ENGLISH."
+    )
     return (
         f"{VOICE_DESC.get(voice, VOICE_DESC['adam'])}\n\n"
         "TASK: Write ONE short LinkedIn connection-request note to the person described.\n"
@@ -127,10 +137,12 @@ def _clean_note(text: str) -> str:
 
 async def _one_call(system: str, user: str) -> str:
     msg = await _client().messages.create(
-        model=MODEL, max_tokens=MAX_TOKENS, system=system,
+        model=MODEL,
+        max_tokens=MAX_TOKENS,
+        system=system,
         messages=[{"role": "user", "content": user}],
     )
-    return _clean_note(msg.content[0].text if msg.content else "")
+    return _clean_note(cast(TextBlock, msg.content[0]).text if msg.content else "")
 
 
 async def generate_note(
@@ -147,8 +159,10 @@ async def generate_note(
 
     note = await _one_call(system, _user(prospect))
     if len(note) > CHAR_LIMIT:
-        shorten = (_user(prospect) + f"\n\nThe previous version was too long. Rewrite it UNDER "
-                   f"{CHAR_LIMIT} characters, keeping the specific reference.")
+        shorten = (
+            _user(prospect) + f"\n\nThe previous version was too long. Rewrite it UNDER "
+            f"{CHAR_LIMIT} characters, keeping the specific reference."
+        )
         retried = await _one_call(system, shorten)
         if retried:
             note = retried
@@ -175,8 +189,12 @@ async def _demo() -> int:
     import json
 
     sample = {
-        "name": "Teszt Elek", "title": "ügyvezető", "company": "Példa Logisztika Kft.",
-        "city": "Budapest", "country": "HU", "category": "hu_sme_owner",
+        "name": "Teszt Elek",
+        "title": "ügyvezető",
+        "company": "Példa Logisztika Kft.",
+        "city": "Budapest",
+        "country": "HU",
+        "category": "hu_sme_owner",
         "relevance_notes": "Középméretű fuvarozó cég, nemrég posztolt a diszpécser-adminisztráció terheiről.",
     }
     out = await generate_note(sample, persist=False)

@@ -9,6 +9,7 @@ Csak Muapi.ai-t használunk (Higgsfield NEM). A kulcs a `.env`-ből: MUAPI_API_K
 Önálló füstteszt (egy kép generálása):
     python -m src.integrations.visuals.muapi_client "dark minimalist dashboard, #04060a background"
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -165,7 +166,7 @@ def _extract_cost(data: dict[str, Any], model: str) -> float | None:
 
 
 def _is_placeholder(url: str | None) -> bool:
-    return bool(url) and _PLACEHOLDER_MARKER in url
+    return bool(url) and _PLACEHOLDER_MARKER in (url or "")
 
 
 async def generate(
@@ -188,7 +189,11 @@ async def generate(
     """
     key = _require_key()
     endpoint = _endpoint_for(model)
-    payload: dict[str, Any] = {"prompt": prompt, "aspect_ratio": aspect_ratio, "resolution": resolution}
+    payload: dict[str, Any] = {
+        "prompt": prompt,
+        "aspect_ratio": aspect_ratio,
+        "resolution": resolution,
+    }
     if extra_params:
         payload.update(extra_params)
 
@@ -198,7 +203,9 @@ async def generate(
         # a) Submit
         submit_url = f"{BASE_URL}/{endpoint}"
         logger.info("Muapi submit: model=%s endpoint=%s ar=%s", model, endpoint, aspect_ratio)
-        resp = await client.post(submit_url, json=payload, headers=_headers(key), timeout=SUBMIT_TIMEOUT_S)
+        resp = await client.post(
+            submit_url, json=payload, headers=_headers(key), timeout=SUBMIT_TIMEOUT_S
+        )
         if resp.status_code >= 400:
             raise MuapiError(f"Muapi submit hiba {resp.status_code}: {resp.text[:300]}")
         submit_data = resp.json()
@@ -208,8 +215,11 @@ async def generate(
         immediate = _extract_image_url(submit_data)
         if immediate and not _is_placeholder(immediate):
             return GenerationResult(
-                image_url=immediate, model=model, request_id=request_id,
-                cost_usd=_extract_cost(submit_data, model), raw=submit_data,
+                image_url=immediate,
+                model=model,
+                request_id=request_id,
+                cost_usd=_extract_cost(submit_data, model),
+                raw=submit_data,
             )
         if not request_id:
             raise MuapiError(f"Muapi válasz nem tartalmaz request_id-t: {str(submit_data)[:300]}")
@@ -238,8 +248,11 @@ async def generate(
                     raise MuapiError(PLACEHOLDER_MSG)
                 logger.info("Muapi kész: request_id=%s (%.0fs)", request_id, waited)
                 return GenerationResult(
-                    image_url=url, model=model, request_id=request_id,
-                    cost_usd=_extract_cost(data, model), raw=data,
+                    image_url=url,
+                    model=model,
+                    request_id=request_id,
+                    cost_usd=_extract_cost(data, model),
+                    raw=data,
                 )
             logger.debug("Muapi poll: status=%s (%.0fs)", status or "?", waited)
 
@@ -266,11 +279,17 @@ async def _smoke(prompt: str) -> int:
         logger.error("%s", exc)
         return 1
     logger.info("URL : %s", result.image_url)
-    logger.info("cost: $%s  model=%s  request_id=%s", result.cost_usd, result.model, result.request_id)
+    logger.info(
+        "cost: $%s  model=%s  request_id=%s", result.cost_usd, result.model, result.request_id
+    )
     return 0
 
 
 if __name__ == "__main__":
     setup_logging()
-    prompt = sys.argv[1] if len(sys.argv) > 1 else "minimalist dark dashboard, #04060a background, single bold metric centered"
+    prompt = (
+        sys.argv[1]
+        if len(sys.argv) > 1
+        else "minimalist dark dashboard, #04060a background, single bold metric centered"
+    )
     raise SystemExit(asyncio.run(_smoke(prompt)))

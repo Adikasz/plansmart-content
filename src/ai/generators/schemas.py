@@ -9,6 +9,7 @@ hordozó mezőket (skip, linkedin.content) kötjük meg. A `validate_generated()
 sosem dob, így a generate() forró útja visszafelé kompatibilis marad (a hívó a nyers
 dict-tel is dolgozhat), miközben a séma-eltérés naplózhatóvá válik.
 """
+
 from __future__ import annotations
 
 from typing import Any

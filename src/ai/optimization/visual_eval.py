@@ -10,16 +10,18 @@ ezért a képet httpx-szel letöltjük és base64-eljük.
 Önálló teszt:
     python -m src.ai.optimization.visual_eval <image_url> [voice]
 """
+
 from __future__ import annotations
 
 import asyncio
 import base64
 import logging
 from functools import lru_cache
-from typing import Any
+from typing import Any, cast
 
 import httpx
 from anthropic import AsyncAnthropic
+from anthropic.types import MessageParam, TextBlock
 from dotenv import load_dotenv
 
 from src.ai.generators.base_generator import _repair_and_parse
@@ -34,14 +36,19 @@ FETCH_TIMEOUT_S = 30.0
 
 VOICE_EXPECTATION = {
     "david": "Dávid — technikai builder: terminal/kód/rendszerdiagram hangulat, hűvös teal/kék "
-             "accent, monospace részletek. Fejlesztői hitelesség.",
+    "accent, monospace részletek. Fejlesztői hitelesség.",
     "adam": "Ádám — üzleti stratéga: financial-dashboard minimalizmus, HŰVÖS acél / lágy kék "
-            "metrika-accent (NEM meleg arany — Phase 17), before/after keretezés. Tulaj-tulajnak hangulat.",
+    "metrika-accent (NEM meleg arany — Phase 17), before/after keretezés. Tulaj-tulajnak hangulat.",
     "plansmart": "PlanSmart — hivatalos brand: prémium SaaS, letisztult semleges accentek, látható de "
-                 "nem domináns PlanSmart wordmark, megbízható és hivatalos.",
+    "nem domináns PlanSmart wordmark, megbízható és hivatalos.",
 }
 
-SCORE_KEYS = ("brand_alignment_score", "hungarian_text_quality", "scroll_stopping_score", "professional_score")
+SCORE_KEYS = (
+    "brand_alignment_score",
+    "hungarian_text_quality",
+    "scroll_stopping_score",
+    "professional_score",
+)
 
 SYSTEM_PROMPT = (
     "You are a senior brand art director evaluating a generated social-media visual for the "
@@ -147,10 +154,12 @@ class VisualEvaluator:
 
         try:
             msg = await _client().messages.create(
-                model=MODEL, max_tokens=MAX_TOKENS, system=SYSTEM_PROMPT,
-                messages=[{"role": "user", "content": user_blocks}],
+                model=MODEL,
+                max_tokens=MAX_TOKENS,
+                system=SYSTEM_PROMPT,
+                messages=cast("list[MessageParam]", [{"role": "user", "content": user_blocks}]),
             )
-            data = _repair_and_parse(msg.content[0].text if msg.content else "")
+            data = _repair_and_parse(cast(TextBlock, msg.content[0]).text if msg.content else "")
         except Exception as exc:
             logger.warning("[visual-eval] vision hívás hiba: %s", str(exc)[:120])
             return self._error_result(f"vision hívás hiba: {str(exc)[:100]}")
@@ -164,7 +173,8 @@ class VisualEvaluator:
         scores = {k: _clamp(data.get(k), 1, 10, 5) for k in SCORE_KEYS}
         flags = [str(f) for f in (data.get("anti_pattern_flags") or []) if str(f).strip()]
         try:
-            overall = float(data.get("overall_score"))
+            raw_overall: Any = data.get("overall_score")
+            overall = float(raw_overall)
         except (TypeError, ValueError):
             overall = sum(scores.values()) / len(scores)
         overall = max(1.0, min(10.0, round(overall, 2)))
@@ -178,10 +188,14 @@ class VisualEvaluator:
     @staticmethod
     def _error_result(reason: str) -> dict[str, Any]:
         return {
-            "brand_alignment_score": 0, "hungarian_text_quality": 0,
-            "scroll_stopping_score": 0, "professional_score": 0,
-            "anti_pattern_flags": ["eval_error"], "overall_score": 0.0,
-            "feedback": reason, "error": True,
+            "brand_alignment_score": 0,
+            "hungarian_text_quality": 0,
+            "scroll_stopping_score": 0,
+            "professional_score": 0,
+            "anti_pattern_flags": ["eval_error"],
+            "overall_score": 0.0,
+            "feedback": reason,
+            "error": True,
         }
 
 

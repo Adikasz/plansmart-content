@@ -7,6 +7,7 @@ riaszt a Telegram reactions csatornán.
 
 Az /eval_visuals parancs a get_current_quality()-t használja (baseline-nal összevetve).
 """
+
 from __future__ import annotations
 
 import json
@@ -14,7 +15,9 @@ import logging
 import random
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
+
+from supabase import Client
 
 from src.ai.optimization.visual_eval import VisualEvaluator
 from src.core.storage.db import get_client, has_service_key
@@ -28,20 +31,28 @@ ALERT_THRESHOLD = 7.0
 DEFAULT_SAMPLE = 5
 
 
-def _recent_visual_posts(limit_pool: int = 40, client=None) -> list[dict]:
+def _recent_visual_posts(
+    limit_pool: int = 40, client: Client | None = None
+) -> list[dict[str, Any]]:
     c = client or get_client(use_service_key=has_service_key())
     resp = (
-        c.table("posts").select("id, voice, content, final_content, visual_url, generated_at")
-        .not_.is_("visual_url", "null").order("generated_at", desc=True).limit(limit_pool).execute()
+        c.table("posts")
+        .select("id, voice, content, final_content, visual_url, generated_at")
+        .not_.is_("visual_url", "null")
+        .order("generated_at", desc=True)
+        .limit(limit_pool)
+        .execute()
     )
     return [r for r in (resp.data or []) if r.get("visual_url")]
 
 
-def _content(row: dict) -> str:
+def _content(row: dict[str, Any]) -> str:
     return (row.get("final_content") or row.get("content") or "").strip()
 
 
-async def evaluate_sample(sample: int = DEFAULT_SAMPLE, client=None) -> dict[str, Any]:
+async def evaluate_sample(
+    sample: int = DEFAULT_SAMPLE, client: Client | None = None
+) -> dict[str, Any]:
     """N random friss vizuál pontozása. Visszaad: per-voice átlag + overall + minták."""
     client = client or get_client(use_service_key=has_service_key())
     pool = _recent_visual_posts(client=client)
@@ -52,9 +63,17 @@ async def evaluate_sample(sample: int = DEFAULT_SAMPLE, client=None) -> dict[str
     evaluator = VisualEvaluator()
     evaluated = []
     for row in chosen:
-        scores = await evaluator.evaluate_image(row["visual_url"], _content(row), row.get("voice") or "")
-        evaluated.append({"post_id": row["id"], "voice": row.get("voice"),
-                          "overall": scores.get("overall_score"), "error": scores.get("error", False)})
+        scores = await evaluator.evaluate_image(
+            row["visual_url"], _content(row), row.get("voice") or ""
+        )
+        evaluated.append(
+            {
+                "post_id": row["id"],
+                "voice": row.get("voice"),
+                "overall": scores.get("overall_score"),
+                "error": scores.get("error", False),
+            }
+        )
 
     valid = [e for e in evaluated if not e["error"] and e["overall"]]
     per_voice: dict[str, list[float]] = {}
@@ -62,21 +81,31 @@ async def evaluate_sample(sample: int = DEFAULT_SAMPLE, client=None) -> dict[str
         per_voice.setdefault(e["voice"] or "?", []).append(e["overall"])
     per_voice_avg = {v: round(sum(s) / len(s), 2) for v, s in per_voice.items()}
     overall = round(sum(e["overall"] for e in valid) / len(valid), 2) if valid else None
-    return {"overall_avg": overall, "per_voice": per_voice_avg,
-            "sample_size": len(valid), "evaluated": evaluated}
+    return {
+        "overall_avg": overall,
+        "per_voice": per_voice_avg,
+        "sample_size": len(valid),
+        "evaluated": evaluated,
+    }
 
 
-def record_metrics(per_voice: dict[str, float], sample_by_voice: dict[str, int], client=None) -> None:
+def record_metrics(
+    per_voice: dict[str, float], sample_by_voice: dict[str, int], client: Client | None = None
+) -> None:
     """A hangonkénti átlagokat a visual_quality_metrics táblába írja (best-effort)."""
     client = client or get_client(use_service_key=has_service_key())
     now = datetime.now(timezone.utc).isoformat()
-    rows = [{"date": now, "voice": v, "avg_score": avg, "sample_size": sample_by_voice.get(v, 0)}
-            for v, avg in per_voice.items()]
+    rows = [
+        {"date": now, "voice": v, "avg_score": avg, "sample_size": sample_by_voice.get(v, 0)}
+        for v, avg in per_voice.items()
+    ]
     if rows:
         client.table("visual_quality_metrics").insert(rows).execute()
 
 
-async def run_continuous_quality_check(sample: int = DEFAULT_SAMPLE, send_alert: bool = True) -> dict[str, Any]:
+async def run_continuous_quality_check(
+    sample: int = DEFAULT_SAMPLE, send_alert: bool = True
+) -> dict[str, Any]:
     """Egy folyamatos minőség-ellenőrzés: pontoz, trendet rögzít, küszöb alatt riaszt."""
     client = get_client(use_service_key=has_service_key())
     result = await evaluate_sample(sample, client=client)
@@ -95,8 +124,12 @@ async def run_continuous_quality_check(sample: int = DEFAULT_SAMPLE, send_alert:
         logger.warning("[quality] metrika mentés kihagyva: %s", str(exc)[:100])
 
     overall = result["overall_avg"]
-    logger.info("[quality] össz-átlag=%s | hangonként=%s (n=%d)",
-                overall, result["per_voice"], result["sample_size"])
+    logger.info(
+        "[quality] össz-átlag=%s | hangonként=%s (n=%d)",
+        overall,
+        result["per_voice"],
+        result["sample_size"],
+    )
 
     if send_alert and overall is not None and overall < ALERT_THRESHOLD:
         await _send_alert(overall, result["per_voice"])
@@ -110,10 +143,12 @@ async def _send_alert(overall: float, per_voice: dict[str, float]) -> None:
         from src.integrations.bots import telegram_bot as tb
 
         lines = "\n".join(f"  • {v}: {s}" for v, s in per_voice.items())
-        text = (f"⚠️ <b>Vizuál minőség riasztás</b>\n\n"
-                f"Az átlagos vizuál pontszám <b>{overall}</b> &lt; {ALERT_THRESHOLD} küszöb.\n"
-                f"Hangonként:\n{lines}\n\n"
-                f"Érdemes újra-futtatni: <code>python -m scripts.run_visual_eval</code>")
+        text = (
+            f"⚠️ <b>Vizuál minőség riasztás</b>\n\n"
+            f"Az átlagos vizuál pontszám <b>{overall}</b> &lt; {ALERT_THRESHOLD} küszöb.\n"
+            f"Hangonként:\n{lines}\n\n"
+            f"Érdemes újra-futtatni: <code>python -m scripts.run_visual_eval</code>"
+        )
         bot = tb.get_bot()
         await bot.send_message(tb.REACTIONS_CHAT_ID, text)
     except Exception as exc:
@@ -126,7 +161,7 @@ def load_baseline() -> dict[str, Any] | None:
         return None
     try:
         data = json.loads(BASELINE_FILE.read_text(encoding="utf-8"))
-        return data.get("aggregate")
+        return cast("dict[str, Any] | None", data.get("aggregate"))
     except Exception:
         return None
 
@@ -139,5 +174,8 @@ async def get_current_quality(sample: int = DEFAULT_SAMPLE) -> dict[str, Any]:
     if baseline:
         winner = baseline.get("winner_overall")
         base_overall = (baseline.get("per_variant_avg") or {}).get(winner)
-    return {"current": current, "baseline_winner_avg": base_overall,
-            "baseline_winner": (baseline or {}).get("winner_overall")}
+    return {
+        "current": current,
+        "baseline_winner_avg": base_overall,
+        "baseline_winner": (baseline or {}).get("winner_overall"),
+    }

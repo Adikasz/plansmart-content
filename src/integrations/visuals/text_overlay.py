@@ -9,16 +9,18 @@ fonttools-szal TTF-re konvertáljuk (assets/fonts/ttf/ cache), a Bebas Neue-t le
 Önálló teszt:
     python -m src.integrations.visuals.text_overlay <base_image_url> [voice]
 """
+
 from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import cast
 
 import httpx
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter, ImageFont
 
-from src.utils.logging import setup_logging
 from src.integrations.visuals import layout_templates as lt
+from src.utils.logging import setup_logging
 
 logger = logging.getLogger(__name__)
 
@@ -33,9 +35,9 @@ BRAND_DIR = PROJECT_ROOT / "assets" / "brand"
 # helyett, amit a Flux betűként rajzolt ki — Phase 12.5 bug). A wordmark verziók
 # (Logo2/Logo3/Logo4) NEM alkalmasak kis sarok-watermarknak, csak a mark.
 LOGO_MARK_FILE = BRAND_DIR / "Logo main.png"
-LOGO_WIDTH_FRAC = 0.08   # a vászon szélességének ~8%-a
-LOGO_PADDING_PX = 32     # jobb/alsó széltől (1024px-re hangolva, s-sel skálázva)
-LOGO_OPACITY = 0.65      # 65% átlátszatlanság
+LOGO_WIDTH_FRAC = 0.08  # a vászon szélességének ~8%-a
+LOGO_PADDING_PX = 32  # jobb/alsó széltől (1024px-re hangolva, s-sel skálázva)
+LOGO_OPACITY = 0.65  # 65% átlátszatlanság
 
 # Teljes lefedettségű TTF-ek (Google Fonts) — a repo .woff2 fájljai unicode-range SUBSETek
 # (a latin-ext csak a kiterjesztett jeleket tartalmazza, az alap latint NEM), így boxokat
@@ -63,7 +65,7 @@ DEFAULT_ACCENT = {"david": TEAL, "adam": COOL_STEEL, "plansmart": LIGHT_GREY}
 DOWNLOAD_TIMEOUT_S = 30.0
 
 
-def _rgba(color) -> tuple[int, int, int, int] | None:
+def _rgba(color: tuple[int, ...] | None) -> tuple[int, int, int, int] | None:
     """(r,g,b) vagy (r,g,b,a) → RGBA 4-es. None → None."""
     if color is None:
         return None
@@ -123,7 +125,9 @@ class TextOverlayComposer:
         try:
             logo = Image.open(LOGO_MARK_FILE).convert("RGBA")
         except Exception as exc:
-            logger.warning("[overlay] logó betöltés hiba (%s): %s", LOGO_MARK_FILE.name, str(exc)[:100])
+            logger.warning(
+                "[overlay] logó betöltés hiba (%s): %s", LOGO_MARK_FILE.name, str(exc)[:100]
+            )
             return None
         # Neon-a-feketén jel: a bepékelt sötét glow félig-átlátszó, sötét pixeleket hagy (halvány
         # doboz a sarokban). Az alphát a pixel fényességével skálázzuk → a sötét részek eltűnnek,
@@ -154,7 +158,9 @@ class TextOverlayComposer:
             return True
         return all(ord(ch) in cp for ch in (text or "") if ch.strip())
 
-    def _font_for(self, face: str, text: str, size: int, weight: str | None = None) -> ImageFont.FreeTypeFont:
+    def _font_for(
+        self, face: str, text: str, size: int, weight: str | None = None
+    ) -> ImageFont.FreeTypeFont:
         """A kért face, ha lefedi a szöveget; különben Inter (teljes lefedettség)."""
         if not self._covers(face, text):
             return self._font("inter", size, weight or "ExtraBold")
@@ -162,7 +168,9 @@ class TextOverlayComposer:
 
     _MEASURE = ImageDraw.Draw(Image.new("RGB", (8, 8)))
 
-    def _fit_font(self, face, text, size, max_w, weight=None) -> ImageFont.FreeTypeFont:
+    def _fit_font(
+        self, face: str, text: str, size: int, max_w: int, weight: str | None = None
+    ) -> ImageFont.FreeTypeFont:
         """A legnagyobb (≤size) font, amivel a 'text' egy sorban elfér max_w-ben (pl. stat)."""
         while size > 24:
             font = self._font_for(face, text, size, weight)
@@ -171,7 +179,7 @@ class TextOverlayComposer:
             size = int(size * 0.9)
         return self._font_for(face, text, size, weight)
 
-    def _hard_wrap(self, text, font, max_w) -> list[str]:
+    def _hard_wrap(self, text: str, font: ImageFont.FreeTypeFont, max_w: int) -> list[str]:
         """Szó-tördelés, majd a max_w-nél szélesebb tokeneket karakterenként is megtöri."""
         out: list[str] = []
         for token in self._wrap(self._MEASURE, text, font, max_w):
@@ -189,8 +197,16 @@ class TextOverlayComposer:
                 out.append(cur)
         return out
 
-    def _fit_lines(self, face, upper_text, target_size, max_w, weight=None,
-                   min_ratio=0.55, max_lines=3) -> tuple[ImageFont.FreeTypeFont, list[str]]:
+    def _fit_lines(
+        self,
+        face: str,
+        upper_text: str,
+        target_size: int,
+        max_w: int,
+        weight: str | None = None,
+        min_ratio: float = 0.55,
+        max_lines: int = 3,
+    ) -> tuple[ImageFont.FreeTypeFont, list[str]]:
         """Shrink-to-fit a main_text-hez: csökkenti a méretet 5%-onként, amíg minden sor elfér.
 
         Egy hosszú összetett szó (ami szóközre nem tördelhető) így nem lóg ki. A min méret
@@ -216,11 +232,13 @@ class TextOverlayComposer:
         cached = self._font_cache.get(key)
         if cached is not None:
             return cached
-        if face == "bricolage":  # a Bricolage variable TTF nem tölthető PIL-be → Inter (márka-elsődleges)
+        if (
+            face == "bricolage"
+        ):  # a Bricolage variable TTF nem tölthető PIL-be → Inter (márka-elsődleges)
             face = "inter"
         path = self._ttf.get(face) or self._ttf.get("inter") or next(iter(self._ttf.values()), None)
         if path is None:
-            return ImageFont.load_default()
+            return cast("ImageFont.FreeTypeFont", ImageFont.load_default())
         font = ImageFont.truetype(str(path), size)
         if weight:
             try:
@@ -232,7 +250,9 @@ class TextOverlayComposer:
 
     # ── Szöveg-tördelés a megadott max szélességre ─────────────────────
     @staticmethod
-    def _wrap(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.FreeTypeFont, max_w: int) -> list[str]:
+    def _wrap(
+        draw: ImageDraw.ImageDraw, text: str, font: ImageFont.FreeTypeFont, max_w: int
+    ) -> list[str]:
         words = (text or "").split()
         if not words:
             return []
@@ -249,7 +269,9 @@ class TextOverlayComposer:
 
     # ── Gradiens overlay-ek ────────────────────────────────────────────
     @staticmethod
-    def _gradient(size, *, top=0.0, bottom=0.0, full=0.0) -> Image.Image:
+    def _gradient(
+        size: tuple[int, int], *, top: float = 0.0, bottom: float = 0.0, full: float = 0.0
+    ) -> Image.Image:
         """Sötét #04060a gradiens RGBA réteg — soronkénti alpha-rámpa (gyors, nem per-pixel).
 
         top/bottom: a kép tetejére/aljára eső sötétítés erőssége (0-1, a magasság ~42%-án
@@ -281,7 +303,7 @@ class TextOverlayComposer:
         output_path: str | None = None,
         portrait_path: str | None = None,
         template: str = lt.STAT_CARD,
-        accent=None,
+        accent: tuple[int, ...] | None = None,
     ) -> str:
         """Letölti az alapképet, ráírja a magyar szöveget, menti, és visszaadja a lokális utat.
 
@@ -312,8 +334,12 @@ class TextOverlayComposer:
 
         # Portré a szöveg ELŐTT (bal-alsó), ha van — plansmart sosem kap portrét.
         has_portrait = bool(portrait_path) and voice in {"david", "adam"}
-        logger.info("[PORTRAIT-TRACE] compose(): portrait_path=%r voice=%s -> has_portrait=%s",
-                    portrait_path, voice, has_portrait)
+        logger.info(
+            "[PORTRAIT-TRACE] compose(): portrait_path=%r voice=%s -> has_portrait=%s",
+            portrait_path,
+            voice,
+            has_portrait,
+        )
         layout = template if lt.is_template(template) else lt.STAT_CARD
 
         # Gradiens: STAT_CARD → a bevált per-voice; a többi template → saját, olvashatóság-barát wash.
@@ -335,10 +361,14 @@ class TextOverlayComposer:
         img = Image.alpha_composite(img, layer)
 
         if has_portrait:
-            self._place_portrait(img, portrait_path, s)
+            self._place_portrait(img, cast(str, portrait_path), s)
 
-        logger.info("[PORTRAIT-TRACE] compose(): dispatching layout=%s voice=%s portrait=%s",
-                    layout, voice, has_portrait)
+        logger.info(
+            "[PORTRAIT-TRACE] compose(): dispatching layout=%s voice=%s portrait=%s",
+            layout,
+            voice,
+            has_portrait,
+        )
         if layout == lt.STAT_CARD:
             if voice == "david":
                 self._layout_david(img, main_text, sub_text, stat, s, acc, portrait=has_portrait)
@@ -351,7 +381,9 @@ class TextOverlayComposer:
         elif layout == lt.SPLIT_COMPARISON:
             self._layout_split(img, main_text, sub_text, stat, s, voice, acc, portrait=has_portrait)
         else:  # MINIMAL_TYPOGRAPHIC
-            self._layout_minimal(img, main_text, sub_text, stat, s, voice, acc, portrait=has_portrait)
+            self._layout_minimal(
+                img, main_text, sub_text, stat, s, voice, acc, portrait=has_portrait
+            )
 
         self._paste_logo(img, s)  # valódi logó-jel minden képre, jobb-alsó sarok
 
@@ -370,7 +402,17 @@ class TextOverlayComposer:
         return Image.open(url_or_path)
 
     # ── Lágy sötét árnyék a szöveg mögé (kontraszt/olvashatóság a változó hátteren) ──
-    def _shadow(self, img, lines, font, xy, anchor, lh, blur, alpha=160):
+    def _shadow(
+        self,
+        img: Image.Image,
+        lines: list[str],
+        font: ImageFont.FreeTypeFont,
+        xy: tuple[int, int],
+        anchor: str,
+        lh: int,
+        blur: int,
+        alpha: int = 160,
+    ) -> None:
         layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
         d = ImageDraw.Draw(layer)
         x, y = xy
@@ -380,7 +422,18 @@ class TextOverlayComposer:
         img.alpha_composite(layer.filter(ImageFilter.GaussianBlur(blur)))
 
     # ── Glow-os szövegréteg (külön rétegen, hogy a blur ne mossa el a fő szöveget) ──
-    def _text_with_glow(self, img, lines, font, xy, fill, anchor, glow_color, blur, line_gap=1.1):
+    def _text_with_glow(
+        self,
+        img: Image.Image,
+        lines: list[str],
+        font: ImageFont.FreeTypeFont,
+        xy: tuple[int, int],
+        fill: tuple[int, ...],
+        anchor: str,
+        glow_color: tuple[int, ...],
+        blur: int,
+        line_gap: float = 1.1,
+    ) -> int:
         ascent, descent = font.getmetrics()
         lh = int((ascent + descent) * line_gap)
         # 1) sötét kontraszt-árnyék, 2) szín-glow, 3) éles fő szöveg
@@ -400,11 +453,22 @@ class TextOverlayComposer:
         return y
 
     # ── Voice layoutok ─────────────────────────────────────────────────
-    def _layout_david(self, img, main_text, sub_text, stat, s, accent=TEAL, portrait=False):
+    def _layout_david(
+        self,
+        img: Image.Image,
+        main_text: str,
+        sub_text: str | None,
+        stat: str | None,
+        s: float,
+        accent: tuple[int, int, int, int] = TEAL,
+        portrait: bool = False,
+    ) -> None:
         draw = ImageDraw.Draw(img)
         w, h = img.size
         margin = int(70 * s)
-        main_font, main_lines = self._fit_lines("bebas", (main_text or "").upper(), int(120 * s), w - 2 * margin)
+        main_font, main_lines = self._fit_lines(
+            "bebas", (main_text or "").upper(), int(120 * s), w - 2 * margin
+        )
         sub_font = self._font("inter", int(32 * s))
         sub_lines = self._wrap(draw, sub_text or "", sub_font, w - 2 * margin) if sub_text else []
         # Blokk-magasság a pozícionáláshoz
@@ -431,13 +495,16 @@ class TextOverlayComposer:
             main_size = int(120 * s)
             sub_lines = []
             while True:
-                main_font, main_lines = self._fit_lines("bebas", (main_text or "").upper(), main_size,
-                                                         w - 2 * margin, min_ratio=0.4)
+                main_font, main_lines = self._fit_lines(
+                    "bebas", (main_text or "").upper(), main_size, w - 2 * margin, min_ratio=0.4
+                )
                 ma, md = main_font.getmetrics()
                 main_lh = int((ma + md) * 1.04)
                 main_block_h = len(main_lines) * main_lh
                 sub_font = self._font("inter", max(int(22 * s), int(main_size * 0.27)))
-                candidate_sub = self._wrap(draw, sub_text or "", sub_font, w - 2 * margin) if sub_text else []
+                candidate_sub = (
+                    self._wrap(draw, sub_text or "", sub_font, w - 2 * margin) if sub_text else []
+                )
                 sa, sd = sub_font.getmetrics()
                 sub_lh = int((sa + sd) * 1.2)
                 sub_block_h = (len(candidate_sub) * sub_lh + int(10 * s)) if candidate_sub else 0
@@ -456,9 +523,21 @@ class TextOverlayComposer:
                 sfa, sfd = stat_font.getmetrics()
                 stat_lh = int((sfa + sfd) * 1.02)
                 self._shadow(img, [stat], stat_font, (margin, y), "la", stat_lh, blur=int(12 * s))
-                ImageDraw.Draw(img).text((margin, y), stat, font=stat_font, fill=accent, anchor="la")
+                ImageDraw.Draw(img).text(
+                    (margin, y), stat, font=stat_font, fill=accent, anchor="la"
+                )
                 y += stat_lh + int(10 * s)
-            y = self._text_with_glow(img, main_lines, main_font, (margin, y), WHITE, "la", accent, int(14 * s), line_gap=1.04)
+            y = self._text_with_glow(
+                img,
+                main_lines,
+                main_font,
+                (margin, y),
+                WHITE,
+                "la",
+                accent,
+                int(14 * s),
+                line_gap=1.04,
+            )
             if sub_lines:
                 y += int(10 * s)
                 self._shadow(img, sub_lines, sub_font, (margin, y), "la", sub_lh, blur=int(8 * s))
@@ -469,7 +548,9 @@ class TextOverlayComposer:
             return
         # Portré NÉLKÜL: fő szöveg bal-alsó, a stat jobb-felső (külön zóna, nincs ütközés).
         y = h - margin - block_h
-        y = self._text_with_glow(img, main_lines, main_font, (margin, y), WHITE, "la", accent, int(14 * s), line_gap=1.04)
+        y = self._text_with_glow(
+            img, main_lines, main_font, (margin, y), WHITE, "la", accent, int(14 * s), line_gap=1.04
+        )
         if sub_lines:
             self._shadow(img, sub_lines, sub_font, (margin, y), "la", sub_lh, blur=int(8 * s))
             draw = ImageDraw.Draw(img)
@@ -478,10 +559,23 @@ class TextOverlayComposer:
                 y += sub_lh
         if stat:
             stat_font = self._fit_font("fragment", stat, int(160 * s), int(w * 0.45))
-            self._shadow(img, [stat], stat_font, (w - margin, margin), "ra", int(160 * s), blur=int(12 * s))
-            ImageDraw.Draw(img).text((w - margin, margin), stat, font=stat_font, fill=accent, anchor="ra")
+            self._shadow(
+                img, [stat], stat_font, (w - margin, margin), "ra", int(160 * s), blur=int(12 * s)
+            )
+            ImageDraw.Draw(img).text(
+                (w - margin, margin), stat, font=stat_font, fill=accent, anchor="ra"
+            )
 
-    def _layout_adam(self, img, main_text, sub_text, stat, s, accent=COOL_STEEL, portrait=False):
+    def _layout_adam(
+        self,
+        img: Image.Image,
+        main_text: str,
+        sub_text: str | None,
+        stat: str | None,
+        s: float,
+        accent: tuple[int, int, int, int] = COOL_STEEL,
+        portrait: bool = False,
+    ) -> None:
         draw = ImageDraw.Draw(img)
         w, h = img.size
         margin = int(70 * s)
@@ -499,13 +593,21 @@ class TextOverlayComposer:
             main_size = int(124 * s)
             sub_lines: list[str] = []
             while True:
-                main_font, main_lines = self._fit_lines("inter", (main_text or "").upper(), main_size,
-                                                         w - 2 * margin, weight="ExtraBold", min_ratio=0.4)
+                main_font, main_lines = self._fit_lines(
+                    "inter",
+                    (main_text or "").upper(),
+                    main_size,
+                    w - 2 * margin,
+                    weight="ExtraBold",
+                    min_ratio=0.4,
+                )
                 ma, md = main_font.getmetrics()
                 main_lh = int((ma + md) * 1.06)
                 main_block_h = len(main_lines) * main_lh
                 sub_font = self._font("inter", max(int(22 * s), int(main_size * 0.29)))
-                candidate_sub = self._wrap(draw, sub_text or "", sub_font, int(w * 0.8)) if sub_text else []
+                candidate_sub = (
+                    self._wrap(draw, sub_text or "", sub_font, int(w * 0.8)) if sub_text else []
+                )
                 sa, sd = sub_font.getmetrics()
                 sub_lh = int((sa + sd) * 1.2)
                 sub_block_h = (len(candidate_sub) * sub_lh + int(24 * s)) if candidate_sub else 0
@@ -521,19 +623,25 @@ class TextOverlayComposer:
                 main_size = int(main_size * 0.9)
             y = y0
         else:
-            main_font, main_lines = self._fit_lines("inter", (main_text or "").upper(), int(124 * s), w - 2 * margin, weight="ExtraBold")
+            main_font, main_lines = self._fit_lines(
+                "inter", (main_text or "").upper(), int(124 * s), w - 2 * margin, weight="ExtraBold"
+            )
             sub_font = self._font("inter", int(36 * s))
             sub_lines = self._wrap(draw, sub_text or "", sub_font, int(w * 0.8)) if sub_text else []
             ma, md = main_font.getmetrics()
             sa, sd = sub_font.getmetrics()
             main_lh = int((ma + md) * 1.06)
             sub_lh = int((sa + sd) * 1.2)
-            block_h = len(main_lines) * main_lh + (len(sub_lines) * sub_lh + int(24 * s) if sub_lines else 0)
+            block_h = len(main_lines) * main_lh + (
+                len(sub_lines) * sub_lh + int(24 * s) if sub_lines else 0
+            )
             # A szöveg-blokk alapból középen (nincs portré, ami a bal-alsót foglalná).
             y = (h - block_h) // 2 + int(h * 0.06)
 
         cx = w // 2
-        self._shadow(img, main_lines, main_font, (cx, y), "ma", main_lh, blur=int(16 * s), alpha=170)
+        self._shadow(
+            img, main_lines, main_font, (cx, y), "ma", main_lh, blur=int(16 * s), alpha=170
+        )
         for ln in main_lines:
             draw.text((cx, y), ln, font=main_font, fill=WHITE, anchor="ma")
             y += main_lh
@@ -548,11 +656,20 @@ class TextOverlayComposer:
             self._shadow(img, [stat], stat_font, (cx, margin), "ma", int(200 * s), blur=int(14 * s))
             draw.text((cx, margin), stat, font=stat_font, fill=accent, anchor="ma")
 
-    def _layout_plansmart(self, img, main_text, sub_text, s, accent=LIGHT_GREY):
+    def _layout_plansmart(
+        self,
+        img: Image.Image,
+        main_text: str,
+        sub_text: str | None,
+        s: float,
+        accent: tuple[int, int, int, int] = LIGHT_GREY,
+    ) -> None:
         draw = ImageDraw.Draw(img)
         w, h = img.size
         margin = int(70 * s)
-        main_font, main_lines = self._fit_lines("inter", (main_text or "").upper(), int(118 * s), w - 2 * margin, weight="ExtraBold")
+        main_font, main_lines = self._fit_lines(
+            "inter", (main_text or "").upper(), int(118 * s), w - 2 * margin, weight="ExtraBold"
+        )
         sub_font = self._font("inter", int(32 * s))
         sub_lines = self._wrap(draw, sub_text or "", sub_font, int(w * 0.8)) if sub_text else []
 
@@ -560,10 +677,14 @@ class TextOverlayComposer:
         sa, sd = sub_font.getmetrics()
         main_lh = int((ma + md) * 1.06)
         sub_lh = int((sa + sd) * 1.2)
-        block_h = len(main_lines) * main_lh + (len(sub_lines) * sub_lh + int(24 * s) if sub_lines else 0)
+        block_h = len(main_lines) * main_lh + (
+            len(sub_lines) * sub_lh + int(24 * s) if sub_lines else 0
+        )
         y = (h - block_h) // 2
         cx = w // 2
-        self._shadow(img, main_lines, main_font, (cx, y), "ma", main_lh, blur=int(16 * s), alpha=170)
+        self._shadow(
+            img, main_lines, main_font, (cx, y), "ma", main_lh, blur=int(16 * s), alpha=170
+        )
         for ln in main_lines:
             draw.text((cx, y), ln, font=main_font, fill=WHITE, anchor="ma")
             y += main_lh
@@ -576,7 +697,17 @@ class TextOverlayComposer:
         # A PlanSmart brandet a valódi logó-jel adja (jobb-alsó), a compose() teszi rá.
 
     # ── Phase 17 template-elrendezések (STAT_CARD-on túl) ──────────────
-    def _layout_quote(self, img, main_text, sub_text, stat, s, voice, accent, portrait=False):
+    def _layout_quote(
+        self,
+        img: Image.Image,
+        main_text: str,
+        sub_text: str | None,
+        stat: str | None,
+        s: float,
+        voice: str,
+        accent: tuple[int, int, int, int],
+        portrait: bool = False,
+    ) -> None:
         """QUOTE_STYLE — editorial pull-quote: nagy idézőjel-accent, bal-igazított aszimmetrikus
         fő szöveg (pull-quote), az al-szöveg kicsi, attribúció-jellegű.
 
@@ -589,7 +720,15 @@ class TextOverlayComposer:
         margin = int(80 * s)
         # Nagy stilizált idézőjel (accent), bal-felső — az Inter fedi a „ (U+201C) glyphet.
         qfont = self._font("inter", int(300 * s), "ExtraBold")
-        self._shadow(img, ["“"], qfont, (margin - int(10 * s), int(10 * s)), "la", int(300 * s), blur=int(10 * s))
+        self._shadow(
+            img,
+            ["“"],
+            qfont,
+            (margin - int(10 * s), int(10 * s)),
+            "la",
+            int(300 * s),
+            blur=int(10 * s),
+        )
         draw.text((margin - int(10 * s), int(10 * s)), "“", font=qfont, fill=accent, anchor="la")
 
         quote_text = (main_text or "").strip().strip('"“”')
@@ -602,13 +741,16 @@ class TextOverlayComposer:
             size = int(112 * s)
             attr_lines: list[str] = []
             while True:
-                main_font, main_lines = self._fit_lines("bebas", quote_text.upper(), size, max_w,
-                                                         min_ratio=0.4, max_lines=4)
+                main_font, main_lines = self._fit_lines(
+                    "bebas", quote_text.upper(), size, max_w, min_ratio=0.4, max_lines=4
+                )
                 ma, md = main_font.getmetrics()
                 main_lh = int((ma + md) * 1.02)
                 main_block_h = len(main_lines) * main_lh
                 sub_font = self._font("inter", max(int(20 * s), int(size * 0.27)), "SemiBold")
-                candidate_attr = self._wrap(draw, f"— {sub_text.strip()}", sub_font, max_w) if sub_text else []
+                candidate_attr = (
+                    self._wrap(draw, f"— {sub_text.strip()}", sub_font, max_w) if sub_text else []
+                )
                 sa, sd = sub_font.getmetrics()
                 sub_lh = int((sa + sd) * 1.2)
                 attr_block_h = (len(candidate_attr) * sub_lh + int(18 * s)) if candidate_attr else 0
@@ -622,8 +764,17 @@ class TextOverlayComposer:
                     attr_lines = []
                     break
                 size = int(size * 0.9)
-            y = self._text_with_glow(img, main_lines, main_font, (margin, y0), WHITE, "la", accent,
-                                      int(12 * s), line_gap=1.02)
+            y = self._text_with_glow(
+                img,
+                main_lines,
+                main_font,
+                (margin, y0),
+                WHITE,
+                "la",
+                accent,
+                int(12 * s),
+                line_gap=1.02,
+            )
             if attr_lines:
                 y += int(18 * s)
                 self._shadow(img, attr_lines, sub_font, (margin, y), "la", sub_lh, blur=int(6 * s))
@@ -632,15 +783,18 @@ class TextOverlayComposer:
                     y += sub_lh
             return
 
-        main_font, main_lines = self._fit_lines("bebas", quote_text.upper(), int(112 * s), max_w,
-                                                min_ratio=0.5, max_lines=4)
+        main_font, main_lines = self._fit_lines(
+            "bebas", quote_text.upper(), int(112 * s), max_w, min_ratio=0.5, max_lines=4
+        )
         ma, md = main_font.getmetrics()
         main_lh = int((ma + md) * 1.02)
         block_h = len(main_lines) * main_lh
         y = int(h * 0.32)
         if y + block_h > h - int(170 * s):  # ne fusson bele az alsó attribúció-sávba
             y = max(int(h * 0.20), h - int(170 * s) - block_h)
-        y = self._text_with_glow(img, main_lines, main_font, (margin, y), WHITE, "la", accent, int(12 * s), line_gap=1.02)
+        y = self._text_with_glow(
+            img, main_lines, main_font, (margin, y), WHITE, "la", accent, int(12 * s), line_gap=1.02
+        )
         if sub_text:
             sub_font = self._font("inter", int(30 * s), "SemiBold")
             attr_lines = self._wrap(draw, f"— {sub_text.strip()}", sub_font, max_w)
@@ -652,7 +806,7 @@ class TextOverlayComposer:
                 draw.text((margin, y), ln, font=sub_font, fill=accent, anchor="la")
                 y += sub_lh
 
-    def _split_pair(self, main_text, stat) -> tuple[str, str]:
+    def _split_pair(self, main_text: str | None, stat: str | None) -> tuple[str, str]:
         """(bal, jobb) szétbontás: elválasztó (→ / -> / vs) a stat-ban vagy main-ben; különben
         a stat vs. main, végső esetben a main szavai félbe."""
         for src in (stat, main_text):
@@ -671,7 +825,15 @@ class TextOverlayComposer:
             return " ".join(words[:mid]), " ".join(words[mid:])
         return (main_text or stat or "").strip(), ""
 
-    def _divider(self, img, cx, y0, y1, s, accent) -> None:
+    def _divider(
+        self,
+        img: Image.Image,
+        cx: int,
+        y0: int,
+        y1: int,
+        s: float,
+        accent: tuple[int, int, int, int],
+    ) -> None:
         """Függőleges elválasztó vonal accent-színnel + lágy glow (SPLIT_COMPARISON)."""
         layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
         d = ImageDraw.Draw(layer)
@@ -680,7 +842,17 @@ class TextOverlayComposer:
         img.alpha_composite(layer.filter(ImageFilter.GaussianBlur(int(6 * s))))  # glow
         img.alpha_composite(layer)  # éles vonal felül
 
-    def _layout_split(self, img, main_text, sub_text, stat, s, voice, accent, portrait=False):
+    def _layout_split(
+        self,
+        img: Image.Image,
+        main_text: str,
+        sub_text: str | None,
+        stat: str | None,
+        s: float,
+        voice: str,
+        accent: tuple[int, int, int, int],
+        portrait: bool = False,
+    ) -> None:
         """SPLIT_COMPARISON — függőleges divider, bal/jobb (before → after / kontraszt) keret.
 
         portrait=True (2026-07-15, Part B): a portré bal-alsó ~40%-ot foglalja — a divider
@@ -696,17 +868,26 @@ class TextOverlayComposer:
         cx = w // 2
         half_w = int(w * 0.5 - margin * 1.4)
         portrait_top = h - int(h * 0.40) if portrait else None
-        divider_y1 = min(int(h * 0.80), portrait_top - int(20 * s)) if portrait else int(h * 0.80)
+        divider_y1 = (
+            min(int(h * 0.80), cast(int, portrait_top) - int(20 * s)) if portrait else int(h * 0.80)
+        )
         self._divider(img, cx, int(h * 0.20), divider_y1, s, accent)
 
-        def draw_side(text, center_x, top, bottom):
+        def draw_side(text: str, center_x: int, top: int, bottom: int) -> None:
             if not text:
                 return
             avail_h = max(int(90 * s), bottom - top)
             size = int(100 * s)
             while True:
-                font, lines = self._fit_lines("inter", text.upper(), size, half_w,
-                                              weight="ExtraBold", min_ratio=0.4, max_lines=3)
+                font, lines = self._fit_lines(
+                    "inter",
+                    text.upper(),
+                    size,
+                    half_w,
+                    weight="ExtraBold",
+                    min_ratio=0.4,
+                    max_lines=3,
+                )
                 a, dsc = font.getmetrics()
                 lh = int((a + dsc) * 1.05)
                 bh = len(lines) * lh
@@ -719,7 +900,7 @@ class TextOverlayComposer:
                 draw.text((center_x, yy), ln, font=font, fill=WHITE, anchor="ma")
                 yy += lh
 
-        left_bottom = (portrait_top - int(20 * s)) if portrait else h
+        left_bottom = (cast(int, portrait_top) - int(20 * s)) if portrait else h
         draw_side(left, w // 4, 0, left_bottom)
         draw_side(right, 3 * w // 4, 0, h)
 
@@ -734,7 +915,17 @@ class TextOverlayComposer:
                 draw.text((cx, yy), ln, font=sub_font, fill=LIGHT_GREY, anchor="ma")
                 yy += sub_lh
 
-    def _layout_minimal(self, img, main_text, sub_text, stat, s, voice, accent, portrait=False):
+    def _layout_minimal(
+        self,
+        img: Image.Image,
+        main_text: str,
+        sub_text: str | None,
+        stat: str | None,
+        s: float,
+        voice: str,
+        accent: tuple[int, int, int, int],
+        portrait: bool = False,
+    ) -> None:
         """MINIMAL_TYPOGRAPHIC — egyetlen óriási szó/rövid frázis középen, maximális negatív tér,
         legnagyobb kontraszt (erős accent-glow). Alig-alig más szöveg.
 
@@ -770,8 +961,9 @@ class TextOverlayComposer:
             avail_h = int(h * 0.60)
         size = int(280 * s)
         while True:
-            main_font, main_lines = self._fit_lines("bebas", text.upper(), size, w - 2 * margin,
-                                                    min_ratio=0.98, max_lines=4)
+            main_font, main_lines = self._fit_lines(
+                "bebas", text.upper(), size, w - 2 * margin, min_ratio=0.98, max_lines=4
+            )
             ma, md = main_font.getmetrics()
             main_lh = int((ma + md) * 0.98)
             if not main_lines or len(main_lines) * main_lh <= avail_h or size <= int(80 * s):
@@ -783,7 +975,9 @@ class TextOverlayComposer:
         else:
             y = max(int(h * 0.14), (h - block_h) // 2)
         cx = w // 2
-        self._text_with_glow(img, main_lines, main_font, (cx, y), WHITE, "ma", accent, int(22 * s), line_gap=0.98)
+        self._text_with_glow(
+            img, main_lines, main_font, (cx, y), WHITE, "ma", accent, int(22 * s), line_gap=0.98
+        )
         if sub_text and not portrait:  # csak egy halvány sor legalul — portré esetén elhagyjuk
             sub_font = self._font("inter", int(26 * s), "SemiBold")
             sub_lines = self._wrap(ImageDraw.Draw(img), sub_text, sub_font, int(w * 0.7))[:1]
@@ -796,7 +990,7 @@ class TextOverlayComposer:
                 dd.text((cx, yy), ln, font=sub_font, fill=GREY, anchor="ma")
 
     # ── Valódi logó-jel watermark (Phase 13.5) ─────────────────────────
-    def _paste_logo(self, img, s) -> None:
+    def _paste_logo(self, img: Image.Image, s: float) -> None:
         """A valódi teal „P" logó-jel a jobb-alsó sarokba: ~8% szélesség, 32px padding, 65% opacity."""
         if self._logo is None:
             return
@@ -804,14 +998,14 @@ class TextOverlayComposer:
         target_w = max(1, int(w * LOGO_WIDTH_FRAC))
         ratio = target_w / self._logo.width
         target_h = max(1, int(round(self._logo.height * ratio)))
-        logo = self._logo.resize((target_w, target_h), Image.LANCZOS)
+        logo = self._logo.resize((target_w, target_h), Image.Resampling.LANCZOS)
         if LOGO_OPACITY < 1.0:  # globális átlátszatlanság a meglévő alpha-ra
             logo.putalpha(logo.getchannel("A").point(lambda p: int(p * LOGO_OPACITY)))
         pad = int(LOGO_PADDING_PX * s)
         img.alpha_composite(logo, (w - target_w - pad, h - target_h - pad))
 
     # ── Alapító-portré komponálás (Phase 13.5) ─────────────────────────
-    def _place_portrait(self, img, portrait_path, s) -> None:
+    def _place_portrait(self, img: Image.Image, portrait_path: str, s: float) -> None:
         """Kivágott (háttér nélküli) portré a bal-alsó harmadba, filmes illesztéssel.
 
         A portré a szöveg ELŐTT kerül a képre. Lépések: bbox-crop → méretezés (~40% magasság) →
@@ -821,12 +1015,19 @@ class TextOverlayComposer:
         try:
             cut = Image.open(portrait_path).convert("RGBA")
         except Exception as exc:
-            logger.warning("[PORTRAIT-TRACE] _place_portrait: Image.open(%r) RAISED %s: %s "
-                           "(smoking gun candidate — resolved path not actually readable)",
-                           portrait_path, type(exc).__name__, str(exc)[:200])
+            logger.warning(
+                "[PORTRAIT-TRACE] _place_portrait: Image.open(%r) RAISED %s: %s "
+                "(smoking gun candidate — resolved path not actually readable)",
+                portrait_path,
+                type(exc).__name__,
+                str(exc)[:200],
+            )
             logger.warning("[overlay] portré betöltés hiba (%s): %s", portrait_path, str(exc)[:100])
             return
-        logger.info("[PORTRAIT-TRACE] _place_portrait: loaded OK, size=%s — compositing onto canvas", cut.size)
+        logger.info(
+            "[PORTRAIT-TRACE] _place_portrait: loaded OK, size=%s — compositing onto canvas",
+            cut.size,
+        )
         bbox = cut.getchannel("A").getbbox()
         if bbox:
             cut = cut.crop(bbox)
@@ -838,11 +1039,11 @@ class TextOverlayComposer:
         if target_w > max_w:
             ratio = max_w / cut.width
             target_w, target_h = max_w, int(cut.height * ratio)
-        cut = cut.resize((target_w, target_h), Image.LANCZOS)
+        cut = cut.resize((target_w, target_h), Image.Resampling.LANCZOS)
         cut = self._match_cinematic(cut)
 
-        px = int(40 * s)          # bal padding
-        py = h - target_h          # alsó élre ültetve (a személy a keretből "emelkedik ki")
+        px = int(40 * s)  # bal padding
+        py = h - target_h  # alsó élre ültetve (a személy a keretből "emelkedik ki")
         self._portrait_backing(img, cut.getchannel("A"), (px, py), s)
         img.alpha_composite(cut, (px, py))
 
@@ -851,9 +1052,11 @@ class TextOverlayComposer:
         """Deszaturáció ~15%, enyhe kontraszt/sötétítés + finom grain — a filmes alapképhez illesztve."""
         alpha = cut.getchannel("A")
         rgb = cut.convert("RGB")
-        rgb = ImageEnhance.Color(rgb).enhance(0.85)      # -15% telítettség
+        rgb = ImageEnhance.Color(rgb).enhance(0.85)  # -15% telítettség
         rgb = ImageEnhance.Contrast(rgb).enhance(1.05)
-        rgb = ImageEnhance.Brightness(rgb).enhance(0.94)  # kicsit sötétebb, hogy beüljön a #04060a-ba
+        rgb = ImageEnhance.Brightness(rgb).enhance(
+            0.94
+        )  # kicsit sötétebb, hogy beüljön a #04060a-ba
         out = rgb.convert("RGBA")
         out.putalpha(alpha)
         # Kodak Portra-szerű grain: szürke zaj, csak a portré maszkján belül, alacsony opacitással.
@@ -861,7 +1064,9 @@ class TextOverlayComposer:
         grain = Image.merge("RGBA", (noise, noise, noise, alpha.point(lambda p: int(p * 0.10))))
         return Image.alpha_composite(out, grain)
 
-    def _portrait_backing(self, img, alpha: Image.Image, pos, s) -> None:
+    def _portrait_backing(
+        self, img: Image.Image, alpha: Image.Image, pos: tuple[int, int], s: float
+    ) -> None:
         """Grounding: elmosott sötét sziluett a portré mögé (drop shadow + beolvasztás a sötét háttérbe)."""
         px, py = pos
         layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
@@ -881,7 +1086,9 @@ def _demo(url: str, voice: str) -> int:
         "plansmart": ("16 PERC → 3,5 MP", "Ezt csináljuk KKV-knak", None),
     }
     m, sub, stat = samples.get(voice, samples["david"])
-    out = composer.compose(url, m, sub, stat, voice=voice, output_path=str(GENERATED_DIR / f"demo_{voice}.png"))
+    out = composer.compose(
+        url, m, sub, stat, voice=voice, output_path=str(GENERATED_DIR / f"demo_{voice}.png")
+    )
     print("Mentve:", out)
     return 0
 

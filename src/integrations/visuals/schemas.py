@@ -5,6 +5,7 @@ Ez a modell a KINYERT, tiszta eredményt köti meg (URL + modell + költség), �
 `muapi_client.GenerationResult` dataclass-t. A `from_generation()` egy GenerationResult-ból
 (vagy bármely azonos attribútumú objektumból) épít validált, szerializálható modellt.
 """
+
 from __future__ import annotations
 
 from typing import Any

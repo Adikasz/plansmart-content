@@ -32,16 +32,16 @@ warn_redundant_casts = true
 warn_unused_configs = true
 extra_checks = true
 
-# Strictness is rolled out one bucket per batch (Phase 2, incremental):
-#   Batch 2A → src.core.* + src.utils.*        (this override)
-#   Batch 2B → src.ai.*   + src.integrations.* (added when hardened)
-# NOTE: `disallow_untyped_calls` is intentionally deferred to the final batch — core
-# still calls into not-yet-typed ai/integrations functions, so enabling it now would
-# force either premature 2B typing or `# type: ignore` noise. Flipped on repo-wide in 2B.
+# Strict typing is enforced across the whole src tree (Phase 2 complete):
+#   Batch 2A → src.core.* + src.utils.*
+#   Batch 2B → src.ai.*   + src.integrations.*
+# `disallow_untyped_calls` is enabled repo-wide now that the entire call graph is typed —
+# roughly equivalent to `--strict` for src.*, minus a couple global-only flags set above.
 [[tool.mypy.overrides]]
-module = ["src.core.*", "src.utils.*"]
+module = ["src.core.*", "src.utils.*", "src.ai.*", "src.integrations.*"]
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
+disallow_untyped_calls = true
 disallow_untyped_decorators = true
 disallow_any_generics = true
 disallow_subclassing_any = true

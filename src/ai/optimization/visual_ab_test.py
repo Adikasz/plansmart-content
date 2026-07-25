@@ -12,18 +12,19 @@ Minden variánshoz: Muapi kép → VisualEvaluator pontszám → költség. Győ
 Önálló teszt (1 poszt, 4 variáns, valódi képek):
     python -m src.ai.optimization.visual_ab_test
 """
+
 from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any
+from typing import Any, cast
 
 from dotenv import load_dotenv
 
 from src.ai.optimization.visual_eval import VisualEvaluator
-from src.utils.logging import setup_logging
 from src.integrations.visuals import muapi_client
 from src.integrations.visuals import visual_generator as vg
+from src.utils.logging import setup_logging
 
 logger = logging.getLogger(__name__)
 load_dotenv(override=False)
@@ -36,7 +37,9 @@ VARIANT_LABELS = {
 }
 DEFAULT_VARIANTS = ["A", "B", "C", "D"]
 
-_WATERMARK = "Do NOT render any logo or watermark — the real PlanSmart logo is composited later via PIL."
+_WATERMARK = (
+    "Do NOT render any logo or watermark — the real PlanSmart logo is composited later via PIL."
+)
 _NO_PEOPLE = "No people. No stock-photo clichés. No marketing buzzwords."
 
 
@@ -48,7 +51,7 @@ def _stat_block(stat: str | None, style: str) -> str:
     return f'\n{style}: "{stat}"\n' if stat else ""
 
 
-def build_variant_prompt(variant: str, voice: str, vt: dict[str, Any]) -> str:
+def build_variant_prompt(variant: str, voice: str, vt: dict[str, Any]) -> str | None:
     """A megadott variáns image-prompt-ja a magyar overlay-szövegből + voice stílusból."""
     main, sub, stat = vt.get("main_text", ""), vt.get("sub_text", ""), vt.get("stat")
     style = _voice_style(voice)
@@ -95,16 +98,21 @@ async def build_prompt(variant: str, voice: str, vt: dict[str, Any], post_conten
     if variant == "A":
         post = {"voice": voice, "content": post_content, "hashtags": []}
         return await vg.write_muapi_prompt(post, visual_text=vt)
-    return build_variant_prompt(variant, voice, vt)
+    # B/C/D-re a template-builder mindig str-t ad (None-t csak az 'A'-ra, amit fentebb lekezeltünk).
+    return cast(str, build_variant_prompt(variant, voice, vt))
 
 
-async def _run_variant(variant: str, voice: str, vt: dict, post_content: str, evaluator: VisualEvaluator) -> dict:
+async def _run_variant(
+    variant: str, voice: str, vt: dict[str, Any], post_content: str, evaluator: VisualEvaluator
+) -> dict[str, Any]:
     """Egy variáns: prompt → kép → értékelés → költség. Hiba esetén error mezővel tér vissza."""
     out: dict[str, Any] = {"variant": variant, "label": VARIANT_LABELS.get(variant, variant)}
     try:
         prompt = await build_prompt(variant, voice, vt, post_content)
         out["prompt"] = prompt
-        res = await muapi_client.generate(prompt, model=muapi_client.DEFAULT_MODEL, aspect_ratio="1:1")
+        res = await muapi_client.generate(
+            prompt, model=muapi_client.DEFAULT_MODEL, aspect_ratio="1:1"
+        )
         out["image_url"] = res.image_url
         out["cost"] = res.cost_usd or 0.0
     except Exception as exc:
@@ -121,19 +129,19 @@ async def ab_test_prompts(
     voice: str,
     variant_count: int = 4,
     evaluator: VisualEvaluator | None = None,
-    visual_text: dict | None = None,
+    visual_text: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """N variáns (A..) generálása + értékelése egy poszthoz. Visszaad: variánsok + győztes + költség.
 
     A variánsokat konkurensen futtatjuk. A győztes a legmagasabb overall_score.
     """
-    variants = DEFAULT_VARIANTS[:max(1, min(variant_count, len(DEFAULT_VARIANTS)))]
+    variants = DEFAULT_VARIANTS[: max(1, min(variant_count, len(DEFAULT_VARIANTS)))]
     evaluator = evaluator or VisualEvaluator()
     vt = visual_text or await vg.extract_visual_text(post_content)
 
-    results = await asyncio.gather(*(
-        _run_variant(v, voice, vt, post_content, evaluator) for v in variants
-    ))
+    results = await asyncio.gather(
+        *(_run_variant(v, voice, vt, post_content, evaluator) for v in variants)
+    )
 
     scored = [r for r in results if r.get("scores") and not r["scores"].get("error")]
     winner = max(scored, key=lambda r: r["scores"]["overall_score"], default=None)
@@ -152,13 +160,19 @@ async def ab_test_prompts(
 async def _demo() -> int:
     import json
 
-    content = ("73% a magyar KKV-knak heti 4+ órát ismétlődő manuális munkával tölt. "
-               "A felét automatizálni lehetne egy hétvége alatt.")
+    content = (
+        "73% a magyar KKV-knak heti 4+ órát ismétlődő manuális munkával tölt. "
+        "A felét automatizálni lehetne egy hétvége alatt."
+    )
     out = await ab_test_prompts(content, "adam")
     for r in out["variants"]:
         s = r.get("scores") or {}
-        print(f"  {r['variant']}: overall={s.get('overall_score')} url={r.get('image_url')} ${r.get('cost')}")
-    print(f"GYŐZTES: {out['winner_variant']} ({out['winner_score']}) | költség ${out['total_cost']}")
+        print(
+            f"  {r['variant']}: overall={s.get('overall_score')} url={r.get('image_url')} ${r.get('cost')}"
+        )
+    print(
+        f"GYŐZTES: {out['winner_variant']} ({out['winner_score']}) | költség ${out['total_cost']}"
+    )
     print(json.dumps(out["winner_variant"], ensure_ascii=False))
     return 0
 

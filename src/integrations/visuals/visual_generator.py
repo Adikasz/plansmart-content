@@ -9,6 +9,7 @@ Folyamat:
 Önálló teszt:
     python -m src.integrations.visuals.visual_generator
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -16,17 +17,21 @@ import logging
 import uuid
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any, cast
 
 from anthropic import AsyncAnthropic
+from anthropic.types import TextBlock
 from dotenv import load_dotenv
 
 from src.ai.generators.base_generator import _repair_and_parse
 from src.core.storage.cost_tracking import record_claude_usage
-from src.utils.logging import setup_logging
 from src.integrations.visuals import layout_templates as lt
 from src.integrations.visuals import muapi_client
 from src.integrations.visuals.visual_text_provider import VisualTextProvider
+from src.utils.logging import setup_logging
+
+if TYPE_CHECKING:
+    from src.integrations.visuals.text_overlay import TextOverlayComposer
 
 logger = logging.getLogger(__name__)
 load_dotenv(override=False)
@@ -84,11 +89,11 @@ VOICE_STYLE_LINE = {
 #   david → C (filmes), adam → A (produkciós), plansmart → C (filmes).
 EVAL_WINNER_DIRECTION = {
     "david": "Cinematic noir (eval-győztes C): egy erős key-light, mély árnyékok, markáns 35mm "
-             "film grain, atmoszférikus mélység.",
+    "film grain, atmoszférikus mélység.",
     "adam": "Letisztult produkciós keret (eval-győztes A): financial-dashboard visszafogottság, "
-            "egy metrika-hős, lágy accent-glow.",
+    "egy metrika-hős, lágy accent-glow.",
     "plansmart": "Filmes prémium (eval-győztes C): volumetrikus fény, finom köd, film grain, "
-                 "movie-poster polish.",
+    "movie-poster polish.",
 }
 
 # Phase 12 top-3 fix a prompt-evalból (garbled magyar szöveg, szürke háttér, HUD-zsúfoltság).
@@ -144,7 +149,7 @@ async def extract_visual_text(
                 messages=[{"role": "user", "content": text[:1500]}],
             )
             record_claude_usage(msg, HAIKU_MODEL, kind="visual_text_extract")
-            raw = msg.content[0].text if msg.content else ""
+            raw = cast(TextBlock, msg.content[0]).text if msg.content else ""
         else:
             # Cserélt szolgáltató (A/B) — ugyanaz a prompt/parse, csak a modell más.
             raw = await provider.complete(EXTRACT_SYSTEM, text[:1500], max_tokens=300)
@@ -152,7 +157,8 @@ async def extract_visual_text(
     except Exception as exc:
         logger.warning(
             "[visual-text] kinyerés hiba (%s: %s) — heurisztika.",
-            getattr(provider, "name", "anthropic/haiku"), str(exc)[:90],
+            getattr(provider, "name", "anthropic/haiku"),
+            str(exc)[:90],
         )
         data = None
 
@@ -173,7 +179,9 @@ async def extract_visual_text(
     return {"main_text": main, "sub_text": sub, "stat": None}
 
 
-async def write_muapi_prompt(post: dict[str, Any], visual_text: dict[str, Any] | None = None) -> str:
+async def write_muapi_prompt(
+    post: dict[str, Any], visual_text: dict[str, Any] | None = None
+) -> str:
     """Muapi (flux-2-pro) image prompt — magyar szöveg-overlay-jel (PART 4).
 
     A visual_text-et (main_text/sub_text/stat) ha nem kapja meg, kinyeri a posztból (Haiku).
@@ -224,7 +232,10 @@ async def generate_visual(post: dict[str, Any]) -> dict[str, Any]:
     visual_prompt = await write_muapi_prompt(post, visual_text=visual_text)
     logger.info(
         "[%s] Muapi prompt kész (%d kar) | overlay: '%s' / '%s'",
-        voice, len(visual_prompt), visual_text.get("main_text", ""), visual_text.get("sub_text", ""),
+        voice,
+        len(visual_prompt),
+        visual_text.get("main_text", ""),
+        visual_text.get("sub_text", ""),
     )
 
     result = await muapi_client.generate(visual_prompt, model=model, aspect_ratio=aspect_ratio)
@@ -303,14 +314,20 @@ def build_textfree_prompt(
     szöveg), a mood a fény/szín-irányt — így a feed vizuálisan változatos, de brand-hű marad.
     """
     voice = post.get("voice", "")
-    scene = VOICE_SCENE.get(voice, "Pure abstract dark gradient with film grain, no objects. ONE focal element.")
-    template_bg = lt.template_bg(template) if template and lt.is_template(template) else lt.template_bg(lt.STAT_CARD)
+    scene = VOICE_SCENE.get(
+        voice, "Pure abstract dark gradient with film grain, no objects. ONE focal element."
+    )
+    template_bg = (
+        lt.template_bg(template)
+        if template and lt.is_template(template)
+        else lt.template_bg(lt.STAT_CARD)
+    )
     mood_line = f"\nColor / light direction: {mood_bg}." if mood_bg else ""
     return f"{scene}\n{TEXTFREE_COMMON}\n{template_bg}{mood_line}"
 
 
 @lru_cache(maxsize=1)
-def _composer():
+def _composer() -> TextOverlayComposer:
     from src.integrations.visuals.text_overlay import TextOverlayComposer
 
     return TextOverlayComposer()
@@ -343,30 +360,51 @@ async def compose_visual(post: dict[str, Any]) -> dict[str, Any]:
         template, mood, accent = variant["template"], variant["mood"], variant["accent"]
 
     visual_text = await extract_visual_text(_post_text(post))
-    prompt = build_textfree_prompt(post, visual_text, template=template, mood_bg=lt.mood_bg(voice, mood))
+    prompt = build_textfree_prompt(
+        post, visual_text, template=template, mood_bg=lt.mood_bg(voice, mood)
+    )
     result = await muapi_client.generate(prompt, model=model, aspect_ratio=aspect_ratio)
     base_url = result.image_url
 
     # _resolve_portrait sync (rembg/onnx CPU-inferencia + Supabase hívás) — to_thread-be,
     # különben első (nem cache-elt) portré-vágásnál percekre blokkolja az event loopot,
     # ami alatt a bot minden más Telegram-üzenetre "némán" nem válaszol.
-    logger.info("[PORTRAIT-TRACE] compose_visual: post.get('portrait')=%r voice=%s -> calling _resolve_portrait",
-                post.get("portrait"), voice)
+    logger.info(
+        "[PORTRAIT-TRACE] compose_visual: post.get('portrait')=%r voice=%s -> calling _resolve_portrait",
+        post.get("portrait"),
+        voice,
+    )
     portrait_path = await asyncio.to_thread(_resolve_portrait, post, voice)
-    logger.info("[PORTRAIT-TRACE] compose_visual: _resolve_portrait returned portrait_path=%r "
-                "(will be passed into composer.compose)", portrait_path)
+    logger.info(
+        "[PORTRAIT-TRACE] compose_visual: _resolve_portrait returned portrait_path=%r "
+        "(will be passed into composer.compose)",
+        portrait_path,
+    )
     logger.info(
         "[%s] szöveg-mentes alapkép kész | template=%s mood=%s | overlay: '%s' | portré: %s",
-        voice, template, mood, visual_text.get("main_text", ""), "igen" if portrait_path else "nem",
+        voice,
+        template,
+        mood,
+        visual_text.get("main_text", ""),
+        "igen" if portrait_path else "nem",
     )
 
     pid = post.get("id") or uuid.uuid4().hex[:12]
-    out_path = str((Path(__file__).resolve().parents[3] / "assets" / "generated" / f"visual_{pid}.png"))
+    out_path = str(
+        (Path(__file__).resolve().parents[3] / "assets" / "generated" / f"visual_{pid}.png")
+    )
     composer = _composer()
     composed_path = await asyncio.to_thread(
-        composer.compose, base_url, visual_text.get("main_text", ""),
-        visual_text.get("sub_text"), visual_text.get("stat"), voice, out_path, portrait_path,
-        template, accent,
+        composer.compose,
+        base_url,
+        visual_text.get("main_text", ""),
+        visual_text.get("sub_text"),
+        visual_text.get("stat"),
+        voice,
+        out_path,
+        portrait_path,
+        template,
+        accent,
     )
     final_url = await asyncio.to_thread(upload_visual, composed_path, f"visual_{pid}.png")
 
@@ -396,27 +434,43 @@ def _resolve_portrait(post: dict[str, Any], voice: str) -> str | None:
     from src.integrations.visuals import portrait as portrait_mod
 
     forced = post.get("portrait")
-    logger.info("[PORTRAIT-TRACE] _resolve_portrait entry: voice=%s post['portrait']=%r", voice, forced)
+    logger.info(
+        "[PORTRAIT-TRACE] _resolve_portrait entry: voice=%s post['portrait']=%r", voice, forced
+    )
     if forced is False:
         logger.info("[PORTRAIT-TRACE] _resolve_portrait: forced is False (explicit deny) -> None")
         return None
     if voice not in portrait_mod.PORTRAIT_VOICES:
-        logger.info("[PORTRAIT-TRACE] _resolve_portrait: voice=%s not in PORTRAIT_VOICES=%s -> None",
-                    voice, sorted(portrait_mod.PORTRAIT_VOICES))
+        logger.info(
+            "[PORTRAIT-TRACE] _resolve_portrait: voice=%s not in PORTRAIT_VOICES=%s -> None",
+            voice,
+            sorted(portrait_mod.PORTRAIT_VOICES),
+        )
         return None
     include = portrait_mod.should_include_portrait(voice, force=bool(forced))
-    logger.info("[PORTRAIT-TRACE] _resolve_portrait: should_include_portrait(voice=%s, force=%s) -> %s",
-                voice, bool(forced), include)
+    logger.info(
+        "[PORTRAIT-TRACE] _resolve_portrait: should_include_portrait(voice=%s, force=%s) -> %s",
+        voice,
+        bool(forced),
+        include,
+    )
     if not include:
         return None
     try:
         cutout = portrait_mod.get_cutout(voice)
-        logger.info("[PORTRAIT-TRACE] _resolve_portrait: get_cutout(%s) -> %r (exists=%s)",
-                    voice, cutout, cutout.exists() if cutout is not None else "n/a")
+        logger.info(
+            "[PORTRAIT-TRACE] _resolve_portrait: get_cutout(%s) -> %r (exists=%s)",
+            voice,
+            cutout,
+            cutout.exists() if cutout is not None else "n/a",
+        )
         return str(cutout) if cutout else None
     except Exception as exc:  # rembg/onnx hiba ne törje meg a vizuál-generálást
-        logger.warning("[PORTRAIT-TRACE] _resolve_portrait: get_cutout RAISED %s: %s",
-                       type(exc).__name__, str(exc)[:300])
+        logger.warning(
+            "[PORTRAIT-TRACE] _resolve_portrait: get_cutout RAISED %s: %s",
+            type(exc).__name__,
+            str(exc)[:300],
+        )
         logger.warning("[%s] portré kivágás kihagyva: %s", voice, str(exc)[:120])
         return None
 

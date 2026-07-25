@@ -4,10 +4,12 @@ Tiszta megjelenítési réteg a src/core/storage/metrics.py adat-aggregációja 
 a src/core/workers/main.py fűzi be a többi mellé (nincs catch-all handler, tetszőleges sorrendben
 mehet a többi router mellett).
 """
+
 from __future__ import annotations
 
 import html
 import logging
+from typing import Any
 
 from aiogram import Router
 from aiogram.filters import Command
@@ -27,7 +29,7 @@ def _fmt_usd(v: float) -> str:
     return f"${v:.2f}"
 
 
-def _format_section(title: str, data: dict) -> str:
+def _format_section(title: str, data: dict[str, Any]) -> str:
     c, o, costs = data["content"], data["outreach"], data["costs"]
     by_voice = ", ".join(f"{v}: {c['by_voice'].get(v, 0)}" for v in VOICE_ORDER)
 
@@ -68,8 +70,10 @@ def _format_daily_costs(since_iso: str) -> str:
     for r in rows:
         claude = r.get("claude_api", 0.0)
         muapi = r.get("muapi_image", 0.0)
-        lines.append(f"  {r['date']}: {_fmt_usd(r.get('total', 0.0))} "
-                      f"(Claude {_fmt_usd(claude)}, Muapi {_fmt_usd(muapi)})")
+        lines.append(
+            f"  {r['date']}: {_fmt_usd(r.get('total', 0.0))} "
+            f"(Claude {_fmt_usd(claude)}, Muapi {_fmt_usd(muapi)})"
+        )
     return "\n".join(lines)
 
 

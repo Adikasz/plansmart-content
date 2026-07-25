@@ -3,6 +3,7 @@
 Vékony wrapper a base_generator köré a prompts/voice_plansmart.md prompttal.
 A céges fiók nem postázik X-en, ezért a twitter mezőt defenzíven eltávolítjuk.
 """
+
 from __future__ import annotations
 
 from typing import Any

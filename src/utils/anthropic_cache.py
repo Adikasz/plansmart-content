@@ -18,13 +18,18 @@ maradék, ezért a költséglogolásnak a cache-mezőket is olvasnia kell, kül�
 
 from __future__ import annotations
 
-from typing import Any
+from typing import cast
 
 
-def cached_system(text: str) -> list[dict[str, Any]]:
+def cached_system(text: str) -> str:
     """A teljes rendszerpromptot egyetlen, ephemeral-cache-elt text blokként adja vissza.
 
     A cache breakpoint a blokk végén van → az egész rendszerprompt a cache-elt prefix, az utána
     következő user üzenet nincs cache-elve. Voice-onként stabil prefix → voice-onként külön cache.
+
+    Típus-megjegyzés: a 0.28.0 SDK a `system=` paramétert `str`-nek típusozza, de a nyers
+    `cache_control` dict-listát runtime-ban érintetlenül továbbítja (lásd a modul-docstringet).
+    A visszatérési típust ezért `str`-nek deklaráljuk — így a hívók `.messages.create(system=…)`
+    hívása típushelyes marad —, a `cast` pedig runtime no-op (a tényleges érték a lista).
     """
-    return [{"type": "text", "text": text, "cache_control": {"type": "ephemeral"}}]
+    return cast(str, [{"type": "text", "text": text, "cache_control": {"type": "ephemeral"}}])

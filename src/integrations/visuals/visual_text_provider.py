@@ -9,13 +9,15 @@ szolgáltatóra, így az összehasonlítás csak a modellt cseréli, semmi mást
 Ez csak a seam + az összehasonlító harness eszköze — a produkciós default NEM változik, amíg
 explicit döntés nem születik róla.
 """
+
 from __future__ import annotations
 
 import os
 from functools import lru_cache
-from typing import Protocol, runtime_checkable
+from typing import Any, Protocol, cast, runtime_checkable
 
 from anthropic import AsyncAnthropic
+from anthropic.types import TextBlock
 
 from src.core.storage.cost_tracking import record_claude_usage
 
@@ -27,8 +29,7 @@ OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 class VisualTextProvider(Protocol):
     name: str
 
-    async def complete(self, system: str, user: str, *, max_tokens: int) -> str:
-        ...
+    async def complete(self, system: str, user: str, *, max_tokens: int) -> str: ...
 
 
 @lru_cache(maxsize=1)
@@ -49,7 +50,7 @@ class AnthropicProvider:
             messages=[{"role": "user", "content": user}],
         )
         record_claude_usage(msg, HAIKU_MODEL, kind="visual_text_extract")
-        return msg.content[0].text if msg.content else ""
+        return cast(TextBlock, msg.content[0]).text if msg.content else ""
 
 
 class OpenRouterProvider:
@@ -68,10 +69,12 @@ class OpenRouterProvider:
 
     async def complete(self, system: str, user: str, *, max_tokens: int) -> str:
         if not self.api_key:
-            raise RuntimeError("OPENROUTER_API_KEY nincs beállítva — az OpenRouter arm nem futtatható.")
+            raise RuntimeError(
+                "OPENROUTER_API_KEY nincs beállítva — az OpenRouter arm nem futtatható."
+            )
         import httpx  # lazy: a modul prod-ban is importálható maradjon key/hálózat nélkül
 
-        payload: dict = {
+        payload: dict[str, Any] = {
             "model": self.model,
             "max_tokens": max_tokens,
             "messages": [

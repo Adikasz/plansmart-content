@@ -17,16 +17,24 @@ Külön Router — a src/core/workers/main.py a prospect + posts routerek ELÉ f
 free-text handler CSAK akkor kap el üzenetet, ha az adott (chat, user)-nek van AKTÍV
 flow-ja, így a nem-flow DM-ek rendben átesnek a többi routerhez.
 """
+
 from __future__ import annotations
 
 import html
 import logging
 import uuid
+from typing import Any, cast
 
 from aiogram import F, Router
 from aiogram.filters import Command, CommandObject
 from aiogram.filters.callback_data import CallbackData
-from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
+from aiogram.types import (
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+    User,
+)
 
 from src.ai.outreach.reaction_generator import build_reaction, generate_reply
 from src.core.storage import reactions as store
@@ -56,7 +64,7 @@ REPLY_USAGE = (
 
 # (chat_id, user_id) -> aktív flow állapota (in-memory MVP, mint a posts bot _pending_edits-je).
 #   {kind, voice, step, context, incoming, classification, language, is_first_dm, rid, reply}
-_flows: dict[tuple[int, int], dict] = {}
+_flows: dict[tuple[int, int], dict[str, Any]] = {}
 
 
 class ReactionCB(CallbackData, prefix="react"):
@@ -72,12 +80,20 @@ def _parse_voice(args: str | None) -> str | None:
 
 def _kb(rid: str) -> InlineKeyboardMarkup:
     def btn(text: str, action: str) -> InlineKeyboardButton:
-        return InlineKeyboardButton(text=text, callback_data=ReactionCB(action=action, rid=rid).pack())
+        return InlineKeyboardButton(
+            text=text, callback_data=ReactionCB(action=action, rid=rid).pack()
+        )
 
-    return InlineKeyboardMarkup(inline_keyboard=[[
-        btn("✅ Approve", "approve"), btn("✏️ Edit", "edit"),
-        btn("🔄 Regenerate", "regenerate"), btn("❌ Cancel", "cancel"),
-    ]])
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                btn("✅ Approve", "approve"),
+                btn("✏️ Edit", "edit"),
+                btn("🔄 Regenerate", "regenerate"),
+                btn("❌ Cancel", "cancel"),
+            ]
+        ]
+    )
 
 
 def format_suggestion(classification: str, language: str, reply: str) -> str:
@@ -96,19 +112,26 @@ def format_final(reply: str, header: str) -> str:
 
 def _has_active_flow(message: Message) -> bool:
     u = message.from_user
-    return bool(u) and (message.chat.id, u.id) in _flows
+    return u is not None and (message.chat.id, u.id) in _flows
 
 
-def _persist_new(flow: dict, draft: str | None, status: str) -> str:
+def _persist_new(flow: dict[str, Any], draft: str | None, status: str) -> str:
     """Best-effort insert a reactions táblába; visszaadja az id-t (mentés nélkül is)."""
     rid = uuid.uuid4().hex[:12]
     try:
-        store.insert_reaction({
-            "id": rid, "voice": flow["voice"], "type": flow["kind"],
-            "incoming_text": flow["incoming"], "context_text": flow.get("context") or None,
-            "our_reply_draft": draft, "classification": flow.get("classification"),
-            "language": flow.get("language"), "status": status,
-        })
+        store.insert_reaction(
+            {
+                "id": rid,
+                "voice": flow["voice"],
+                "type": flow["kind"],
+                "incoming_text": flow["incoming"],
+                "context_text": flow.get("context") or None,
+                "our_reply_draft": draft,
+                "classification": flow.get("classification"),
+                "language": flow.get("language"),
+                "status": status,
+            }
+        )
     except Exception as exc:  # noqa: BLE001 — a UI a DB nélkül is működik (tábla hiányozhat)
         logger.warning("[reactions] mentés kihagyva (%s) — futott a migration_19?", str(exc)[:120])
     return rid
@@ -128,7 +151,9 @@ def _persist_status(rid: str, status: str) -> None:
         logger.warning("[reactions] státusz-frissítés kihagyva (%s)", str(exc)[:120])
 
 
-async def _safe_edit(message: Message | None, text: str, reply_markup=None) -> None:
+async def _safe_edit(
+    message: Message | None, text: str, reply_markup: InlineKeyboardMarkup | None = None
+) -> None:
     if not message:
         return
     try:
@@ -143,15 +168,23 @@ async def _start_flow(message: Message, command: CommandObject, kind: str) -> No
     if not voice:
         await message.answer(f"Ismeretlen vagy hiányzó voice.\n\n{REPLY_USAGE}")
         return
-    _flows[(message.chat.id, message.from_user.id)] = {
-        "kind": kind, "voice": voice, "step": "await_context", "context": "", "incoming": "",
+    _flows[(message.chat.id, cast(User, message.from_user).id)] = {
+        "kind": kind,
+        "voice": voice,
+        "step": "await_context",
+        "context": "",
+        "incoming": "",
     }
     if kind == "comment":
-        ask = ("✍️ <b>Komment-válasz</b> ({v}).\n\nIlleszd be a LinkedIn posztot, amire a kommentet "
-               "kaptad. Ha nem lényeges, küldj egy kötőjelet: <code>-</code>").format(v=voice)
+        ask = (
+            "✍️ <b>Komment-válasz</b> ({v}).\n\nIlleszd be a LinkedIn posztot, amire a kommentet "
+            "kaptad. Ha nem lényeges, küldj egy kötőjelet: <code>-</code>"
+        ).format(v=voice)
     else:
-        ask = ("✍️ <b>DM-válasz</b> ({v}).\n\nIlleszd be a korábbi DM kontextust, ha van. Ha ez az "
-               "ELSŐ üzenet tőle, küldj egy kötőjelet: <code>-</code>").format(v=voice)
+        ask = (
+            "✍️ <b>DM-válasz</b> ({v}).\n\nIlleszd be a korábbi DM kontextust, ha van. Ha ez az "
+            "ELSŐ üzenet tőle, küldj egy kötőjelet: <code>-</code>"
+        ).format(v=voice)
     await message.answer(ask)
 
 
@@ -168,7 +201,7 @@ async def reply_dm_cmd(message: Message, command: CommandObject) -> None:
 # ── flow free-text (CSAK aktív flow-nál kap el) ────────────────────────
 @router.message(_has_active_flow)
 async def flow_text(message: Message) -> None:
-    key = (message.chat.id, message.from_user.id)
+    key = (message.chat.id, cast(User, message.from_user).id)
     flow = _flows.get(key)
     if not flow:
         return
@@ -178,8 +211,11 @@ async def flow_text(message: Message) -> None:
     if step == "await_context":
         flow["context"] = "" if text.lower() in _NO_CONTEXT else text
         flow["step"] = "await_incoming"
-        prompt = ("Most illeszd be magát a kommentet:" if flow["kind"] == "comment"
-                  else "Most illeszd be a bejövő DM üzenetet:")
+        prompt = (
+            "Most illeszd be magát a kommentet:"
+            if flow["kind"] == "comment"
+            else "Most illeszd be a bejövő DM üzenetet:"
+        )
         await message.answer(prompt)
         return
 
@@ -204,14 +240,17 @@ async def flow_text(message: Message) -> None:
     await message.answer("Használd a javaslat alatti gombokat: ✅ / ✏️ / 🔄 / ❌")
 
 
-async def _run_and_show(message: Message, flow: dict, key: tuple[int, int]) -> None:
+async def _run_and_show(message: Message, flow: dict[str, Any], key: tuple[int, int]) -> None:
     is_first_dm = flow["kind"] == "dm" and not flow["context"].strip()
     flow["is_first_dm"] = is_first_dm
     await message.answer("⏳ Elemzés + válasz-javaslat…")
     try:
         result = await build_reaction(
-            flow["voice"], flow["kind"], flow["incoming"],
-            context_text=flow["context"], is_first_dm=is_first_dm,
+            flow["voice"],
+            flow["kind"],
+            flow["incoming"],
+            context_text=flow["context"],
+            is_first_dm=is_first_dm,
         )
     except Exception as exc:  # noqa: BLE001
         logger.warning("[reactions] build_reaction hiba: %s", str(exc)[:150])
@@ -240,7 +279,7 @@ async def _run_and_show(message: Message, flow: dict, key: tuple[int, int]) -> N
 
 
 # ── callback gombok ────────────────────────────────────────────────────
-def _flow_for(query: CallbackQuery) -> tuple[tuple[int, int], dict | None]:
+def _flow_for(query: CallbackQuery) -> tuple[tuple[int, int], dict[str, Any] | None]:
     key = (query.message.chat.id, query.from_user.id) if query.message else (0, query.from_user.id)
     return key, _flows.get(key)
 
@@ -256,7 +295,10 @@ async def approve_cb(query: CallbackQuery, callback_data: ReactionCB) -> None:
         except Exception:  # noqa: BLE001
             reply = None
     _flows.pop(key, None)
-    await _safe_edit(query.message, format_final(reply or "(nincs szöveg)", "✅ <b>Jóváhagyva</b> — másold ki:"))
+    await _safe_edit(
+        cast("Message | None", query.message),
+        format_final(reply or "(nincs szöveg)", "✅ <b>Jóváhagyva</b> — másold ki:"),
+    )
     await query.answer("Jóváhagyva ✅ — másold ki a szöveget.")
 
 
@@ -264,11 +306,13 @@ async def approve_cb(query: CallbackQuery, callback_data: ReactionCB) -> None:
 async def edit_cb(query: CallbackQuery, callback_data: ReactionCB) -> None:
     key, flow = _flow_for(query)
     if not flow:
-        await query.answer("A folyamat lejárt — indítsd újra a /reply_comment vagy /reply_dm paranccsal.",
-                           show_alert=True)
+        await query.answer(
+            "A folyamat lejárt — indítsd újra a /reply_comment vagy /reply_dm paranccsal.",
+            show_alert=True,
+        )
         return
     flow["step"] = "await_edit"
-    await query.message.answer("✏️ Illeszd be a javított szöveget (ide, üzenetként):")
+    await cast(Message, query.message).answer("✏️ Illeszd be a javított szöveget (ide, üzenetként):")
     await query.answer("Küldd be a javított szöveget ✏️")
 
 
@@ -281,8 +325,12 @@ async def regenerate_cb(query: CallbackQuery, callback_data: ReactionCB) -> None
     await query.answer("Új javaslat generálása…")
     try:
         reply = await generate_reply(
-            flow["voice"], flow["kind"], flow["incoming"], flow["classification"],
-            context_text=flow["context"], language=flow["language"],
+            flow["voice"],
+            flow["kind"],
+            flow["incoming"],
+            flow["classification"],
+            context_text=flow["context"],
+            language=flow["language"],
             is_first_dm=flow.get("is_first_dm", False),
         )
     except Exception as exc:  # noqa: BLE001
@@ -292,7 +340,7 @@ async def regenerate_cb(query: CallbackQuery, callback_data: ReactionCB) -> None
     flow["reply"] = reply
     _persist_update(callback_data.rid, reply, "drafted")
     await _safe_edit(
-        query.message,
+        cast("Message | None", query.message),
         format_suggestion(flow["classification"], flow["language"], reply),
         reply_markup=_kb(callback_data.rid),
     )
@@ -303,5 +351,5 @@ async def cancel_cb(query: CallbackQuery, callback_data: ReactionCB) -> None:
     key, _flow = _flow_for(query)
     _persist_status(callback_data.rid, "skipped")
     _flows.pop(key, None)
-    await _safe_edit(query.message, "❌ <b>Elvetve.</b>")
+    await _safe_edit(cast("Message | None", query.message), "❌ <b>Elvetve.</b>")
     await query.answer("Elvetve")

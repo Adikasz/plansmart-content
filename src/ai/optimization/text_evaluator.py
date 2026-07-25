@@ -9,6 +9,7 @@ SYSTEM_PROMPT_HU, _hunglish_flags) — jelenleg nem hívjuk.
 Önálló teszt:
     python -m src.ai.optimization.text_evaluator
 """
+
 from __future__ import annotations
 
 import json
@@ -16,9 +17,10 @@ import logging
 import re
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from anthropic import AsyncAnthropic
+from anthropic.types import TextBlock
 from dotenv import load_dotenv
 
 from src.ai.generators.base_generator import _repair_and_parse
@@ -35,36 +37,65 @@ MAX_TOKENS = 1400
 # mind a 3 voice). A hungarian_quality/hungarian_nativeness kódot NEM töröljük — dormant marad
 # (lásd SCORE_KEYS_HU + SYSTEM_PROMPT_HU lentebb), ha valaha újra kellene a magyar kimenet.
 SCORE_KEYS = (
-    "hook_strength", "human_feel", "english_quality", "english_native_quality",
-    "concrete_value", "voice_consistency", "engagement_potential", "ai_signature_risk",
+    "hook_strength",
+    "human_feel",
+    "english_quality",
+    "english_native_quality",
+    "concrete_value",
+    "voice_consistency",
+    "engagement_potential",
+    "ai_signature_risk",
 )
 # Dormant (Phase 13.5 magyar pipeline) — jelenleg nem hívjuk, de megőrizzük.
 SCORE_KEYS_HU = (
-    "hook_strength", "human_feel", "hungarian_quality", "hungarian_nativeness",
-    "concrete_value", "voice_consistency", "engagement_potential",
+    "hook_strength",
+    "human_feel",
+    "hungarian_quality",
+    "hungarian_nativeness",
+    "concrete_value",
+    "voice_consistency",
+    "engagement_potential",
 )
 
 # Az értékelőnek átadott voice-elvárás (Phase 14: ANGOL kimenet, magyar KKV közönség).
 VOICE_EXPECTATION = {
     "david": "David — builder: direct, technical, concrete; first-hand build experience, real "
-             "tooling, buildlog feel. Confident native-level English, hands-on engineer (NOT "
-             "corporate). NEVER marketing buzzwords.",
+    "tooling, buildlog feel. Confident native-level English, hands-on engineer (NOT "
+    "corporate). NEVER marketing buzzwords.",
     "adam": "Adam — strategist: business, argumentative, owner-to-owner; ROI/time numbers, "
-            "decision-maker lens. Confident native-level English, a sharp operator (NOT a "
-            "management-consultant cliché). NEVER technical jargon, NEVER top-down.",
+    "decision-maker lens. Confident native-level English, a sharp operator (NOT a "
+    "management-consultant cliché). NEVER technical jargon, NEVER top-down.",
     "plansmart": "PlanSmart — brand: 'we' voice, outcome-oriented, quantified, anonymized client "
-                 "results. Polished native-level English B2B voice. NEVER personal opinion or "
-                 "builder detail.",
+    "results. Polished native-level English B2B voice. NEVER personal opinion or "
+    "builder detail.",
 }
 
 # ── Phase 14: ANGOL anti-pattern listák (aktív) ────────────────────────
 # AI-tell / stiff-connector kifejezések, amik "translated / ChatGPT" érzetet adnak angolul.
 ENGLISH_AI_TELLS = [
-    "it's important to note", "it is important to note", "in today's fast-paced world",
-    "in today's digital age", "at the end of the day", "when it comes to", "in conclusion",
-    "furthermore", "moreover", "delve into", "delve", "navigating the", "in the realm of",
-    "testament to", "tapestry", "ever-evolving", "ever-changing landscape", "needle in a haystack",
-    "let's dive in", "buckle up", "the bottom line is", "rest assured", "it goes without saying",
+    "it's important to note",
+    "it is important to note",
+    "in today's fast-paced world",
+    "in today's digital age",
+    "at the end of the day",
+    "when it comes to",
+    "in conclusion",
+    "furthermore",
+    "moreover",
+    "delve into",
+    "delve",
+    "navigating the",
+    "in the realm of",
+    "testament to",
+    "tapestry",
+    "ever-evolving",
+    "ever-changing landscape",
+    "needle in a haystack",
+    "let's dive in",
+    "buckle up",
+    "the bottom line is",
+    "rest assured",
+    "it goes without saying",
 ]
 # Tiltott business-buzzword (a feladat listája + bővítve) — determinisztikus kapás.
 ENGLISH_BANNED: list[tuple[str, str]] = [
@@ -92,33 +123,77 @@ ENGLISH_BANNED: list[tuple[str, str]] = [
 # ítéletet igénylő minták (significance inflation, vague attributions, rule of three, …) a
 # SYSTEM_PROMPT-on keresztül Sonnet-re maradnak.
 AI_VOCABULARY = [
-    "testament to", "tapestry", "delve into", "delve", "intricate", "underscore", "underscores",
-    "crucial", "pivotal", "meticulously", "meticulous", "robust", "boasts", "elevate", "elevates",
-    "unlock", "unlocks", "realm", "beacon", "nestled", "ever-evolving", "multifaceted",
+    "testament to",
+    "tapestry",
+    "delve into",
+    "delve",
+    "intricate",
+    "underscore",
+    "underscores",
+    "crucial",
+    "pivotal",
+    "meticulously",
+    "meticulous",
+    "robust",
+    "boasts",
+    "elevate",
+    "elevates",
+    "unlock",
+    "unlocks",
+    "realm",
+    "beacon",
+    "nestled",
+    "ever-evolving",
+    "multifaceted",
 ]
 PROMOTIONAL_LANGUAGE = [
-    "breathtaking", "stunning", "renowned", "vibrant", "unparalleled", "world-renowned",
-    "must-have", "best-in-class", "game-changing", "transformative",
+    "breathtaking",
+    "stunning",
+    "renowned",
+    "vibrant",
+    "unparalleled",
+    "world-renowned",
+    "must-have",
+    "best-in-class",
+    "game-changing",
+    "transformative",
 ]
 SIGNPOSTING_PHRASES = [
-    "let's dive in", "here's what you need to know", "buckle up", "let's break it down",
-    "without further ado", "in today's rapidly evolving landscape",
+    "let's dive in",
+    "here's what you need to know",
+    "buckle up",
+    "let's break it down",
+    "without further ado",
+    "in today's rapidly evolving landscape",
 ]
 CHATBOT_ARTIFACTS = [
-    "let me know if you have any questions", "i hope this helps", "would you like me to",
-    "happy to assist", "as an ai", "i don't have the ability to",
+    "let me know if you have any questions",
+    "i hope this helps",
+    "would you like me to",
+    "happy to assist",
+    "as an ai",
+    "i don't have the ability to",
 ]
 CUTOFF_DISCLAIMERS = [
-    "as of my last update", "as of my knowledge cutoff", "i don't have access to real-time data",
+    "as of my last update",
+    "as of my knowledge cutoff",
+    "i don't have access to real-time data",
     "i cannot browse the internet",
 ]
 SYCOPHANTIC_PHRASES = [
-    "great question", "you're absolutely right", "that's a fantastic point",
-    "i'd be happy to help", "excellent point",
+    "great question",
+    "you're absolutely right",
+    "that's a fantastic point",
+    "i'd be happy to help",
+    "excellent point",
 ]
 GENERIC_CONCLUSIONS = [
-    "the future looks bright", "the possibilities are endless", "only time will tell",
-    "time will tell", "exciting times ahead", "the sky's the limit",
+    "the future looks bright",
+    "the possibilities are endless",
+    "only time will tell",
+    "time will tell",
+    "exciting times ahead",
+    "the sky's the limit",
 ]
 FILLER_PHRASES: list[tuple[str, str]] = [
     (r"\bin order to\b", "in order to → to"),
@@ -127,17 +202,27 @@ FILLER_PHRASES: list[tuple[str, str]] = [
     (r"\bfor the purpose of\b", "for the purpose of → to"),
     (r"\bin the event that\b", "in the event that → if"),
 ]
-HEDGE_WORDS = ["could", "potentially", "possibly", "perhaps", "arguably", "to some extent", "in some cases"]
+HEDGE_WORDS = [
+    "could",
+    "potentially",
+    "possibly",
+    "perhaps",
+    "arguably",
+    "to some extent",
+    "in some cases",
+]
 NEGATIVE_PARALLELISM_RE = re.compile(r"\bit'?s not (?:just |only )?[^,.]+,\s*(?:it'?s|but)\b", re.I)
 _EM_DASH_RE = re.compile(r"[—–]")
 _CURLY_QUOTE_RE = re.compile(r"[“”‘’]")
 _MD_BOLD_RE = re.compile(r"\*\*[^*]+\*\*")
 _INLINE_HEADER_RE = re.compile(r"\*\*[^*]{1,40}:\*\*")
-_HYPHEN_COMPOUND_RE = re.compile(r"\b[a-zA-Z]+-[a-zA-Z]+\b")  # csak betű-betű (a "25-person" ne számítson)
-_GERUND_CHAIN_RE = re.compile(r"\b\w+ing\b[^.!?]*,\s*\w+ing\b[^.!?]*,\s*\w+ing\b", re.I)  # 3+ lánc kell
-_EMOJI_RE = re.compile(
-    "[\U0001F300-\U0001FAFF\U00002600-\U000027BF\U0001F1E6-\U0001F1FF]"
-)
+_HYPHEN_COMPOUND_RE = re.compile(
+    r"\b[a-zA-Z]+-[a-zA-Z]+\b"
+)  # csak betű-betű (a "25-person" ne számítson)
+_GERUND_CHAIN_RE = re.compile(
+    r"\b\w+ing\b[^.!?]*,\s*\w+ing\b[^.!?]*,\s*\w+ing\b", re.I
+)  # 3+ lánc kell
+_EMOJI_RE = re.compile("[\U0001f300-\U0001faff\U00002600-\U000027bf\U0001f1e6-\U0001f1ff]")
 EMOJI_MAX_BY_VOICE = {"david": 1, "adam": 0, "plansmart": 3}
 
 
@@ -181,28 +266,50 @@ def _ai_signature_flags(text: str, voice: str) -> list[str]:
     if _CURLY_QUOTE_RE.search(t):
         flags.append("AI-signature: curly/smart quotes (should be straight quotes)")
     if _MD_BOLD_RE.search(t):
-        flags.append("AI-signature: markdown boldface (**word**) — renders as literal asterisks on LinkedIn")
+        flags.append(
+            "AI-signature: markdown boldface (**word**) — renders as literal asterisks on LinkedIn"
+        )
     if _INLINE_HEADER_RE.search(t):
-        flags.append("AI-signature: inline-header list (\"**Label:** ...\") instead of prose")
+        flags.append('AI-signature: inline-header list ("**Label:** ...") instead of prose')
     n_hyphen = len(_HYPHEN_COMPOUND_RE.findall(t))
     if n_hyphen >= 3:
         flags.append(f"AI-signature: hyphenated word-pair overuse ({n_hyphen} compound modifiers)")
     if _GERUND_CHAIN_RE.search(t):
-        flags.append("AI-signature: superficial -ing chain (e.g. \"showcasing…, reflecting…, symbolizing…\")")
+        flags.append(
+            'AI-signature: superficial -ing chain (e.g. "showcasing…, reflecting…, symbolizing…")'
+        )
     n_emoji = len(_EMOJI_RE.findall(t))
     emoji_max = EMOJI_MAX_BY_VOICE.get(voice, 0)
     if n_emoji > emoji_max:
-        flags.append(f"AI-signature: emoji overuse ({n_emoji} emoji, max {emoji_max} for this voice)")
+        flags.append(
+            f"AI-signature: emoji overuse ({n_emoji} emoji, max {emoji_max} for this voice)"
+        )
     return flags
 
 
 # ── Dormant (Phase 13.5 magyar pipeline) — megőrizve, jelenleg NEM hívjuk ──
 AI_TELLS = [
-    "fontos megérteni", "kihasználva", "lehetőséget biztosítva", "kulcsfontosságú", "jelentős",
-    "innovatív", "a mai rohanó világban", "nem szabad elfelejteni", "összességében",
-    "ezáltal", "lehetővé teszi", "számos előnnyel",
+    "fontos megérteni",
+    "kihasználva",
+    "lehetőséget biztosítva",
+    "kulcsfontosságú",
+    "jelentős",
+    "innovatív",
+    "a mai rohanó világban",
+    "nem szabad elfelejteni",
+    "összességében",
+    "ezáltal",
+    "lehetővé teszi",
+    "számos előnnyel",
 ]
-BUZZWORDS = ["forradalom", "forradalmi", "game changer", "diszruptív", "diszrupció", "paradigmaváltás"]
+BUZZWORDS = [
+    "forradalom",
+    "forradalmi",
+    "game changer",
+    "diszruptív",
+    "diszrupció",
+    "paradigmaváltás",
+]
 
 # Hunglish: lefordítatlanul hagyott angol business-jargon (prompts/hungarian_native_guide.md).
 # (regex, magyar javaslat) — determinisztikus, kódból ellenőrizhető kapás; a strukturális
@@ -221,7 +328,9 @@ HUNGLISH_JARGON: list[tuple[str, str]] = [
 ]
 # „workflow” csak akkor Hunglish, ha NEM tool-specifikus (n8n/make/zapier/… workflow → OK).
 _WORKFLOW_RE = re.compile(r"\bworkflow\b", re.I)
-_WORKFLOW_TOOL_RE = re.compile(r"\b(?:n8n|make|zapier|airflow|github|ci/?cd|claude|langchain)\s+workflow\b", re.I)
+_WORKFLOW_TOOL_RE = re.compile(
+    r"\b(?:n8n|make|zapier|airflow|github|ci/?cd|claude|langchain)\s+workflow\b", re.I
+)
 
 # Phase 14: ANGOL értékelő. A posztok ANGOL nyelvűek (magyar KKV közönség, presztízs-pozicionálás).
 SYSTEM_PROMPT = (
@@ -396,11 +505,13 @@ class TextEvaluator:
         )
         try:
             msg = await _client().messages.create(
-                model=MODEL, max_tokens=MAX_TOKENS, system=SYSTEM_PROMPT,
+                model=MODEL,
+                max_tokens=MAX_TOKENS,
+                system=SYSTEM_PROMPT,
                 messages=[{"role": "user", "content": user}],
             )
             record_claude_usage(msg, MODEL, kind="text_eval")
-            data = _repair_and_parse(msg.content[0].text if msg.content else "")
+            data = _repair_and_parse(cast(TextBlock, msg.content[0]).text if msg.content else "")
         except Exception as exc:
             logger.warning("[text-eval] hiba (%s): %s", voice, str(exc)[:120])
             return self._error(f"eval hiba: {str(exc)[:100]}")
@@ -414,8 +525,11 @@ class TextEvaluator:
         # Determinisztikus angol-jargon büntetés: a banned-lista/AI-tell találatai lehúzzák az
         # english_native_quality-t, akkor is, ha a modell elnézte (1 találat → max 6, 2+ → max 4).
         # Csak a nyelvi (jargon/AI-tell) jeleket számoljuk, a link/CTA jelet nem.
-        n_jargon = sum(1 for f in _english_flags(post_content)
-                       if f.startswith("banned buzzword") or f.startswith("AI-tell"))
+        n_jargon = sum(
+            1
+            for f in _english_flags(post_content)
+            if f.startswith("banned buzzword") or f.startswith("AI-tell")
+        )
         if n_jargon:
             cap = 4 if n_jargon >= 2 else 6
             scores["english_native_quality"] = min(scores["english_native_quality"], cap)
@@ -434,7 +548,8 @@ class TextEvaluator:
             if f not in flags:
                 flags.append(f)
         try:
-            overall = float(data.get("overall_score"))
+            raw_overall: Any = data.get("overall_score")
+            overall = float(raw_overall)
         except (TypeError, ValueError):
             # Fallback: ai_signature_risk fordított skálájú (magasabb = rosszabb), a 11-x
             # inverzióval keveredik bele a többi (magasabb = jobb) dimenzió átlagába.
@@ -445,10 +560,15 @@ class TextEvaluator:
         fabrication_risk = bool(data.get("fabrication_risk"))
         fabrication_reason = str(data.get("fabrication_reason") or "").strip()
         if fabrication_risk and not fabrication_reason:
-            fabrication_reason = "unsourced first-person specific claim (model flagged, no span given)"
+            fabrication_reason = (
+                "unsourced first-person specific claim (model flagged, no span given)"
+            )
         return {
-            **scores, "anti_patterns": flags, "overall_score": overall,
-            "fabrication_risk": fabrication_risk, "fabrication_reason": fabrication_reason,
+            **scores,
+            "anti_patterns": flags,
+            "overall_score": overall,
+            "fabrication_risk": fabrication_risk,
+            "fabrication_reason": fabrication_reason,
             "rewrite_suggestion": str(data.get("rewrite_suggestion") or "").strip(),
             "feedback": str(data.get("feedback") or "").strip(),
         }
@@ -456,15 +576,22 @@ class TextEvaluator:
     @staticmethod
     def _error(reason: str) -> dict[str, Any]:
         return {
-            **{k: 0 for k in SCORE_KEYS}, "anti_patterns": ["eval_error"],
-            "overall_score": 0.0, "fabrication_risk": False, "fabrication_reason": "",
-            "rewrite_suggestion": "", "feedback": reason, "error": True,
+            **{k: 0 for k in SCORE_KEYS},
+            "anti_patterns": ["eval_error"],
+            "overall_score": 0.0,
+            "fabrication_risk": False,
+            "fabrication_reason": "",
+            "rewrite_suggestion": "",
+            "feedback": reason,
+            "error": True,
         }
 
 
 async def _demo() -> int:
-    sample = ("In today's fast-paced world, it's important to note that businesses must leverage "
-              "cutting-edge AI to revolutionize their workflows. This is a real game changer. Agree?")
+    sample = (
+        "In today's fast-paced world, it's important to note that businesses must leverage "
+        "cutting-edge AI to revolutionize their workflows. This is a real game changer. Agree?"
+    )
     out = await TextEvaluator().evaluate_post(sample, "adam", "ai_news")
     print(json.dumps(out, ensure_ascii=False, indent=2))
     return 0

@@ -21,6 +21,7 @@ Miért httpx és nem az anthropic SDK:
 Önálló futtatás:
     python -m src.ai.outreach.prospect_research --category hu_sme_owner --keywords logisztika --count 5
 """
+
 from __future__ import annotations
 
 import argparse
@@ -46,11 +47,11 @@ CASE_STUDIES = PROJECT_ROOT / "prompts" / "case_studies.yml"
 
 API_URL = "https://api.anthropic.com/v1/messages"
 ANTHROPIC_VERSION = "2023-06-01"
-MODEL = "claude-sonnet-4-6"          # a projekt standard modellje (web_search-képes)
+MODEL = "claude-sonnet-4-6"  # a projekt standard modellje (web_search-képes)
 WEB_SEARCH_TOOL = "web_search_20250305"  # az alap variáns (széles kompatibilitás)
 MAX_TOKENS = 4000
 MAX_SEARCH_USES = 6
-MAX_ROUNDS = 5                       # pause_turn (server-tool iterációs limit) kezelés
+MAX_ROUNDS = 5  # pause_turn (server-tool iterációs limit) kezelés
 REQUEST_TIMEOUT_S = 180.0
 
 CATEGORIES = ("hu_sme_owner", "intl_sme_owner", "ai_specialist", "industry_peer")
@@ -165,14 +166,18 @@ def _final_text(content: list[dict[str, Any]]) -> str:
 
 
 def _count_searches(content: list[dict[str, Any]]) -> int:
-    return sum(1 for b in content if b.get("type") == "server_tool_use"
-              and b.get("name") == "web_search")
+    return sum(
+        1 for b in content if b.get("type") == "server_tool_use" and b.get("name") == "web_search"
+    )
 
 
 async def _call_with_search(
-    category: str, keywords: str | None, count: int,
-    exclude_terms: list[str] | None = None, max_searches: int = MAX_SEARCH_USES,
-) -> tuple[str, dict]:
+    category: str,
+    keywords: str | None,
+    count: int,
+    exclude_terms: list[str] | None = None,
+    max_searches: int = MAX_SEARCH_USES,
+) -> tuple[str, dict[str, Any]]:
     """A web_search-ös Messages hívás, pause_turn (server-tool loop) kezeléssel.
     Visszaad: (végső szöveg, meta) — meta: {searches, in_tokens, out_tokens, rounds}."""
     api_key = os.environ.get("ANTHROPIC_API_KEY")
@@ -196,7 +201,9 @@ async def _call_with_search(
     last_content: list[dict[str, Any]] = []
     async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT_S) as client:
         for rnd in range(1, MAX_ROUNDS + 1):
-            resp = await client.post(API_URL, headers=headers, json={**body_base, "messages": messages})
+            resp = await client.post(
+                API_URL, headers=headers, json={**body_base, "messages": messages}
+            )
             if resp.status_code != 200:
                 raise RuntimeError(f"Anthropic API {resp.status_code}: {resp.text[:300]}")
             data = resp.json()
@@ -209,39 +216,71 @@ async def _call_with_search(
             if data.get("stop_reason") == "pause_turn":
                 messages.append({"role": "assistant", "content": content})
                 continue
-            return _final_text(content), {"searches": searches, "in_tokens": in_tok,
-                                          "out_tokens": out_tok, "rounds": rnd}
-    return _final_text(last_content), {"searches": searches, "in_tokens": in_tok,
-                                       "out_tokens": out_tok, "rounds": MAX_ROUNDS}
+            return _final_text(content), {
+                "searches": searches,
+                "in_tokens": in_tok,
+                "out_tokens": out_tok,
+                "rounds": rnd,
+            }
+    return _final_text(last_content), {
+        "searches": searches,
+        "in_tokens": in_tok,
+        "out_tokens": out_tok,
+        "rounds": MAX_ROUNDS,
+    }
 
 
-def _clean(candidates: list[dict], category: str) -> list[dict]:
+def _clean(candidates: list[dict[str, Any]], category: str) -> list[dict[str, Any]]:
     """Biztonsági normalizálás: kényszerített üres linkedin_url, kategória, kötelező név."""
     out = []
     for c in candidates:
         name = str(c.get("name") or "").strip()
         if not name:
             continue
-        out.append({
-            "name": name,
-            "title": str(c.get("title") or "").strip() or None,
-            "company": str(c.get("company") or "").strip() or None,
-            "company_size_estimate": str(c.get("company_size_estimate") or "").strip() or None,
-            "country": str(c.get("country") or "").strip() or None,
-            "city": str(c.get("city") or "").strip() or None,
-            "category": category,               # a kért kategóriát kényszerítjük
-            "linkedin_url": None,               # SOSEM a modell URL-je (a human tölti)
-            "relevance_notes": str(c.get("relevance_notes") or "").strip() or None,
-            "source": str(c.get("source") or "").strip() or None,
-            "status": "researched",
-        })
+        out.append(
+            {
+                "name": name,
+                "title": str(c.get("title") or "").strip() or None,
+                "company": str(c.get("company") or "").strip() or None,
+                "company_size_estimate": str(c.get("company_size_estimate") or "").strip() or None,
+                "country": str(c.get("country") or "").strip() or None,
+                "city": str(c.get("city") or "").strip() or None,
+                "category": category,  # a kért kategóriát kényszerítjük
+                "linkedin_url": None,  # SOSEM a modell URL-je (a human tölti)
+                "relevance_notes": str(c.get("relevance_notes") or "").strip() or None,
+                "source": str(c.get("source") or "").strip() or None,
+                "status": "researched",
+            }
+        )
     return out
 
 
 # Cégnév-normalizálás a de-duphoz: levágja a jogi formát + írásjeleket, kisbetűsít.
 _LEGAL_SUFFIXES = (
-    "kft", "zrt", "nyrt", "bt", "kkt", "ev", "gmbh", "ltd", "llc", "inc", "co", "corp",
-    "srl", "sarl", "sa", "ag", "bv", "oy", "ab", "as", "spa", "plc", "group", "csoport",
+    "kft",
+    "zrt",
+    "nyrt",
+    "bt",
+    "kkt",
+    "ev",
+    "gmbh",
+    "ltd",
+    "llc",
+    "inc",
+    "co",
+    "corp",
+    "srl",
+    "sarl",
+    "sa",
+    "ag",
+    "bv",
+    "oy",
+    "ab",
+    "as",
+    "spa",
+    "plc",
+    "group",
+    "csoport",
 )
 
 
@@ -277,22 +316,24 @@ def _has_quote(text: str | None) -> bool:
     return any(q in (text or "") for q in ('"', "“", "”", "„", "»", "«"))
 
 
-def _strength(c: dict) -> int:
+def _strength(c: dict[str, Any]) -> int:
     """A jelölt 'tisztaság/erősség' pontszáma — a de-dup ez alapján dönt (magasabb = jobb)."""
     score = 0
     if "http" in (c.get("source") or "").lower():
-        score += 2                                  # ellenőrizhető forrás-URL
+        score += 2  # ellenőrizhető forrás-URL
     notes = c.get("relevance_notes") or ""
     if _has_quote(notes):
-        score += 2                                  # konkrét idézet = erős, forrásolt horog
+        score += 2  # konkrét idézet = erős, forrásolt horog
     for field in ("title", "city", "company_size_estimate", "country"):
         if c.get(field):
-            score += 1                              # teljesebb rekord
-    score += min(len(notes) // 100, 2)              # specifikusabb indoklás (max +2)
+            score += 1  # teljesebb rekord
+    score += min(len(notes) // 100, 2)  # specifikusabb indoklás (max +2)
     return score
 
 
-def _dedupe_by_company(candidates: list[dict]) -> tuple[list[dict], dict]:
+def _dedupe_by_company(
+    candidates: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Cégenként max 1 jelölt. Egyértelmű győztes → a többit eldobjuk; döntetlen → mindet
     megtartjuk, `_dedup_tie=True` jelöléssel (a human dönt a review-ban).
 
@@ -300,11 +341,11 @@ def _dedupe_by_company(candidates: list[dict]) -> tuple[list[dict], dict]:
     groups: dict[str, list[int]] = {}
     for i, c in enumerate(candidates):
         key = _norm_company(c.get("company"))
-        gkey = key if key else f"__nocompany_{i}"    # cég nélkülieket sosem vonjuk össze
+        gkey = key if key else f"__nocompany_{i}"  # cég nélkülieket sosem vonjuk össze
         groups.setdefault(gkey, []).append(i)
 
     keep_idx: set[int] = set()
-    dropped: list[dict] = []
+    dropped: list[dict[str, Any]] = []
     ties: list[str] = []
     for gkey, idxs in groups.items():
         if len(idxs) == 1:
@@ -313,10 +354,10 @@ def _dedupe_by_company(candidates: list[dict]) -> tuple[list[dict], dict]:
         scored = sorted(idxs, key=lambda i: _strength(candidates[i]), reverse=True)
         top = _strength(candidates[scored[0]])
         winners = [i for i in scored if _strength(candidates[i]) == top]
-        if len(winners) == 1:                        # egyértelmű győztes
+        if len(winners) == 1:  # egyértelmű győztes
             keep_idx.add(winners[0])
             dropped += [candidates[i] for i in scored if i not in winners]
-        else:                                        # döntetlen → mindet megtartjuk, jelölve
+        else:  # döntetlen → mindet megtartjuk, jelölve
             for i in winners:
                 candidates[i]["_dedup_tie"] = True
                 keep_idx.add(i)
@@ -334,7 +375,7 @@ async def research_prospects(
     persist: bool = True,
     exclude_terms: list[str] | None = None,
     max_searches: int = MAX_SEARCH_USES,
-) -> tuple[list[dict], dict]:
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """A kategória jelöltjeinek kutatása. Visszaad: (jelöltek, meta).
 
     persist=True: best-effort mentés a prospects táblába (ha a migráció már lefutott).
@@ -353,9 +394,15 @@ async def research_prospects(
     ex_keys = _exclude_keys(exclude_terms)
     if ex_keys:
         before = len(raw)
-        raw = [c for c in raw
-               if _norm_name(c.get("name")) not in ex_keys
-               and (not _norm_company(c.get("company")) or _norm_company(c.get("company")) not in ex_keys)]
+        raw = [
+            c
+            for c in raw
+            if _norm_name(c.get("name")) not in ex_keys
+            and (
+                not _norm_company(c.get("company"))
+                or _norm_company(c.get("company")) not in ex_keys
+            )
+        ]
         meta["excluded_prefilter"] = before - len(raw)
     meta["parsed_ok"] = bool(raw)
 
@@ -367,9 +414,15 @@ async def research_prospects(
     meta["dedup_ties"] = dedup["ties"]
     if dedup["dropped"]:
         dropped_names = ", ".join(f"{d.get('name')} ({d.get('company')})" for d in dedup["dropped"])
-        logger.info("[research] de-dup: %d azonos-cég jelölt eldobva → %s", len(dedup["dropped"]), dropped_names)
+        logger.info(
+            "[research] de-dup: %d azonos-cég jelölt eldobva → %s",
+            len(dedup["dropped"]),
+            dropped_names,
+        )
     if dedup["ties"]:
-        logger.warning("[research] de-dup DÖNTETLEN (kézi választás kell): %s", ", ".join(dedup["ties"]))
+        logger.warning(
+            "[research] de-dup DÖNTETLEN (kézi választás kell): %s", ", ".join(dedup["ties"])
+        )
 
     saved = 0
     if persist and candidates:
@@ -379,10 +432,14 @@ async def research_prospects(
                     c["id"] = store.insert_prospect(c)
                 saved = len(candidates)
             else:
-                logger.warning("[research] a prospects tábla még nincs — mentés kihagyva "
-                                "(futtasd a migration_18_prospects.sql-t). A jelöltek visszajönnek.")
+                logger.warning(
+                    "[research] a prospects tábla még nincs — mentés kihagyva "
+                    "(futtasd a migration_18_prospects.sql-t). A jelöltek visszajönnek."
+                )
         except Exception as exc:  # noqa: BLE001 — a mentés sosem buktathatja meg a kutatást
-            logger.warning("[research] Supabase mentés hiba (%s) — jelöltek memóriában maradnak", exc)
+            logger.warning(
+                "[research] Supabase mentés hiba (%s) — jelöltek memóriában maradnak", exc
+            )
     meta["saved"] = saved
     return candidates, meta
 

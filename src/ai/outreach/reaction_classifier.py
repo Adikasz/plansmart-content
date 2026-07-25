@@ -19,14 +19,16 @@ relevance_scorer Haiku-hívásával összhangban.
 Önálló teszt:
     python -m src.ai.outreach.reaction_classifier
 """
+
 from __future__ import annotations
 
 import asyncio
 import logging
 from functools import lru_cache
-from typing import Any
+from typing import Any, cast
 
 from anthropic import AsyncAnthropic
+from anthropic.types import TextBlock
 from dotenv import load_dotenv
 
 from src.utils.json_repair import _repair_and_parse
@@ -113,14 +115,18 @@ async def classify_reaction(
             model=MODEL,
             max_tokens=MAX_TOKENS,
             system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": _user(incoming_text, reaction_type, context_text)}],
+            messages=[
+                {"role": "user", "content": _user(incoming_text, reaction_type, context_text)}
+            ],
         )
-        parsed = _repair_and_parse(msg.content[0].text if msg.content else "")
+        parsed = _repair_and_parse(cast(TextBlock, msg.content[0]).text if msg.content else "")
     except Exception as exc:  # noqa: BLE001 — a besorolás sosem buktathatja meg a flow-t
-        logger.warning("[reaction-classify] hiba (%s) — question_or_engagement default", str(exc)[:120])
+        logger.warning(
+            "[reaction-classify] hiba (%s) — question_or_engagement default", str(exc)[:120]
+        )
         parsed = None
 
-    result = _coerce(parsed if isinstance(parsed, dict) else None)
+    result = cast("dict[str, Any]", _coerce(parsed if isinstance(parsed, dict) else None))
     skip = result["classification"] in SKIP_CLASSIFICATIONS
     result["skip"] = skip
     result["skip_message"] = SKIP_MESSAGES.get(result["classification"]) if skip else None

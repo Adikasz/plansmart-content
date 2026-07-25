@@ -6,6 +6,7 @@ A döntések a Supabase posts + approvals tábláiba kerülnek.
 Futtatás:
     python -m src.integrations.bots.telegram_bot
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -16,6 +17,7 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from pathlib import Path
+from typing import Any, cast
 from urllib.parse import urlparse
 
 import yaml
@@ -24,17 +26,23 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import Command, CommandObject, CommandStart
 from aiogram.filters.callback_data import CallbackData
-from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
+from aiogram.types import (
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+    User,
+)
 from dotenv import load_dotenv
 
-from src.core.config.settings import get_settings
 from src.ai.generators.base_generator import generate as generate_post
-from src.integrations.publishers import token_store
-from src.integrations.publishers.linkedin_publisher import post_to_linkedin
+from src.core.config.settings import get_settings
 from src.core.storage import posts as posts_store
 from src.core.strategy import content_strategy
-from src.utils.logging import setup_logging
+from src.integrations.publishers import token_store
+from src.integrations.publishers.linkedin_publisher import post_to_linkedin
 from src.integrations.visuals import visual_generator
+from src.utils.logging import setup_logging
 
 logger = logging.getLogger(__name__)
 load_dotenv(override=False)
@@ -51,15 +59,16 @@ def _linkedin_mock() -> bool:
 
 
 @lru_cache(maxsize=1)
-def _accounts_cfg() -> dict:
+def _accounts_cfg() -> dict[str, Any]:
     with open(PROJECT_ROOT / "config" / "accounts.yml", encoding="utf-8") as fh:
-        return (yaml.safe_load(fh) or {}).get("accounts", {})
+        return cast(dict[str, Any], (yaml.safe_load(fh) or {}).get("accounts", {}))
 
 
 def _author_urn(voice: str) -> str | None:
     """A voice LinkedIn author URN-je az accounts.yml-ből (üres, ha még nincs OAuth)."""
     li = (_accounts_cfg().get(voice) or {}).get("linkedin", {})
     return (li.get("linkedin_urn") or "").strip() or None
+
 
 VOICE_DISPLAY = {"david": ("DÁVID", "🔨"), "adam": ("ÁDÁM", "📊"), "plansmart": ("PLANSMART", "🏢")}
 PLATFORM_DISPLAY = {"linkedin": "LinkedIn", "twitter": "X"}
@@ -86,7 +95,7 @@ CREATE_USAGE = (
 router = Router()
 _bot: Bot | None = None
 # user_id -> aktív szerkesztés kontextusa {post_id, chat_id, message_id} (DM flow, in-memory MVP).
-_pending_edits: dict[int, dict] = {}
+_pending_edits: dict[int, dict[str, Any]] = {}
 # post_id -> (chat_id, message_id): hol van a csoportposzt, hogy "✏️ Edited"-re frissíthessük.
 _post_messages: dict[str, tuple[int, int]] = {}
 
@@ -110,8 +119,10 @@ def _source_domain(url: str) -> str:
     return netloc[4:] if netloc.startswith("www.") else (netloc or "—")
 
 
-def format_approval_message(post: dict) -> str:
-    name, emoji = VOICE_DISPLAY.get(post.get("voice", ""), (str(post.get("voice", "?")).upper(), "📝"))
+def format_approval_message(post: dict[str, Any]) -> str:
+    name, emoji = VOICE_DISPLAY.get(
+        post.get("voice", ""), (str(post.get("voice", "?")).upper(), "📝")
+    )
     platform = PLATFORM_DISPLAY.get(post.get("platform", ""), post.get("platform", ""))
     score = post.get("score")
     if score is None:
@@ -132,17 +143,23 @@ def format_approval_message(post: dict) -> str:
 
 def build_keyboard(post_id: str) -> InlineKeyboardMarkup:
     def btn(text: str, action: str) -> InlineKeyboardButton:
-        return InlineKeyboardButton(text=text, callback_data=ApprovalCB(action=action, post_id=post_id).pack())
+        return InlineKeyboardButton(
+            text=text, callback_data=ApprovalCB(action=action, post_id=post_id).pack()
+        )
 
-    return InlineKeyboardMarkup(inline_keyboard=[[
-        btn("✅ Approve", "approve"),
-        btn("✏️ Edit", "edit"),
-        btn("🔄 Regenerate", "regenerate"),
-        btn("❌ Skip", "skip"),
-    ]])
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                btn("✅ Approve", "approve"),
+                btn("✏️ Edit", "edit"),
+                btn("🔄 Regenerate", "regenerate"),
+                btn("❌ Skip", "skip"),
+            ]
+        ]
+    )
 
 
-async def _attach_visual(post: dict) -> dict:
+async def _attach_visual(post: dict[str, Any]) -> dict[str, Any]:
     """Best-effort: vizuált generál a poszthoz (Muapi) és beállítja a visual_url-t.
 
     Hiba (hiányzó MUAPI_API_KEY, Muapi hiba) esetén csak warn — a poszt jóváhagyása
@@ -157,8 +174,11 @@ async def _attach_visual(post: dict) -> dict:
         post["portrait_used"] = vis.get("portrait_used")
         if post.get("id"):
             posts_store.save_visual(
-                post["id"], vis["image_url"], base_image_url=vis.get("base_image_url"),
-                visual_template=vis.get("template"), portrait_used=vis.get("portrait_used"),
+                post["id"],
+                vis["image_url"],
+                base_image_url=vis.get("base_image_url"),
+                visual_template=vis.get("template"),
+                portrait_used=vis.get("portrait_used"),
             )
         logger.info("Vizual kesz (%s): %s", post.get("voice"), vis["image_url"])
     except Exception as exc:
@@ -167,7 +187,7 @@ async def _attach_visual(post: dict) -> dict:
 
 
 async def send_for_approval(
-    post: dict, chat_id: int, bot: Bot | None = None, header: str = ""
+    post: dict[str, Any], chat_id: int, bot: Bot | None = None, header: str = ""
 ) -> Message:
     """Egy generált posztot elküld jóváhagyásra — képpel (ha van visual_url) + caption.
 
@@ -181,7 +201,9 @@ async def send_for_approval(
     visual_url = post.get("visual_url")
 
     if visual_url and len(caption) <= TELEGRAM_CAPTION_LIMIT:
-        sent = await bot.send_photo(chat_id, photo=visual_url, caption=caption, reply_markup=keyboard)
+        sent = await bot.send_photo(
+            chat_id, photo=visual_url, caption=caption, reply_markup=keyboard
+        )
     elif visual_url:
         # A poszt hosszabb a caption-limitnél: kép külön, a gombos szöveg külön üzenetben.
         try:
@@ -212,10 +234,12 @@ async def start_cmd(message: Message) -> None:
 @router.message(Command("test"))
 async def test_cmd(message: Message, bot: Bot) -> None:
     mock = {
-        "voice": "david", "platform": "linkedin", "score": 9,
+        "voice": "david",
+        "platform": "linkedin",
+        "score": 9,
         "feed_item_url": "https://www.anthropic.com/news/claude-opus-4-8",
         "content": "Teszt poszt. Az Anthropic kihozta a Claude Opus 4.8-at — "
-                   "ma este megnézem élesben, és ha tartja amit ígér, átmigrálom a pipeline-t.",
+        "ma este megnézem élesben, és ha tartja amit ígér, átmigrálom a pipeline-t.",
         "hashtags": ["#ClaudeAPI", "#BuildInPublic"],
     }
     mock["id"] = posts_store.insert_post(mock)
@@ -224,8 +248,9 @@ async def test_cmd(message: Message, bot: Bot) -> None:
     await message.answer(f"Teszt poszt elküldve (post_id={mock['id']}, msg={sent.message_id}).")
 
 
-def _result_to_post(result: dict, voice: str, platform: str) -> dict:
+def _result_to_post(result: dict[str, Any], voice: str, platform: str) -> dict[str, Any]:
     """A generátor JSON-jából a kiválasztott platform tartalmát posts-sorrá alakítja."""
+    hashtags: list[str]
     if platform == "twitter":
         tw = result.get("twitter") or {}
         tweets = [t for t in (tw.get("tweets") or []) if t]
@@ -234,9 +259,13 @@ def _result_to_post(result: dict, voice: str, platform: str) -> dict:
         li = result.get("linkedin") or {}
         content, content_type, hashtags = li.get("content", ""), "post", (li.get("hashtags") or [])
     return {
-        "voice": voice, "platform": platform, "content": content,
-        "content_type": content_type, "hashtags": hashtags,
-        "feed_item_url": "", "score": None,  # kézi poszt: nincs forrás/score
+        "voice": voice,
+        "platform": platform,
+        "content": content,
+        "content_type": content_type,
+        "hashtags": hashtags,
+        "feed_item_url": "",
+        "score": None,  # kézi poszt: nincs forrás/score
     }
 
 
@@ -264,7 +293,12 @@ async def create_cmd(message: Message, command: CommandObject, bot: Bot) -> None
         return
 
     await message.answer(f"⏳ Generálás: {voice} / {platform} …")
-    manual = {"type": "manual_instruction", "instruction": instruction, "voice": voice, "platform": platform}
+    manual = {
+        "type": "manual_instruction",
+        "instruction": instruction,
+        "voice": voice,
+        "platform": platform,
+    }
     try:
         result = await generate_post(manual, VOICE_PROMPTS[voice])
     except Exception as exc:
@@ -278,8 +312,11 @@ async def create_cmd(message: Message, command: CommandObject, bot: Bot) -> None
     post = _result_to_post(result, voice, platform)
     if force_portrait:
         post["portrait"] = True  # kézi kényszerítés (a _resolve_portrait csak david/adam-ra hat)
-    logger.info("[PORTRAIT-TRACE] create_cmd: post['portrait']=%r (voice=%s, after force_portrait handling)",
-                post.get("portrait"), voice)
+    logger.info(
+        "[PORTRAIT-TRACE] create_cmd: post['portrait']=%r (voice=%s, after force_portrait handling)",
+        post.get("portrait"),
+        voice,
+    )
     if not post["content"].strip():
         await message.answer(f"❌ A modell nem adott vissza tartalmat a(z) {platform} platformra.")
         return
@@ -293,7 +330,9 @@ async def create_cmd(message: Message, command: CommandObject, bot: Bot) -> None
         # _attach_visual maga best-effort (kép nélkül is mehet a poszt) — ez itt a
         # send_for_approval / egyéb váratlan hibát fogja el, hogy sose maradjon néma a bot.
         logger.exception("Poszt jóváhagyásra küldése sikertelen (post_id=%s)", post["id"])
-        await message.answer(f"❌ Hiba történt a poszt küldésekor (post_id={post['id']}): {str(exc)[:150]}")
+        await message.answer(
+            f"❌ Hiba történt a poszt küldésekor (post_id={post['id']}): {str(exc)[:150]}"
+        )
 
 
 # ── Callback handlerek ─────────────────────────────────────────────────
@@ -308,50 +347,70 @@ def _msg_base_text(message: Message) -> str:
     return message.caption or message.text or ""
 
 
-async def _safe_edit_message(message: Message, text: str, reply_markup=None) -> None:
+async def _safe_edit_message(
+    message: Message, text: str, reply_markup: InlineKeyboardMarkup | None = None
+) -> None:
     """Szerkeszti az üzenetet — szövegként, vagy ha kép, caption-ként (limitre vágva)."""
     try:
         await message.edit_text(text, reply_markup=reply_markup)
     except Exception:
         try:
-            await message.edit_caption(caption=text[:TELEGRAM_CAPTION_LIMIT], reply_markup=reply_markup)
+            await message.edit_caption(
+                caption=text[:TELEGRAM_CAPTION_LIMIT], reply_markup=reply_markup
+            )
         except Exception as exc:
             logger.warning("Nem sikerult szerkeszteni az uzenetet: %s", str(exc)[:120])
 
 
-async def _safe_edit_by_id(bot: Bot, chat_id: int, message_id: int, text: str, reply_markup=None) -> None:
+async def _safe_edit_by_id(
+    bot: Bot,
+    chat_id: int,
+    message_id: int,
+    text: str,
+    reply_markup: InlineKeyboardMarkup | None = None,
+) -> None:
     """Mint _safe_edit_message, de chat_id+message_id alapján (a csoportposzt frissítéséhez)."""
     try:
-        await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=text, reply_markup=reply_markup)
+        await bot.edit_message_text(
+            chat_id=chat_id, message_id=message_id, text=text, reply_markup=reply_markup
+        )
     except Exception:
         try:
             await bot.edit_message_caption(
-                chat_id=chat_id, message_id=message_id,
-                caption=text[:TELEGRAM_CAPTION_LIMIT], reply_markup=reply_markup,
+                chat_id=chat_id,
+                message_id=message_id,
+                caption=text[:TELEGRAM_CAPTION_LIMIT],
+                reply_markup=reply_markup,
             )
         except Exception as exc:
             logger.warning("Nem sikerult frissiteni a csoportposztot: %s", str(exc)[:120])
 
 
 async def _finalize(query: CallbackQuery, cb: ApprovalCB, status: str, footer: str) -> None:
+    msg = cast(Message, query.message)
     by = query.from_user.username or query.from_user.full_name
     if status == "approved":
         posts_store.mark_approved(cb.post_id, by)
     else:
         posts_store.update_post_status(cb.post_id, status)
     posts_store.record_approval(
-        cb.post_id, query.message.chat.id, query.message.message_id,
-        action=cb.action, telegram_user_id=query.from_user.id,
+        cb.post_id,
+        msg.chat.id,
+        msg.message_id,
+        action=cb.action,
+        telegram_user_id=query.from_user.id,
     )
-    await _safe_edit_message(query.message, f"{_msg_base_text(query.message)}\n\n{footer} — @{by}", reply_markup=None)
+    await _safe_edit_message(msg, f"{_msg_base_text(msg)}\n\n{footer} — @{by}", reply_markup=None)
     await query.answer(footer)
 
 
-async def _publish_failed(query: CallbackQuery, base: str, by: str, post_id: str, error: str) -> None:
+async def _publish_failed(
+    query: CallbackQuery, base: str, by: str, post_id: str, error: str
+) -> None:
     """Sikertelen posztolás: marad 'approved' (újrapróbálható), a gombok megmaradnak."""
     posts_store.mark_approved(post_id, by)
     await _safe_edit_message(
-        query.message,
+        cast(Message, query.message),
         f"{base}\n\n❌ Publish failed: {html.escape(error[:150])} — @{by}",
         reply_markup=build_keyboard(post_id),  # gombok maradnak → újra Approve-olható
     )
@@ -362,14 +421,18 @@ async def _publish_failed(query: CallbackQuery, base: str, by: str, post_id: str
 async def approve_cb(query: CallbackQuery, callback_data: ApprovalCB) -> None:
     """✅ Approve → LinkedIn posztolás (mock vagy éles), majd a Telegram üzenet frissítése."""
     post_id = callback_data.post_id
+    msg = cast(Message, query.message)
     by = query.from_user.username or query.from_user.full_name
     post = posts_store.get_post(post_id) or {}
     posts_store.record_approval(
-        post_id, query.message.chat.id, query.message.message_id,
-        action="approve", telegram_user_id=query.from_user.id,
+        post_id,
+        msg.chat.id,
+        msg.message_id,
+        action="approve",
+        telegram_user_id=query.from_user.id,
     )
 
-    base = _msg_base_text(query.message)
+    base = _msg_base_text(msg)
     platform = post.get("platform", "linkedin")
     voice = post.get("voice", "")
     content = post.get("edited_content") or post.get("content") or ""
@@ -378,7 +441,9 @@ async def approve_cb(query: CallbackQuery, callback_data: ApprovalCB) -> None:
     # Automatikus posztolás csak LinkedInre; minden más egyelőre csak approve.
     if platform != "linkedin":
         posts_store.mark_approved(post_id, by)
-        await _safe_edit_message(query.message, f"{base}\n\n✅ Approved ({platform}) — @{by}", reply_markup=None)
+        await _safe_edit_message(
+            msg, f"{base}\n\n✅ Approved ({platform}) — @{by}", reply_markup=None
+        )
         await query.answer("Approved")
         return
 
@@ -391,7 +456,9 @@ async def approve_cb(query: CallbackQuery, callback_data: ApprovalCB) -> None:
         author_urn = author_urn or f"urn:li:person:{voice.upper()}_PLACEHOLDER"
     else:
         if not author_urn:
-            await _publish_failed(query, base, by, post_id, f"nincs linkedin_urn az accounts.yml-ben ({voice})")
+            await _publish_failed(
+                query, base, by, post_id, f"nincs linkedin_urn az accounts.yml-ben ({voice})"
+            )
             return
         try:
             token = token_store.get_token(voice)
@@ -404,7 +471,9 @@ async def approve_cb(query: CallbackQuery, callback_data: ApprovalCB) -> None:
         access_token = token["access_token"]
 
     try:
-        urn = await post_to_linkedin(access_token, author_urn, content, hashtags, post_id=post_id, mock=mock)
+        urn = await post_to_linkedin(
+            access_token, author_urn, content, hashtags, post_id=post_id, mock=mock
+        )
     except Exception as exc:
         await _publish_failed(query, base, by, post_id, str(exc))
         return
@@ -416,7 +485,7 @@ async def approve_cb(query: CallbackQuery, callback_data: ApprovalCB) -> None:
         # post_to_linkedin éles ágon már beírta a published táblába; itt csak a státusz.
         posts_store.mark_published(post_id, by)
         footer = f"✅ Published — {urn}"
-    await _safe_edit_message(query.message, f"{base}\n\n{footer} — @{by}", reply_markup=None)
+    await _safe_edit_message(msg, f"{base}\n\n{footer} — @{by}", reply_markup=None)
     await query.answer(footer[:200])
 
 
@@ -433,11 +502,12 @@ async def regenerate_cb(query: CallbackQuery, callback_data: ApprovalCB) -> None
 @router.callback_query(ApprovalCB.filter(F.action == "edit"))
 async def edit_cb(query: CallbackQuery, callback_data: ApprovalCB, bot: Bot) -> None:
     post_id = callback_data.post_id
+    msg = cast(Message, query.message)
     user_id = query.from_user.id
     post = posts_store.get_post(post_id) or {}
     original = post.get("content") or "(nincs tartalom)"
     # Jegyezzük meg a csoportposzt helyét, hogy később "✏️ Edited"-re frissíthessük.
-    _post_messages[post_id] = (query.message.chat.id, query.message.message_id)
+    _post_messages[post_id] = (msg.chat.id, msg.message_id)
 
     dm_text = (
         "✏️ Küldj új szöveget ide (privát üzenet):\n\n"
@@ -448,33 +518,50 @@ async def edit_cb(query: CallbackQuery, callback_data: ApprovalCB, bot: Bot) -> 
         await bot.send_message(user_id, dm_text)
         _pending_edits[user_id] = {
             "post_id": post_id,
-            "chat_id": query.message.chat.id,
-            "message_id": query.message.message_id,
+            "chat_id": msg.chat.id,
+            "message_id": msg.message_id,
         }
         logger.info("Edit DM elkuldve: user=%s post=%s", user_id, post_id)
         await query.answer("Nézd meg a privát üzeneteidet (DM) ✏️")
     except Exception as exc:  # a user még nem indította el a botot DM-ben
         logger.warning("DM sikertelen (user=%s): %s", user_id, str(exc)[:120])
-        await query.answer("Nem tudok privát üzenetet küldeni — lásd a csoportüzenetet.", show_alert=True)
+        await query.answer(
+            "Nem tudok privát üzenetet küldeni — lásd a csoportüzenetet.", show_alert=True
+        )
         await bot.send_message(
-            query.message.chat.id,
+            msg.chat.id,
             f"@{query.from_user.username or query.from_user.id} — előbb indítsd el a botot DM-ben "
             f"(/start @{(await bot.me()).username}), vagy írd be ide:\n"
             f"<code>/edit {post_id} &lt;új szöveg&gt;</code>",
         )
 
 
-async def _apply_edit(bot: Bot, post_id: str, new_text: str, user, chat_id, message_id) -> None:
+async def _apply_edit(
+    bot: Bot,
+    post_id: str,
+    new_text: str,
+    user: User,
+    chat_id: int | None,
+    message_id: int | None,
+) -> None:
     """Elmenti a szerkesztett szöveget, és (ha ismert) a csoportposztot "✏️ Edited"-re frissíti."""
     posts_store.mark_edited(post_id, new_text)
     posts_store.record_approval(
-        post_id, chat_id, message_id, action="edited",
-        telegram_user_id=user.id, action_data={"edited_content": new_text},
+        post_id,
+        chat_id,
+        message_id,
+        action="edited",
+        telegram_user_id=user.id,
+        action_data={"edited_content": new_text},
     )
     if chat_id and message_id:
         preview = new_text[:50] + ("…" if len(new_text) > 50 else "")
         await _safe_edit_by_id(
-            bot, chat_id, message_id, f"✏️ Edited: {html.escape(preview)}", reply_markup=None,
+            bot,
+            chat_id,
+            message_id,
+            f"✏️ Edited: {html.escape(preview)}",
+            reply_markup=None,
         )
     logger.info("Edit mentve: post_id=%s (%d karakter)", post_id, len(new_text))
 
@@ -487,7 +574,9 @@ async def edit_command(message: Message, command: CommandObject, bot: Bot) -> No
         await message.answer("Használat: /edit <post_id> <új szöveg>")
         return
     chat_id, message_id = _post_messages.get(post_id, (None, None))
-    await _apply_edit(bot, post_id, new_text.strip(), message.from_user, chat_id, message_id)
+    await _apply_edit(
+        bot, post_id, new_text.strip(), cast(User, message.from_user), chat_id, message_id
+    )
     await message.answer(f"✏️ Szerkesztés mentve (post_id={post_id}).")
 
 
@@ -508,7 +597,8 @@ async def mark_posted_cmd(message: Message, command: CommandObject) -> None:
     if not post:
         await message.answer(f"Nincs ilyen poszt: <code>{html.escape(post_id)}</code>")
         return
-    by = message.from_user.username or message.from_user.full_name
+    user = cast(User, message.from_user)
+    by = user.username or user.full_name
     posts_store.mark_posted(post_id, by)
     await message.answer(
         f"✅ Posztoltként jelölve: <b>{html.escape(post.get('voice', '?'))}</b> "
@@ -521,20 +611,25 @@ async def mark_posted_cmd(message: Message, command: CommandObject) -> None:
 # DM-ben érkező új szöveg (privacy mode-tól függetlenül kézbesül).
 @router.message(F.chat.type == "private")
 async def dm_edit_reply(message: Message, bot: Bot) -> None:
-    ctx = _pending_edits.pop(message.from_user.id, None)
+    user = cast(User, message.from_user)
+    ctx = _pending_edits.pop(user.id, None)
     if not ctx:
-        await message.answer("Nincs aktív szerkesztés. A csoportban kattints egy poszt ✏️ Edit gombjára.")
+        await message.answer(
+            "Nincs aktív szerkesztés. A csoportban kattints egy poszt ✏️ Edit gombjára."
+        )
         return
     new_text = (message.text or "").strip()
     if not new_text:
-        _pending_edits[message.from_user.id] = ctx  # visszatesszük, várunk szövegre
+        _pending_edits[user.id] = ctx  # visszatesszük, várunk szövegre
         await message.answer("Üres üzenet — küldj szöveget.")
         return
-    await _apply_edit(bot, ctx["post_id"], new_text, message.from_user, ctx.get("chat_id"), ctx.get("message_id"))
+    await _apply_edit(
+        bot, ctx["post_id"], new_text, user, ctx.get("chat_id"), ctx.get("message_id")
+    )
     await message.answer("✏️ Szerkesztés mentve, a csoportposzt frissítve.")
 
 
-def _format_token(info: dict) -> str:
+def _format_token(info: dict[str, Any]) -> str:
     """Token állapot egy soros, emberi formában a /status-hoz."""
     if info.get("error"):
         return f"⚠️ tábla/hiba ({info['error']})"
@@ -556,20 +651,24 @@ def _week_start_iso() -> str:
     return monday.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
 
 
-def _format_strategy_account(rep: dict) -> str:
+def _format_strategy_account(rep: dict[str, Any]) -> str:
     name, _emoji = VOICE_DISPLAY.get(rep["account"], (rep["account"].upper(), ""))
     order = content_strategy.CONTENT_TYPES
     label = content_strategy.TYPE_LABEL
 
-    def pct_line(dist: dict) -> str:
-        return ", ".join(f"{round(dist.get(c, 0) * 100)}% {label[c]}" for c in order if c in rep["target"])
+    def pct_line(dist: dict[str, Any]) -> str:
+        return ", ".join(
+            f"{round(dist.get(c, 0) * 100)}% {label[c]}" for c in order if c in rep["target"]
+        )
 
-    return "\n".join([
-        f"<b>{name}</b> (LinkedIn)",
-        f"  Cél: {pct_line(rep['target'])}",
-        f"  Tényleges: {pct_line(rep['actual'])}  ({rep['total_posts']} poszt / cél {rep['weekly_target']})",
-        f"  Következő javaslat: <b>{rep['next_type']}</b>",
-    ])
+    return "\n".join(
+        [
+            f"<b>{name}</b> (LinkedIn)",
+            f"  Cél: {pct_line(rep['target'])}",
+            f"  Tényleges: {pct_line(rep['actual'])}  ({rep['total_posts']} poszt / cél {rep['weekly_target']})",
+            f"  Következő javaslat: <b>{rep['next_type']}</b>",
+        ]
+    )
 
 
 @router.message(Command("strategy"))
@@ -585,13 +684,17 @@ async def strategy_cmd(message: Message) -> None:
     except Exception as exc:
         await message.answer(f"❌ Stratégia lekérdezés hiba: {html.escape(str(exc)[:150])}")
         return
-    await message.answer("📋 <b>Tartalom stratégia — heti állás (hétfőtől)</b>\n\n" + "\n\n".join(blocks))
+    await message.answer(
+        "📋 <b>Tartalom stratégia — heti állás (hétfőtől)</b>\n\n" + "\n\n".join(blocks)
+    )
 
 
 @router.message(Command("status"))
 async def status_cmd(message: Message) -> None:
     """Napi poszt-statisztika + token lejárati figyelmeztetések fiókonként."""
-    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+    today_start = (
+        datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+    )
     try:
         counts = posts_store.status_counts_since(today_start)
     except Exception as exc:
@@ -640,8 +743,11 @@ async def eval_visuals_cmd(message: Message) -> None:
     if base is not None:
         delta = round((cur["overall_avg"] or 0) - base, 2)
         arrow = "🟢" if delta >= 0 else "🔴"
-        lines += ["", f"Baseline (győztes <b>{q.get('baseline_winner')}</b>): {base} "
-                      f"{arrow} {'+' if delta >= 0 else ''}{delta}"]
+        lines += [
+            "",
+            f"Baseline (győztes <b>{q.get('baseline_winner')}</b>): {base} "
+            f"{arrow} {'+' if delta >= 0 else ''}{delta}",
+        ]
     else:
         lines += ["", "<i>Nincs baseline — futtasd: python -m scripts.run_visual_eval</i>"]
     await message.answer("\n".join(lines))
@@ -650,8 +756,13 @@ async def eval_visuals_cmd(message: Message) -> None:
 async def _amain() -> None:
     bot = get_bot()
     me = await bot.get_me()
-    logger.info("Bot inditva: @%s (id=%s) | posts_chat=%s reactions_chat=%s",
-                me.username, me.id, POSTS_CHAT_ID, REACTIONS_CHAT_ID)
+    logger.info(
+        "Bot inditva: @%s (id=%s) | posts_chat=%s reactions_chat=%s",
+        me.username,
+        me.id,
+        POSTS_CHAT_ID,
+        REACTIONS_CHAT_ID,
+    )
     dp = Dispatcher()
     dp.include_router(router)
     await dp.start_polling(bot)

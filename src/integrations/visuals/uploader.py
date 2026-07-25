@@ -3,11 +3,13 @@
 A komponált (szöveg-overlay-es) képet publikus URL-re tölti, hogy a Telegram és az
 értékelő is elérje. Ha a Storage nem elérhető, a lokális assets/generated/ utat adja vissza.
 """
+
 from __future__ import annotations
 
 import logging
 import mimetypes
 from pathlib import Path
+from typing import cast
 
 from src.core.storage.db import get_client, has_service_key
 
@@ -22,7 +24,9 @@ def ensure_bucket(name: str = BUCKET) -> bool:
     """Létrehozza a publikus bucketet, ha még nincs. True, ha elérhető/létrejött."""
     try:
         client = get_client(use_service_key=has_service_key())
-        existing = {b.name if hasattr(b, "name") else b.get("name") for b in client.storage.list_buckets()}
+        existing = {
+            b.name if hasattr(b, "name") else b.get("name") for b in client.storage.list_buckets()
+        }
         if name in existing:
             return True
         client.storage.create_bucket(name, options={"public": True})
@@ -57,7 +61,7 @@ def upload_visual(local_path: str, dest_name: str | None = None) -> str:
             else:
                 raise
         url = storage.get_public_url(dest)
-        return url
+        return cast(str, url)
     except Exception as exc:
         logger.warning("[storage] feltöltés sikertelen (%s) — lokális út marad.", str(exc)[:120])
         return str(p)

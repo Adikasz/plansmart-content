@@ -219,8 +219,8 @@ def update_post_status(
 
 def record_approval(
     post_id: str,
-    telegram_chat_id: int,
-    telegram_message_id: int,
+    telegram_chat_id: int | None,
+    telegram_message_id: int | None,
     action: str,
     telegram_user_id: int | None = None,
     action_data: dict[str, Any] | None = None,

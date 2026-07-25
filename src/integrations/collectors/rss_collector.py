@@ -10,6 +10,7 @@ Forrásonkénti státusz: OK | FIXED | STILL_FAILING | DISABLED.
 Önállóan futtatva forrásonkénti összesítést ír ki:
     python -m src.integrations.collectors.rss_collector
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -24,7 +25,6 @@ import httpx
 import yaml
 from dotenv import load_dotenv
 
-from src.integrations.collectors.nextjs_scraper import fetch_nextjs_json
 from src.core.config.settings import get_settings
 from src.core.storage.feed_items import dedupe_and_save
 from src.core.storage.models import (
@@ -36,6 +36,7 @@ from src.core.storage.models import (
     SourceResult,
     make_id,
 )
+from src.integrations.collectors.nextjs_scraper import fetch_nextjs_json
 from src.utils.logging import setup_logging
 
 logger = logging.getLogger(__name__)
@@ -97,15 +98,21 @@ async def _get_with_retry(client: httpx.AsyncClient, name: str, url: str) -> htt
                 delay = RETRY_BACKOFF[min(attempt, len(RETRY_BACKOFF) - 1)]
                 logger.warning(
                     "Retry [%s] %d/%d — %.0f mp mulva (%s)",
-                    name, attempt + 1, MAX_RETRIES, delay, _exc_brief(exc),
+                    name,
+                    attempt + 1,
+                    MAX_RETRIES,
+                    delay,
+                    _exc_brief(exc),
                 )
                 await asyncio.sleep(delay)
                 continue
             raise
+    raise RuntimeError("unreachable: a retry-ciklus mindig return-öl vagy raise-el")
 
 
-def _parse_entry(entry: Any, source_name: str, priority: int, tags: list[str],
-                 feed_title: str | None) -> FeedItem | None:
+def _parse_entry(
+    entry: Any, source_name: str, priority: int, tags: list[str], feed_title: str | None
+) -> FeedItem | None:
     link = entry.get("link")
     if not link:
         return None
@@ -114,7 +121,8 @@ def _parse_entry(entry: Any, source_name: str, priority: int, tags: list[str],
     for key in ("published_parsed", "updated_parsed"):
         ts = entry.get(key)
         if ts:
-            published_at = datetime(*ts[:6], tzinfo=timezone.utc).isoformat()
+            yr, mon, day, hr, minute, sec = ts[:6]
+            published_at = datetime(yr, mon, day, hr, minute, sec, tzinfo=timezone.utc).isoformat()
             break
 
     content = entry.get("summary")
@@ -178,13 +186,18 @@ async def fetch_source(client: httpx.AsyncClient, source: dict[str, Any]) -> Sou
     if not items:
         logger.info("Ures feed [%s]: 0 elem", name)
         return SourceResult(
-            name=name, label=STILL_FAILING, raw_count=len(parsed.entries),
+            name=name,
+            label=STILL_FAILING,
+            raw_count=len(parsed.entries),
             error="ures feed (0 elem)",
         )
 
     return SourceResult(
-        name=name, label=ok_label, count=len(items),
-        raw_count=len(parsed.entries), items=items,
+        name=name,
+        label=ok_label,
+        count=len(items),
+        raw_count=len(parsed.entries),
+        items=items,
     )
 
 
@@ -227,8 +240,11 @@ def _print_summary(results: list[SourceResult], dedup: dict[str, Any]) -> None:
     logger.info("%s", "-" * (width + 26))
     logger.info(
         "Sikeres (OK+FIXED): %d/%d  |  FIXED %d  |  STILL_FAILING %d  |  DISABLED %d",
-        succeed, len(results), counts.get(FIXED, 0),
-        counts.get(STILL_FAILING, 0), counts.get(DISABLED, 0),
+        succeed,
+        len(results),
+        counts.get(FIXED, 0),
+        counts.get(STILL_FAILING, 0),
+        counts.get(DISABLED, 0),
     )
     logger.info("Osszes elem (cap utan): %d", total_items)
     if dedup["connected"]:
@@ -238,7 +254,8 @@ def _print_summary(results: list[SourceResult], dedup: dict[str, Any]) -> None:
     else:
         logger.info(
             "Supabase: nincs kapcsolat — %d egyedi elem a futasban (%d in-run duplikatum)",
-            dedup["new"], dedup["duplicates"],
+            dedup["new"],
+            dedup["duplicates"],
         )
 
 

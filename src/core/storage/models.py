@@ -14,7 +14,9 @@ from pydantic import BaseModel, Field
 
 # make_id / _utcnow_iso a src.utils.ids-ben lakik; itt re-exportáljuk, hogy a történeti
 # `from src.core.storage.models import make_id` importok (collectors) érintetlenül maradjanak.
-from src.utils.ids import _utcnow_iso, make_id  # noqa: F401
+# A redundáns `as` alias explicit re-export (no_implicit_reexport-kompatibilis).
+from src.utils.ids import _utcnow_iso as _utcnow_iso  # noqa: F401
+from src.utils.ids import make_id as make_id  # noqa: F401
 
 # Statusz cimkek
 OK = "OK"

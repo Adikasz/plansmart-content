@@ -20,10 +20,12 @@ Külön Router — a src/core/workers/main.py a posts router ELÉ fűzi be (lás
 hogy a privát-chat parancsokat ne nyelje el a posts bot DM-catch-all handlere. Ezért
 NINCS itt catch-all üzenet-handler (a szerkesztés a /pnote / /add_note paranccsal megy).
 """
+
 from __future__ import annotations
 
 import html
 import logging
+from typing import Any, cast
 
 from aiogram import Bot, F, Router
 from aiogram.filters import Command, CommandObject
@@ -45,8 +47,10 @@ CATEGORY_LABEL = {
     "industry_peer": "Iparági partner",
 }
 CHAR_LIMIT = 300
-_TABLE_MISSING = ("⚠️ A prospects tábla még nincs a Supabase-ben — futtasd a "
-                  "<code>scripts/migration_18_prospects.sql</code>-t.")
+_TABLE_MISSING = (
+    "⚠️ A prospects tábla még nincs a Supabase-ben — futtasd a "
+    "<code>scripts/migration_18_prospects.sql</code>-t."
+)
 _INTERACTIONS_TABLE_MISSING = (
     "⚠️ A prospect_interactions tábla még nincs a Supabase-ben — futtasd a "
     "<code>scripts/migration_21_prospect_tracking.sql</code>-t."
@@ -89,7 +93,9 @@ async def _guard(message: Message) -> bool:
     ok, err = _table_state()
     if ok:
         return True
-    await message.answer(_TABLE_MISSING if not err else f"⚠️ prospects tábla hiba: {html.escape(err)}")
+    await message.answer(
+        _TABLE_MISSING if not err else f"⚠️ prospects tábla hiba: {html.escape(err)}"
+    )
     return False
 
 
@@ -100,14 +106,22 @@ def _short(s: str, n: int) -> str:
 
 def _kb(pid: str) -> InlineKeyboardMarkup:
     def btn(text: str, action: str) -> InlineKeyboardButton:
-        return InlineKeyboardButton(text=text, callback_data=ProspectCB(action=action, pid=pid).pack())
+        return InlineKeyboardButton(
+            text=text, callback_data=ProspectCB(action=action, pid=pid).pack()
+        )
 
-    return InlineKeyboardMarkup(inline_keyboard=[[
-        btn("✅ Approve", "approve"), btn("✏️ Edit", "edit"), btn("⏭️ Skip", "skip"),
-    ]])
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                btn("✅ Approve", "approve"),
+                btn("✏️ Edit", "edit"),
+                btn("⏭️ Skip", "skip"),
+            ]
+        ]
+    )
 
 
-def _format_card(p: dict, remaining: int = 0) -> str:
+def _format_card(p: dict[str, Any], remaining: int = 0) -> str:
     emoji, vname = VOICE_DISPLAY.get(p.get("voice") or "", ("👤", p.get("voice") or "?"))
     cat = CATEGORY_LABEL.get(p.get("category") or "", p.get("category") or "?")
     loc = ", ".join(x for x in (p.get("city"), p.get("country")) if x) or "—"
@@ -146,7 +160,7 @@ async def _safe_edit(message: Message, text: str) -> None:
         logger.warning("[prospects] üzenet-szerkesztés sikertelen: %s", str(exc)[:120])
 
 
-async def _send_one(chat_id: int, p: dict | None, bot: Bot, remaining: int = 0) -> None:
+async def _send_one(chat_id: int, p: dict[str, Any] | None, bot: Bot, remaining: int = 0) -> None:
     if not p:
         return
     await bot.send_message(chat_id, _format_card(p, remaining), reply_markup=_kb(p["id"]))
@@ -177,8 +191,11 @@ async def prospects_cmd(message: Message, bot: Bot) -> None:
         await message.answer(f"⚠️ Lekérdezés hiba: {html.escape(str(exc)[:150])}")
         return
     if not drafted:
-        hint = (f"\n\nℹ️ {researched} kikutatott jelölt vár jegyzet-generálásra "
-                "(note_generator).") if researched else ""
+        hint = (
+            (f"\n\nℹ️ {researched} kikutatott jelölt vár jegyzet-generálásra " "(note_generator).")
+            if researched
+            else ""
+        )
         await message.answer("Nincs review-ra váró jelölt (note_drafted = 0)." + hint)
         return
     await message.answer(f"📋 <b>{len(drafted)} jelölt vár jóváhagyásra.</b> Nézd át egyesével:")
@@ -194,10 +211,14 @@ async def approve_cb(query: CallbackQuery, callback_data: ProspectCB, bot: Bot) 
     except Exception as exc:  # noqa: BLE001
         await query.answer(f"Hiba: {str(exc)[:150]}", show_alert=True)
         return
-    await _safe_edit(query.message, f"✅ <b>Jóváhagyva küldésre</b> — {html.escape(p.get('name') or pid)}\n"
-                                    f"<i>id: {pid} · manuális küldés után: /mark_sent {pid}</i>")
+    msg = cast(Message, query.message)
+    await _safe_edit(
+        msg,
+        f"✅ <b>Jóváhagyva küldésre</b> — {html.escape(p.get('name') or pid)}\n"
+        f"<i>id: {pid} · manuális küldés után: /mark_sent {pid}</i>",
+    )
     await query.answer("Jóváhagyva ✅")
-    await _send_next(query.message.chat.id, bot)
+    await _send_next(msg.chat.id, bot)
 
 
 @router.callback_query(ProspectCB.filter(F.action == "skip"))
@@ -209,9 +230,10 @@ async def skip_cb(query: CallbackQuery, callback_data: ProspectCB, bot: Bot) -> 
     except Exception as exc:  # noqa: BLE001
         await query.answer(f"Hiba: {str(exc)[:150]}", show_alert=True)
         return
-    await _safe_edit(query.message, f"⏭️ <b>Kihagyva</b> — {html.escape(p.get('name') or pid)}")
+    msg = cast(Message, query.message)
+    await _safe_edit(msg, f"⏭️ <b>Kihagyva</b> — {html.escape(p.get('name') or pid)}")
     await query.answer("Kihagyva")
-    await _send_next(query.message.chat.id, bot)
+    await _send_next(msg.chat.id, bot)
 
 
 @router.callback_query(ProspectCB.filter(F.action == "edit"))
@@ -223,7 +245,7 @@ async def edit_cb(query: CallbackQuery, callback_data: ProspectCB) -> None:
         await query.answer(f"Hiba: {str(exc)[:150]}", show_alert=True)
         return
     cur = p.get("connection_note_draft") or ""
-    await query.message.answer(
+    await cast(Message, query.message).answer(
         "✏️ Írd át a jegyzetet — másold ki, javítsd a szöveget, küldd vissza:\n"
         f"<code>/pnote {pid} {html.escape(cur)}</code>"
     )
@@ -265,7 +287,9 @@ async def pending_cmd(message: Message) -> None:
         await message.answer(f"⚠️ Lekérdezés hiba: {html.escape(str(exc)[:150])}")
         return
     if not rows:
-        await message.answer("📭 Nincs jóváhagyott-de-még-nem-küldött jelölt (approved_to_send = 0).")
+        await message.answer(
+            "📭 Nincs jóváhagyott-de-még-nem-küldött jelölt (approved_to_send = 0)."
+        )
         return
     lines = [f"📨 <b>{len(rows)} jóváhagyott jelölt vár manuális küldésre:</b>", ""]
     for p in rows[:30]:
@@ -302,7 +326,9 @@ async def mark_sent_cmd(message: Message, command: CommandObject) -> None:
         else:
             note_hint = f"\n\n{_INTERACTIONS_TABLE_MISSING}"
     except Exception as exc:  # noqa: BLE001 — a mark_sent már megtörtént, ez csak extra tracking
-        logger.warning("[prospects] connection_sent interaction logolás sikertelen: %s", str(exc)[:120])
+        logger.warning(
+            "[prospects] connection_sent interaction logolás sikertelen: %s", str(exc)[:120]
+        )
     await message.answer(
         f"✅ Elküldöttként jelölve: <b>{html.escape(p.get('name') or pid)}</b> "
         f"(korábbi státusz: {html.escape(str(prev))} → sent).\n\n"
@@ -318,19 +344,23 @@ class InteractionCB(CallbackData, prefix="interact"):
 
 def _interaction_kb(pid: str) -> InlineKeyboardMarkup:
     def btn(text: str, action: str) -> InlineKeyboardButton:
-        return InlineKeyboardButton(text=text, callback_data=InteractionCB(action=action, pid=pid).pack())
+        return InlineKeyboardButton(
+            text=text, callback_data=InteractionCB(action=action, pid=pid).pack()
+        )
 
     rows = [[btn(label, action)] for label, action in _STAGE_BUTTONS]
     rows.append([btn("✏️ Jegyzet hozzáadása", "note")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
-def _format_history(rows: list[dict]) -> str:
+def _format_history(rows: list[dict[str, Any]]) -> str:
     if not rows:
         return "<i>(még nincs rögzített interakció)</i>"
     lines = []
     for r in rows[:15]:
-        label = _INTERACTION_LABEL.get(r.get("interaction_type"), r.get("interaction_type") or "?")
+        label = _INTERACTION_LABEL.get(
+            r.get("interaction_type") or "", r.get("interaction_type") or "?"
+        )
         date = (r.get("interaction_date") or "")[:10]
         line = f"  {date} — {label}"
         if r.get("notes"):
@@ -391,7 +421,9 @@ async def update_prospect_cmd(message: Message, command: CommandObject, bot: Bot
 
 
 @router.callback_query(InteractionCB.filter(F.action != "note"))
-async def interaction_stage_cb(query: CallbackQuery, callback_data: InteractionCB, bot: Bot) -> None:
+async def interaction_stage_cb(
+    query: CallbackQuery, callback_data: InteractionCB, bot: Bot
+) -> None:
     pid, action = callback_data.pid, callback_data.action
     try:
         interactions_store.log_interaction(pid, action)
@@ -400,17 +432,18 @@ async def interaction_stage_cb(query: CallbackQuery, callback_data: InteractionC
         return
     label = _INTERACTION_LABEL.get(action, action)
     await query.answer(f"Rögzítve: {label}")
+    msg = cast(Message, query.message)
     try:
-        await query.message.delete()
+        await msg.delete()
     except Exception:  # noqa: BLE001 — nem kritikus, ha nem törölhető
         pass
-    await _send_update_card(query.message.chat.id, pid, bot)
+    await _send_update_card(msg.chat.id, pid, bot)
 
 
 @router.callback_query(InteractionCB.filter(F.action == "note"))
 async def interaction_note_cb(query: CallbackQuery, callback_data: InteractionCB) -> None:
     pid = callback_data.pid
-    await query.message.answer(
+    await cast(Message, query.message).answer(
         "✏️ Írd be a jegyzetet (másold ki, egészítsd ki, küldd vissza):\n"
         f"<code>/add_note {pid} &lt;szöveg&gt;</code>"
     )

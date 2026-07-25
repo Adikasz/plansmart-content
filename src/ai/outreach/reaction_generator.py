@@ -21,20 +21,22 @@ note_generator Sonnet-hívásával összhangban.
 Önálló teszt:
     python -m src.ai.outreach.reaction_generator
 """
+
 from __future__ import annotations
 
 import asyncio
 import logging
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import yaml
 from anthropic import AsyncAnthropic
+from anthropic.types import TextBlock
 from dotenv import load_dotenv
 
-from src.core.config.settings import get_settings
 from src.ai.outreach.reaction_classifier import classify_reaction
+from src.core.config.settings import get_settings
 from src.utils.logging import setup_logging
 
 logger = logging.getLogger(__name__)
@@ -48,12 +50,18 @@ MAX_TOKENS = 600
 
 # A három hang TÖMÖR leírása a rövid reakció-válaszhoz (NEM a teljes voice_*.md).
 VOICE_DESC = {
-    "david": ("You are Dávid, co-founder of PlanSmart — a hands-on builder/engineer. You reply directly, "
-              "concretely, engineer to engineer, no marketing fluff. Technical depth is welcome."),
-    "adam": ("You are Ádám, co-founder of PlanSmart — a business strategist. You reply owner-to-owner, "
-             "pragmatic and warm, never top-down or salesy. Business framing, not technical jargon."),
-    "plansmart": ("You are replying as the PlanSmart brand account ('we' voice). Results-oriented, "
-                  "professional but human, never corporate buzzword soup."),
+    "david": (
+        "You are Dávid, co-founder of PlanSmart — a hands-on builder/engineer. You reply directly, "
+        "concretely, engineer to engineer, no marketing fluff. Technical depth is welcome."
+    ),
+    "adam": (
+        "You are Ádám, co-founder of PlanSmart — a business strategist. You reply owner-to-owner, "
+        "pragmatic and warm, never top-down or salesy. Business framing, not technical jargon."
+    ),
+    "plansmart": (
+        "You are replying as the PlanSmart brand account ('we' voice). Results-oriented, "
+        "professional but human, never corporate buzzword soup."
+    ),
 }
 
 # AI-tell / buzzword tiltólista (a voice_david.md BANNED phrases + magyar megfelelők).
@@ -93,8 +101,11 @@ def _workshop_line(voice: str) -> str | None:
 
 def _system(voice: str, language: str) -> str:
     desc = VOICE_DESC.get(voice, VOICE_DESC["adam"])
-    lang_line = ("Write the reply in HUNGARIAN (natural, native, warm-professional)."
-                 if language == "hu" else "Write the reply in ENGLISH.")
+    lang_line = (
+        "Write the reply in HUNGARIAN (natural, native, warm-professional)."
+        if language == "hu"
+        else "Write the reply in ENGLISH."
+    )
     return (
         f"{desc}\n\n"
         "You are drafting a reply to an incoming LinkedIn message. It is a DRAFT — a human will edit "
@@ -136,12 +147,16 @@ def build_user_prompt(
             "this is a public comment thread."
         )
         if classification == "appreciative_only":
-            parts.append("They only expressed appreciation — a warm one-sentence thank-you is enough.")
+            parts.append(
+                "They only expressed appreciation — a warm one-sentence thank-you is enough."
+            )
     elif use_template:
         wl = workshop_line or "a free intro workshop for SME owners"
-        link_line = (f"end with the Calendly link so they can book a slot: {calendly_url}"
-                     if calendly_url.strip()
-                     else "offer to share a booking link in a follow-up (no link is configured yet)")
+        link_line = (
+            f"end with the Calendly link so they can book a slot: {calendly_url}"
+            if calendly_url.strip()
+            else "offer to share a booking link in a follow-up (no link is configured yet)"
+        )
         parts.append(
             "TASK: This is a FIRST DM from a new potential client showing buying intent. Write a warm "
             "first-message reply that: (1) briefly welcomes them and thanks them for reaching out, "
@@ -177,14 +192,21 @@ async def generate_reply(
     """Egy válasz-draft generálása. A hívó (bot/script) menti + jóváhagyatja."""
     calendly_url = get_settings().calendly_url or ""
     user = build_user_prompt(
-        reaction_type, classification, incoming_text, context_text,
-        is_first_dm, calendly_url, _workshop_line(voice),
+        reaction_type,
+        classification,
+        incoming_text,
+        context_text,
+        is_first_dm,
+        calendly_url,
+        _workshop_line(voice),
     )
     msg = await _client().messages.create(
-        model=MODEL, max_tokens=MAX_TOKENS, system=_system(voice, language),
+        model=MODEL,
+        max_tokens=MAX_TOKENS,
+        system=_system(voice, language),
         messages=[{"role": "user", "content": user}],
     )
-    return _clean(msg.content[0].text if msg.content else "")
+    return _clean(cast(TextBlock, msg.content[0]).text if msg.content else "")
 
 
 async def build_reaction(
@@ -203,8 +225,13 @@ async def build_reaction(
     if cls["skip"]:
         return {**cls, "reply": None}
     reply = await generate_reply(
-        voice, reaction_type, incoming_text, cls["classification"],
-        context_text=context_text, language=cls["language"], is_first_dm=is_first_dm,
+        voice,
+        reaction_type,
+        incoming_text,
+        cls["classification"],
+        context_text=context_text,
+        language=cls["language"],
+        is_first_dm=is_first_dm,
     )
     return {**cls, "reply": reply}
 
@@ -213,9 +240,11 @@ async def _demo() -> int:
     import json
 
     out = await build_reaction(
-        "adam", "dm",
+        "adam",
+        "dm",
         "Hi, we're a 30-person logistics firm, do you work with our size?",
-        context_text="", is_first_dm=True,
+        context_text="",
+        is_first_dm=True,
     )
     print(json.dumps(out, ensure_ascii=False, indent=2))
     return 0

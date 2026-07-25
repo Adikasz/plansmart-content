@@ -6,14 +6,16 @@ feedback + a viral hook könyvtár + a voice prompt alapján → újra-értékel
 Önálló teszt:
     python -m src.ai.optimization.text_improver
 """
+
 from __future__ import annotations
 
 import logging
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from anthropic import AsyncAnthropic
+from anthropic.types import TextBlock
 from dotenv import load_dotenv
 
 from src.ai.optimization.text_evaluator import TextEvaluator
@@ -92,19 +94,22 @@ def _rewrite_system(voice: str) -> str:
     )
 
 
-async def _rewrite(post: str, voice: str, content_type: str, scores: dict) -> str:
+async def _rewrite(post: str, voice: str, content_type: str, scores: dict[str, Any]) -> str:
     nativeness = scores.get("english_native_quality")
     native_line = (
         f"ENGLISH-NATIVE score: {nativeness}/10 — if below 9, this is the MOST important thing to "
         "fix (remove banned buzzwords + AI-tell connectors + translated/guru rhythm).\n\n"
-        if nativeness is not None else ""
+        if nativeness is not None
+        else ""
     )
     n = len(post or "")
     len_line = ""
     if n > 1900:
         len_line = f"LENGTH: {n} chars — TOO LONG. Cut it to 1300-1900 chars (tighten, drop weakest points).\n\n"
     elif n < 1300:
-        len_line = f"LENGTH: {n} chars — TOO SHORT. Expand to 1300-1900 chars with concrete detail.\n\n"
+        len_line = (
+            f"LENGTH: {n} chars — TOO SHORT. Expand to 1300-1900 chars with concrete detail.\n\n"
+        )
     fab_line = ""
     if scores.get("fabrication_risk"):
         reason = scores.get("fabrication_reason") or "an unsourced specific first-person claim"
@@ -118,7 +123,9 @@ async def _rewrite(post: str, voice: str, content_type: str, scores: dict) -> st
     ai_sig_line = ""
     ai_sig_risk = scores.get("ai_signature_risk")
     if isinstance(ai_sig_risk, (int, float)) and ai_sig_risk >= 6:
-        hits = [f for f in (scores.get("anti_patterns") or []) if str(f).startswith("AI-signature:")]
+        hits = [
+            f for f in (scores.get("anti_patterns") or []) if str(f).startswith("AI-signature:")
+        ]
         detected = "; ".join(hits) if hits else "see SPECIFIC PROBLEMS below for the exact spans"
         ai_sig_line = (
             f"AI-SIGNATURE RISK — TOP PRIORITY, must fix (score {ai_sig_risk}/10, lower=more human): "
@@ -138,11 +145,13 @@ async def _rewrite(post: str, voice: str, content_type: str, scores: dict) -> st
     user += "Rewrite the post now, fixing the issues above. Return only the finished post."
 
     msg = await _client().messages.create(
-        model=MODEL, max_tokens=MAX_TOKENS, system=cached_system(_rewrite_system(voice)),
+        model=MODEL,
+        max_tokens=MAX_TOKENS,
+        system=cached_system(_rewrite_system(voice)),
         messages=[{"role": "user", "content": user}],  # ~5.3k tokenes rewrite-prompt → caching
     )
     record_claude_usage(msg, MODEL, kind="text_improve")
-    text = (msg.content[0].text if msg.content else "").strip()
+    text = (cast(TextBlock, msg.content[0]).text if msg.content else "").strip()
     # Esetleges körítés levágása (idézőjel-keret).
     if text.startswith('"') and text.endswith('"') and text.count('"') == 2:
         text = text[1:-1].strip()
@@ -178,10 +187,12 @@ async def improve_post(
     """
     evaluator = evaluator or TextEvaluator()
     current = raw_post
-    scores = await evaluator.evaluate_post(current, voice, content_type, has_manual_source=has_manual_source)
+    scores = await evaluator.evaluate_post(
+        current, voice, content_type, has_manual_source=has_manual_source
+    )
     initial_scores = scores
     initial_score = scores.get("overall_score", 0.0)
-    iterations: list[dict] = [{"iter": 0, "post": current, "scores": scores}]
+    iterations: list[dict[str, Any]] = [{"iter": 0, "post": current, "scores": scores}]
 
     def _needs_more(s: dict[str, Any]) -> bool:
         # Átírás kell, ha a pontszám a target alatt VAN, VAGY fabrikáció-kockázat áll fenn.
@@ -206,9 +217,15 @@ async def improve_post(
         if _rank(new_scores) >= _rank(scores):
             current, scores = rewritten, new_scores
         else:
-            logger.info("[improve] %s it %d nem javított rang szerint (fab=%s→%s, %.1f→%.1f) — előző marad",
-                        voice, it, scores.get("fabrication_risk"), new_scores.get("fabrication_risk"),
-                        scores.get("overall_score"), new_scores.get("overall_score"))
+            logger.info(
+                "[improve] %s it %d nem javított rang szerint (fab=%s→%s, %.1f→%.1f) — előző marad",
+                voice,
+                it,
+                scores.get("fabrication_risk"),
+                new_scores.get("fabrication_risk"),
+                scores.get("overall_score"),
+                new_scores.get("overall_score"),
+            )
             continue
 
     # A legjobb iterációt választjuk RANG szerint (fabrikáció-mentes elsőbbség, majd pontszám).
@@ -225,12 +242,18 @@ async def improve_post(
 
 
 async def _demo() -> int:
-    sample = ("In today's fast-paced world, businesses must leverage cutting-edge AI to "
-              "revolutionize their workflows. It's a real game changer for SMEs. Agree?")
+    sample = (
+        "In today's fast-paced world, businesses must leverage cutting-edge AI to "
+        "revolutionize their workflows. It's a real game changer for SMEs. Agree?"
+    )
     out = await improve_post(sample, "adam", "ai_news", target_score=9.0, max_iterations=3)
-    print("initial:", out["initial_score"], "→ final:", out["final_score"], f"(Δ{out['improvement']})")
+    print(
+        "initial:", out["initial_score"], "→ final:", out["final_score"], f"(Δ{out['improvement']})"
+    )
     print("\nFINAL POST:\n", out["final_post"])
-    print("\niterations:", [round(i["scores"].get("overall_score", 0), 1) for i in out["iterations"]])
+    print(
+        "\niterations:", [round(i["scores"].get("overall_score", 0), 1) for i in out["iterations"]]
+    )
     return 0
 
 

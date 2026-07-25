@@ -4,6 +4,7 @@ A generate() betölti a voice prompt markdownt (system), elküldi a feed_item-et
 JSON-ként (user), és visszaadja a parse-olt dict-et — vagy None-t, ha a modell
 {"skip": true}-pal jelez (a hír nem illik az adott hanghoz).
 """
+
 from __future__ import annotations
 
 import json
@@ -11,13 +12,14 @@ import logging
 import re
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from anthropic import AsyncAnthropic
+from anthropic.types import MessageParam, TextBlock
 from dotenv import load_dotenv
 
-from src.core.config.settings import get_settings
 from src.ai.generators.schemas import validate_generated
+from src.core.config.settings import get_settings
 from src.core.storage.cost_tracking import record_claude_usage
 from src.core.storage.models import FeedItem
 from src.utils.anthropic_cache import cached_system
@@ -25,11 +27,9 @@ from src.utils.anthropic_cache import cached_system
 # A JSON parse/repair a src.utils.json_repair-ben lakik; itt re-exportáljuk, hogy a történeti
 # `from src.ai.generators.base_generator import _repair_and_parse` importok (optimization, outreach,
 # visuals — 5 modul) érintetlenül maradjanak.
-from src.utils.json_repair import (  # noqa: F401
-    _escape_inner_quotes,
-    _repair_and_parse,
-    _strip_fences,
-)
+from src.utils.json_repair import _escape_inner_quotes as _escape_inner_quotes  # noqa: F401
+from src.utils.json_repair import _repair_and_parse as _repair_and_parse  # noqa: F401
+from src.utils.json_repair import _strip_fences as _strip_fences  # noqa: F401
 
 logger = logging.getLogger(__name__)
 load_dotenv(override=False)
@@ -80,12 +80,16 @@ def _build_payload(feed_item: FeedItem | dict[str, Any]) -> str:
             {
                 "type": "manual_instruction",
                 "instruction": feed_item.get("instruction", ""),
-                "content_type": feed_item.get("content_type"),  # educational | case_study | workshop_promo | ai_news
+                "content_type": feed_item.get(
+                    "content_type"
+                ),  # educational | case_study | workshop_promo | ai_news
                 "voice": feed_item.get("voice"),
                 "platform": feed_item.get("platform"),
             },
             ensure_ascii=False,
         )
+    # A dict-ág mindig visszatér fentebb → a fallthrough garantáltan FeedItem (cast = runtime no-op).
+    feed_item = cast(FeedItem, feed_item)
     return json.dumps(
         {
             "title": feed_item.title or "",
@@ -142,19 +146,21 @@ async def generate(
         model=MODEL,
         max_tokens=MAX_TOKENS,
         system=cached_system(system),  # ~3.7k tokenes voice-prompt → prompt-caching (voice-onként)
-        messages=[{"role": "user", "content": payload}],
+        messages=cast("list[MessageParam]", [{"role": "user", "content": payload}]),
     )
     record_claude_usage(msg, MODEL, kind="voice_generation")
-    raw_text = msg.content[0].text if msg.content else ""
+    raw_text = cast(TextBlock, msg.content[0]).text if msg.content else ""
     stem = Path(voice_prompt_path).stem
 
     data = _repair_and_parse(raw_text)
     if data is None:
         # Nem menthető JSON: logoljuk a nyers választ és None-t adunk (a hívó skip-ként kezeli).
-        truncated = (msg.stop_reason == "max_tokens")
+        truncated = msg.stop_reason == "max_tokens"
         logger.error(
             "JSON parse SIKERTELEN [%s]%s — nyers válasz (első 800 kar):\n%s",
-            stem, " [max_tokens-nél elvágva]" if truncated else "", (raw_text or "")[:800],
+            stem,
+            " [max_tokens-nél elvágva]" if truncated else "",
+            (raw_text or "")[:800],
         )
         return None
 
@@ -181,11 +187,15 @@ async def generate(
     # a hívó továbbra is a nyers dict-tel dolgozik, de a séma-eltérés naplózhatóvá válik.
     _, _schema_err = validate_generated(data)
     if _schema_err:
-        logger.warning("[schema] %s: a generált poszt eltér a GeneratedPost sémától — %s", stem, _schema_err)
+        logger.warning(
+            "[schema] %s: a generált poszt eltér a GeneratedPost sémától — %s", stem, _schema_err
+        )
     return data
 
 
-async def _auto_improve(data: dict[str, Any], feed_item: FeedItem | dict[str, Any], stem: str) -> None:
+async def _auto_improve(
+    data: dict[str, Any], feed_item: FeedItem | dict[str, Any], stem: str
+) -> None:
     """Phase 13 ship-gate + Phase 16 fabrikáció hard gate.
 
     - Ha a poszt pontszáma < SHIP_THRESHOLD, a jobb átírt verziót használjuk.
@@ -215,7 +225,11 @@ async def _auto_improve(data: dict[str, Any], feed_item: FeedItem | dict[str, An
         from src.ai.optimization.text_improver import improve_post
 
         result = await improve_post(
-            post_text, voice, ctype, target_score=SHIP_THRESHOLD, max_iterations=3,
+            post_text,
+            voice,
+            ctype,
+            target_score=SHIP_THRESHOLD,
+            max_iterations=3,
             has_manual_source=has_manual_source,
         )
     except Exception as exc:
@@ -226,21 +240,34 @@ async def _auto_improve(data: dict[str, Any], feed_item: FeedItem | dict[str, An
     init_fab = bool(init_scores.get("fabrication_risk"))
     final_fab = bool(final_scores.get("fabrication_risk"))
     data["text_quality"] = {
-        "initial": result["initial_score"], "final": result["final_score"],
+        "initial": result["initial_score"],
+        "final": result["final_score"],
         "improvement": result["improvement"],
-        "fabrication_initial": init_fab, "fabrication_final": final_fab,
-        "fabrication_reason": final_scores.get("fabrication_reason") or init_scores.get("fabrication_reason") or "",
+        "fabrication_initial": init_fab,
+        "fabrication_final": final_fab,
+        "fabrication_reason": final_scores.get("fabrication_reason")
+        or init_scores.get("fabrication_reason")
+        or "",
     }
     # Elfogadjuk az átírt verziót, ha jobb pontszám VAGY ha eltüntette a fabrikációt.
     fixed_fabrication = init_fab and not final_fab
     if result["final_score"] > result["initial_score"] or fixed_fabrication:
         li["content"] = result["final_post"]
         data["linkedin"] = li
-        logger.info("[auto-improve] %s %.1f → %.1f (fab %s→%s)", stem,
-                    result["initial_score"], result["final_score"], init_fab, final_fab)
+        logger.info(
+            "[auto-improve] %s %.1f → %.1f (fab %s→%s)",
+            stem,
+            result["initial_score"],
+            result["final_score"],
+            init_fab,
+            final_fab,
+        )
     if final_fab:
-        logger.warning("[auto-improve] %s: fabrikáció-kockázat MEGMARADT az átírás után — %s",
-                       stem, final_scores.get("fabrication_reason", ""))
+        logger.warning(
+            "[auto-improve] %s: fabrikáció-kockázat MEGMARADT az átírás után — %s",
+            stem,
+            final_scores.get("fabrication_reason", ""),
+        )
 
 
 async def generate_hook_variants(post_text: str) -> dict[str, Any] | None:
@@ -254,10 +281,12 @@ async def generate_hook_variants(post_text: str) -> dict[str, Any] | None:
             model=MODEL,
             max_tokens=HOOK_MAX_TOKENS,
             system=HOOK_SYSTEM,
-            messages=[{"role": "user", "content": f"POSZT:\n{post_text}"}],
+            messages=cast(
+                "list[MessageParam]", [{"role": "user", "content": f"POSZT:\n{post_text}"}]
+            ),
         )
         record_claude_usage(msg, MODEL, kind="hook_variants")
-        data = _repair_and_parse(msg.content[0].text if msg.content else "")
+        data = _repair_and_parse(cast(TextBlock, msg.content[0]).text if msg.content else "")
     except Exception as exc:
         logger.warning("[hook] variáns generálás hiba: %s", str(exc)[:120])
         return None
@@ -266,8 +295,9 @@ async def generate_hook_variants(post_text: str) -> dict[str, Any] | None:
     if not variants:
         return None
     # best_index a modelltől; fallback a legmagasabb score-ra.
+    bi = (data or {}).get("best_index")
     try:
-        best_index = int(data.get("best_index"))
+        best_index = int(bi) if bi is not None else None
     except (TypeError, ValueError):
         best_index = None
     if best_index is None or not (0 <= best_index < len(variants)):

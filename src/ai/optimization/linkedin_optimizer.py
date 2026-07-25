@@ -9,15 +9,17 @@ A modell KIZÁRÓLAG JSON-t ad vissza; a base_generator robusztus parse-ját has
 Önálló teszt:
     python -m src.ai.optimization.linkedin_optimizer
 """
+
 from __future__ import annotations
 
 import json
 import logging
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from anthropic import AsyncAnthropic
+from anthropic.types import TextBlock
 from dotenv import load_dotenv
 
 from src.ai.generators.base_generator import _repair_and_parse
@@ -88,7 +90,9 @@ def _local_warnings(final_post: str) -> list[str]:
         warns.append(f"Hosszú ({n} kar) — a {CHAR_MIN}-{CHAR_MAX} sweet spot felett.")
     first_line = final_post.strip().splitlines()[0] if final_post.strip() else ""
     if len(first_line) > HOOK_MOBILE_LIMIT:
-        warns.append(f"A hook {len(first_line)} kar — mobilon ~{HOOK_MOBILE_LIMIT} fölött levágódik.")
+        warns.append(
+            f"A hook {len(first_line)} kar — mobilon ~{HOOK_MOBILE_LIMIT} fölött levágódik."
+        )
     if first_line.rstrip().endswith("?"):
         warns.append("A hook kérdőjellel zár — bizonyítottan alacsonyabb engagement.")
     if "http://" in final_post or "https://" in final_post:
@@ -113,7 +117,7 @@ async def optimize_for_linkedin(
     raw_post: str,
     voice: str,
     content_type: str,
-    topic_context: dict | None = None,
+    topic_context: dict[str, Any] | None = None,
     hook_bias: list[str] | None = None,
 ) -> dict[str, Any]:
     """Egy nyers posztot LinkedIn-optimalizál (2026 keretrendszer) + diagnosztika.
@@ -157,14 +161,16 @@ async def optimize_for_linkedin(
             messages=[{"role": "user", "content": user}],
         )
         record_claude_usage(msg, MODEL, kind="linkedin_optimize")
-        raw_text = msg.content[0].text if msg.content else ""
+        raw_text = cast(TextBlock, msg.content[0]).text if msg.content else ""
         data = _repair_and_parse(raw_text)
     except Exception as exc:  # API/hálózati hiba
         logger.warning("[optimizer] hiba (%s) — nyers poszt megy tovább: %s", voice, str(exc)[:120])
         data = None
 
     if not data or not (data.get("final_post") or "").strip():
-        logger.warning("[optimizer] nincs használható kimenet (%s) — fallback a nyers posztra.", voice)
+        logger.warning(
+            "[optimizer] nincs használható kimenet (%s) — fallback a nyers posztra.", voice
+        )
         return {
             "final_post": raw_post,
             "hook_type": "",

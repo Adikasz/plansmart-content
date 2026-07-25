@@ -4,6 +4,7 @@ A `post_to_linkedin` a post URN-t az `x-restli-id` headerből VAGY a válasz-bod
 mezőjéből olvassa. Ez a modell a body-t validálja; a `post_urn()` egységes hozzáférést
 ad a headerhez és a body-hoz, egyetlen forrásból származó None-fallbackkel.
 """
+
 from __future__ import annotations
 
 from typing import Any

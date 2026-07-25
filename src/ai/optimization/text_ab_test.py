@@ -12,11 +12,12 @@ Mindegyiket a TextEvaluator pontozza; a győztes a legmagasabb overall_score.
 Önálló teszt:
     python -m src.ai.optimization.text_ab_test
 """
+
 from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any
+from typing import Any, cast
 
 from dotenv import load_dotenv
 
@@ -40,49 +41,63 @@ HOOK_LABEL = {"A": "production", "B": "contrarian", "C": "data", "D": "narrative
 # Phase 14: angol hook-direktívák (a "EN:" hook példák a viral_hooks_library.md-ből).
 HOOK_DIRECTIVE = {
     "contrarian": "HOOK STRATEGY — CONTRARIAN: the first line challenges a widely held belief on "
-                  "the topic (e.g. \"Don't automate. Think first.\").",
+    'the topic (e.g. "Don\'t automate. Think first.").',
     "data": "HOOK STRATEGY — DATA: open with a concrete, surprising number/ratio that implies a "
-            "story (e.g. \"I talked to 68 SME owners this year. One thing was the same for all of them.\").",
+    'story (e.g. "I talked to 68 SME owners this year. One thing was the same for all of them.").',
     "narrative": "HOOK STRATEGY — NARRATIVE: start in the MIDDLE of a story, with a concrete time "
-                 "(e.g. \"Yesterday a client of ours snapped. They were right.\").",
+    '(e.g. "Yesterday a client of ours snapped. They were right.").',
     "pain": "HOOK STRATEGY — PAIN POINT: open with an honest, vulnerable admission or the audience's "
-            "pain (e.g. \"We shipped our first AI project 2 weeks late. Here's what I learned.\").",
+    'pain (e.g. "We shipped our first AI project 2 weeks late. Here\'s what I learned.").',
 }
 
 
-def _to_feed_item(feed: dict) -> FeedItem:
+def _to_feed_item(feed: dict[str, Any]) -> FeedItem:
     return FeedItem(
-        id=feed.get("id") or "scenario", source_name=feed.get("source") or "", source_priority=1,
-        url=feed.get("url") or "", title=feed.get("title"), content=feed.get("summary"),
-        score=feed.get("score"), tags=feed.get("tags") or [],
+        id=feed.get("id") or "scenario",
+        source_name=feed.get("source") or "",
+        source_priority=1,
+        url=feed.get("url") or "",
+        title=feed.get("title"),
+        content=feed.get("summary"),
+        score=feed.get("score"),
+        tags=feed.get("tags") or [],
     )
 
 
-def _manual(scenario: dict, hook: str | None) -> dict:
+def _manual(scenario: dict[str, Any], hook: str | None) -> dict[str, Any]:
     """manual_instruction payload — opcionális hook-bias direktívával."""
     voice, ctype = scenario["voice"], scenario["content_type"]
     if scenario.get("kind") == "ai_news":
         f = scenario["feed"]
-        base = (f"React to this AI news in your own voice (don't repeat it, bring your own angle): "
-                f"TITLE: {f.get('title')}\nSUMMARY: {(f.get('summary') or '')[:600]}")
+        base = (
+            f"React to this AI news in your own voice (don't repeat it, bring your own angle): "
+            f"TITLE: {f.get('title')}\nSUMMARY: {(f.get('summary') or '')[:600]}"
+        )
     else:
         base = scenario.get("instruction", "")
     if hook:
         base += "\n\n" + HOOK_DIRECTIVE[hook]
-    return {"type": "manual_instruction", "instruction": base, "content_type": ctype,
-            "voice": voice, "platform": "linkedin"}
+    return {
+        "type": "manual_instruction",
+        "instruction": base,
+        "content_type": ctype,
+        "voice": voice,
+        "platform": "linkedin",
+    }
 
 
-def _linkedin(result: dict | None) -> str:
+def _linkedin(result: dict[str, Any] | None) -> str:
     if not result:
         return ""
     li = result.get("linkedin") or {}
-    content = li.get("content", "")
+    content = cast(str, li.get("content", ""))
     tags = li.get("hashtags") or []
     return f"{content}\n\n{' '.join(tags)}".strip() if tags else content
 
 
-async def _one_variant(key: str, scenario: dict, evaluator: TextEvaluator) -> dict:
+async def _one_variant(
+    key: str, scenario: dict[str, Any], evaluator: TextEvaluator
+) -> dict[str, Any]:
     voice, ctype = scenario["voice"], scenario["content_type"]
     hook = HOOK_STRATEGY[key]
     out: dict[str, Any] = {"variant": key, "strategy": HOOK_LABEL[key]}
@@ -108,9 +123,12 @@ async def _one_variant(key: str, scenario: dict, evaluator: TextEvaluator) -> di
 
 
 async def generate_variants(
-    scenario: dict, voice: str, content_type: str, variant_count: int = 5,
+    scenario: dict[str, Any],
+    voice: str,
+    content_type: str,
+    variant_count: int = 5,
     evaluator: TextEvaluator | None = None,
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """N variáns (A..E) generálása + értékelése. Visszaad: overall_score szerint csökkenő lista."""
     scenario = {**scenario, "voice": voice, "content_type": content_type}
     evaluator = evaluator or TextEvaluator()
@@ -124,7 +142,10 @@ async def generate_variants(
 
 
 async def _demo() -> int:
-    scenario = {"kind": "seed", "instruction": "Oktató poszt: 5 jel, hogy automatizálni kellene egy folyamatot."}
+    scenario = {
+        "kind": "seed",
+        "instruction": "Oktató poszt: 5 jel, hogy automatizálni kellene egy folyamatot.",
+    }
     ranked = await generate_variants(scenario, "adam", "educational")
     for v in ranked:
         s = v.get("scores") or {}
