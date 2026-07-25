@@ -53,3 +53,14 @@ Thumbs.db
 
 # Railway
 .railway/
+
+# =========================================
+# Ephemeral Data & Generated Assets
+# =========================================
+assets/generated/
+data/*.csv
+data/*.md
+data/*.html
+data/*.json
+!data/portrait_state.json
+!data/visual_variety_state.json
