@@ -4,6 +4,7 @@ A projekt minden külső kliense lustán (@lru_cache) épül, ezért a tiszta-lo
 credential nélkül importálhatók. Ahol mégis kell kliens/válasz, itt adunk in-memory
 hamisítványt. Egyetlen új függőség sincs — csak a stdlib unittest.mock.
 """
+
 from __future__ import annotations
 
 import os
@@ -18,15 +19,36 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-# Dummy env — hogy a lazy kliensek / Settings SOSE creds-hiány miatt bukjanak import közben.
-# (setdefault: ha a fejlesztő gépén van valódi .env, azt nem írjuk felül — de a tesztek
-# semmilyen hálózatot nem hívnak, így a valódi kulcs sem szivárog ki.)
-os.environ.setdefault("ANTHROPIC_API_KEY", "test-anthropic-key")
-os.environ.setdefault("SUPABASE_URL", "https://test.supabase.co")
-os.environ.setdefault("SUPABASE_KEY", "test-anon-key")
-os.environ.setdefault("SUPABASE_SERVICE_KEY", "test-service-key")
-os.environ.setdefault("TELEGRAM_BOT_TOKEN", "123456:test-telegram-token")
-os.environ.setdefault("MUAPI_API_KEY", "test-muapi-key")
+# Sentinel (HAMIS) credentialök. Egyetlen valódi titok sincs köztük — azért léteznek, hogy
+# (a) a lazy kliensek / Settings SOHA ne bukjanak creds-hiányon import közben, és
+# (b) a lenti autouse fixture ezekkel FELÜLÍRJon minden valódi kulcsot a teszt idejére.
+_TEST_ENV = {
+    "ANTHROPIC_API_KEY": "test-anthropic-key",
+    "SUPABASE_URL": "https://test.supabase.co",
+    "SUPABASE_KEY": "test-anon-key",
+    "SUPABASE_SERVICE_KEY": "test-service-key",
+    "TELEGRAM_BOT_TOKEN": "123456:test-telegram-token",
+    "MUAPI_API_KEY": "test-muapi-key",
+    "OPENROUTER_API_KEY": "test-openrouter-key",
+}
+
+# Import-idejű padló: a hiányzó kulcsokat kitöltjük, hogy a modul-importok (lazy kliensek,
+# Settings) SOSE bukjanak creds-hiányon. Csak setdefault — a valódi scrubot a fixture végzi.
+for _k, _v in _TEST_ENV.items():
+    os.environ.setdefault(_k, _v)
+
+
+@pytest.fixture(autouse=True)
+def _isolate_secret_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    """MINDEN tesztet (autouse) leválaszt a valódi credentialökről.
+
+    Kényszerítve HAMIS sentinel-értékre állít minden titkot, FELÜLÍRVA a fejlesztő gépén
+    esetleg .env-ből betöltött valódi kulcsot — így éles titok a suite-on belül SEM olvasható
+    ki (és hálózatra sem szivároghat). A monkeypatch a teszt után visszaállítja a környezetet.
+    """
+    for _k, _v in _TEST_ENV.items():
+        monkeypatch.setenv(_k, _v)
+
 
 from src.core.storage.models import FeedItem  # noqa: E402  (a sys.path/env beállítás UTÁN)
 

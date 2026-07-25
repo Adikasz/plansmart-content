@@ -1,4 +1,5 @@
 """Zero-network tests for src.core.storage.video_ideas (row-building + mutation logic)."""
+
 from __future__ import annotations
 
 import pytest

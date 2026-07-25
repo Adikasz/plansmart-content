@@ -1,0 +1,51 @@
+name: CI
+
+# Guardrails on the shipping branch: every push / PR to main must pass
+# formatting, lint, strict typing and the zero-network test suite before merge.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Egy futó PR-ág elég: az új push megszakítja a régebbi, még futó CI-t.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: lint · types · tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # ── Formatting: a teljes repo (scripts/ a pyproject extend-exclude-ban) ──
+      - name: Ruff format (check)
+        run: python -m ruff format --check .
+
+      # ── Lint: ugyanaz a scope ──
+      - name: Ruff lint
+        run: python -m ruff check .
+
+      # ── Strict typing: a szigorúságot a pyproject [tool.mypy] override-ok adják
+      #    a src.* fára (≈ --strict). A tests/ + live scripts/ nincs strict-gate-elve. ──
+      - name: Mypy (strict on src)
+        run: python -m mypy src
+
+      # ── Zero-network teszt-suite (nincs Supabase / Anthropic / Muapi / Telegram / net) ──
+      - name: Pytest
+        run: python -m pytest -q

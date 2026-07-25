@@ -4,6 +4,7 @@ Covers: templates_for (voice-specific + fallback), moods_for/mood_keys, accent_f
 (with unknown-key fallback to first mood), template_spec/layout_of/template_bg (unknown ->
 STAT_CARD spec), is_template, and DEFAULT_MOOD consistency.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -164,9 +165,7 @@ def test_template_bg_unknown_falls_back_to_stat_card_bg():
 
 
 # ── is_template ────────────────────────────────────────────────────────
-@pytest.mark.parametrize(
-    "name", [STAT_CARD, QUOTE_STYLE, SPLIT_COMPARISON, MINIMAL_TYPOGRAPHIC]
-)
+@pytest.mark.parametrize("name", [STAT_CARD, QUOTE_STYLE, SPLIT_COMPARISON, MINIMAL_TYPOGRAPHIC])
 def test_is_template_true_for_known(name):
     assert is_template(name) is True
 

@@ -4,6 +4,7 @@ Zero-network: pure Pydantic model validation, no external clients touched.
 Covers generators.validate_generated / HookVariant, filters.validate_score,
 publishers.LinkedInUGCResponse.post_urn and visuals.MuapiResult.from_generation.
 """
+
 from __future__ import annotations
 
 import types
@@ -11,12 +12,12 @@ import types
 import pytest
 from pydantic import ValidationError
 
-from src.core.filters.schemas import RelevanceScore, validate_score
 from src.ai.generators.schemas import (
     GeneratedPost,
     HookVariant,
     validate_generated,
 )
+from src.core.filters.schemas import RelevanceScore, validate_score
 from src.integrations.publishers.schemas import LinkedInUGCResponse
 from src.integrations.visuals.schemas import MuapiResult
 
@@ -54,9 +55,7 @@ def test_validate_generated_preserves_unknown_extra_keys():
 
 
 def test_validate_generated_extra_keys_preserved_on_nested_content():
-    post, err = validate_generated(
-        {"linkedin": {"content": "hi", "cta": "book a call"}}
-    )
+    post, err = validate_generated({"linkedin": {"content": "hi", "cta": "book a call"}})
     assert err is None
     assert post is not None
     # LinkedInContent also has extra="allow"
@@ -73,9 +72,7 @@ def test_validate_generated_hashtags_must_be_list():
 
 
 def test_validate_generated_hashtags_accepts_list():
-    post, err = validate_generated(
-        {"linkedin": {"content": "hi", "hashtags": ["#ai", "#build"]}}
-    )
+    post, err = validate_generated({"linkedin": {"content": "hi", "hashtags": ["#ai", "#build"]}})
     assert err is None
     assert post is not None
     assert post.linkedin.hashtags == ["#ai", "#build"]
@@ -163,10 +160,7 @@ def test_validate_score_never_raises():
 
 # ── publishers.LinkedInUGCResponse.post_urn ────────────────────────────
 def test_post_urn_from_body_id():
-    assert (
-        LinkedInUGCResponse.post_urn({"id": "urn:li:share:1"}, None)
-        == "urn:li:share:1"
-    )
+    assert LinkedInUGCResponse.post_urn({"id": "urn:li:share:1"}, None) == "urn:li:share:1"
 
 
 def test_post_urn_header_wins_over_body():
@@ -204,9 +198,7 @@ def test_muapi_from_generation_valid():
 
 def test_muapi_from_generation_optional_fields_default():
     # request_id / cost_usd read via getattr with a None fallback.
-    obj = types.SimpleNamespace(
-        image_url="https://r2.example/x.png", model="flux-2-pro"
-    )
+    obj = types.SimpleNamespace(image_url="https://r2.example/x.png", model="flux-2-pro")
     result = MuapiResult.from_generation(obj)
     assert result.request_id is None
     assert result.cost_usd is None

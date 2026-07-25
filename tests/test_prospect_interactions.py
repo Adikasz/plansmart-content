@@ -3,6 +3,7 @@
 current_stage()/bucket_label() take an in-memory interaction list -- no Supabase client
 needed, so these exercise the actual stage-computation algorithm directly.
 """
+
 from __future__ import annotations
 
 from src.core.storage import prospect_interactions as store

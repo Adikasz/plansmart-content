@@ -1,10 +1,11 @@
 """Zero-network tests for src.integrations.bots.engagement_bot (arg parsing + Telegram text formatting)."""
+
 from __future__ import annotations
 
 import pytest
 
-from src.integrations.bots import engagement_bot as bot
 from src.core.storage import engagement_report as report
+from src.integrations.bots import engagement_bot as bot
 
 
 # ── _parse_kv_args ───────────────────────────────────────────────────────
@@ -64,16 +65,28 @@ def test_fmt_group_line_zero_n_shows_no_data():
 
 
 def test_fmt_group_line_below_threshold_shows_caveat():
-    stats = {"n": 3, "avg_views": 10.0, "avg_likes": 1.0, "avg_comments": 0.0, "avg_shares": 0.0,
-              "low_confidence": True}
+    stats = {
+        "n": 3,
+        "avg_views": 10.0,
+        "avg_likes": 1.0,
+        "avg_comments": 0.0,
+        "avg_shares": 0.0,
+        "low_confidence": True,
+    }
     line = bot._fmt_group_line("david", stats)
     assert "kevés adat" in line
     assert "n=3" in line
 
 
 def test_fmt_group_line_at_threshold_no_caveat():
-    stats = {"n": 5, "avg_views": 10.0, "avg_likes": 1.0, "avg_comments": 0.0, "avg_shares": 0.0,
-              "low_confidence": False}
+    stats = {
+        "n": 5,
+        "avg_views": 10.0,
+        "avg_likes": 1.0,
+        "avg_comments": 0.0,
+        "avg_shares": 0.0,
+        "low_confidence": False,
+    }
     line = bot._fmt_group_line("david", stats)
     assert "kevés adat" not in line
     assert "n=5" in line
@@ -86,10 +99,26 @@ def test_format_report_zero_posts_message():
 
 
 def test_format_report_single_post_shows_low_confidence_and_advisory():
-    posts_by_id = {"p1": {"voice": "david", "hook_type": "A", "is_breaking": False,
-                            "metadata": {"strategy_type": "educational"}}}
-    rows = [{"post_id": "p1", "views": 100, "likes": 10, "comments": 2, "shares": 1,
-             "hours_since_post": 24, "is_final_snapshot": False, "measured_at": "2026-07-01T00:00:00+00:00"}]
+    posts_by_id = {
+        "p1": {
+            "voice": "david",
+            "hook_type": "A",
+            "is_breaking": False,
+            "metadata": {"strategy_type": "educational"},
+        }
+    }
+    rows = [
+        {
+            "post_id": "p1",
+            "views": 100,
+            "likes": 10,
+            "comments": 2,
+            "shares": 1,
+            "hours_since_post": 24,
+            "is_final_snapshot": False,
+            "measured_at": "2026-07-01T00:00:00+00:00",
+        }
+    ]
     data = report.build_report(posts_by_id, rows)
     text = bot.format_report(data)
     assert "n=1" in text
@@ -99,10 +128,26 @@ def test_format_report_single_post_shows_low_confidence_and_advisory():
 
 
 def test_format_report_includes_all_three_voices_even_when_empty():
-    posts_by_id = {"p1": {"voice": "david", "hook_type": "A", "is_breaking": False,
-                            "metadata": {"strategy_type": "educational"}}}
-    rows = [{"post_id": "p1", "views": 10, "likes": None, "comments": None, "shares": None,
-             "hours_since_post": 1, "is_final_snapshot": False, "measured_at": "x"}]
+    posts_by_id = {
+        "p1": {
+            "voice": "david",
+            "hook_type": "A",
+            "is_breaking": False,
+            "metadata": {"strategy_type": "educational"},
+        }
+    }
+    rows = [
+        {
+            "post_id": "p1",
+            "views": 10,
+            "likes": None,
+            "comments": None,
+            "shares": None,
+            "hours_since_post": 1,
+            "is_final_snapshot": False,
+            "measured_at": "x",
+        }
+    ]
     data = report.build_report(posts_by_id, rows)
     text = bot.format_report(data)
     assert "adam" in text
@@ -110,9 +155,21 @@ def test_format_report_includes_all_three_voices_even_when_empty():
 
 
 def test_format_report_flags_missing_hook_type_footnote():
-    posts_by_id = {"p1": {"voice": "david", "hook_type": None, "is_breaking": False, "metadata": {}}}
-    rows = [{"post_id": "p1", "views": 10, "likes": None, "comments": None, "shares": None,
-             "hours_since_post": 1, "is_final_snapshot": False, "measured_at": "x"}]
+    posts_by_id = {
+        "p1": {"voice": "david", "hook_type": None, "is_breaking": False, "metadata": {}}
+    }
+    rows = [
+        {
+            "post_id": "p1",
+            "views": 10,
+            "likes": None,
+            "comments": None,
+            "shares": None,
+            "hours_since_post": 1,
+            "is_final_snapshot": False,
+            "measured_at": "x",
+        }
+    ]
     data = report.build_report(posts_by_id, rows)
     text = bot.format_report(data)
     assert "hook_type nélkül" in text

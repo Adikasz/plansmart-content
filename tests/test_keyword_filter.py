@@ -3,6 +3,7 @@
 Minden config INLINE dict — a config/scoring.yml-t NEM olvassuk (kivéve a
 config=None fallback smoke-tesztet, ami lokális fájl, nem hálózat).
 """
+
 from __future__ import annotations
 
 from src.core.filters.keyword_filter import (

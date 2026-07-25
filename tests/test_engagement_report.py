@@ -6,13 +6,20 @@ exercised directly, including the ones explicitly called out in the Phase 21b sp
 logged posts, exactly one, and missing dimension data (hook_type / visual metadata / sent_at
 never surfacing as hours_since_post).
 """
+
 from __future__ import annotations
 
 from src.core.storage import engagement_report as report
 
 
-def _post(voice="david", hook_type="A", is_breaking=False, strategy_type="educational",
-          visual_template="STAT_CARD", portrait_used=True):
+def _post(
+    voice="david",
+    hook_type="A",
+    is_breaking=False,
+    strategy_type="educational",
+    visual_template="STAT_CARD",
+    portrait_used=True,
+):
     metadata = {}
     if strategy_type is not None:
         metadata["strategy_type"] = strategy_type
@@ -20,14 +27,32 @@ def _post(voice="david", hook_type="A", is_breaking=False, strategy_type="educat
         metadata["visual_template"] = visual_template
     if portrait_used is not None:
         metadata["portrait_used"] = portrait_used
-    return {"voice": voice, "hook_type": hook_type, "is_breaking": is_breaking, "metadata": metadata}
-
-
-def _row(post_id, views=None, likes=None, comments=None, shares=None,
-         hours_since_post=None, is_final_snapshot=False, measured_at="2026-07-01T00:00:00+00:00"):
     return {
-        "post_id": post_id, "views": views, "likes": likes, "comments": comments, "shares": shares,
-        "hours_since_post": hours_since_post, "is_final_snapshot": is_final_snapshot,
+        "voice": voice,
+        "hook_type": hook_type,
+        "is_breaking": is_breaking,
+        "metadata": metadata,
+    }
+
+
+def _row(
+    post_id,
+    views=None,
+    likes=None,
+    comments=None,
+    shares=None,
+    hours_since_post=None,
+    is_final_snapshot=False,
+    measured_at="2026-07-01T00:00:00+00:00",
+):
+    return {
+        "post_id": post_id,
+        "views": views,
+        "likes": likes,
+        "comments": comments,
+        "shares": shares,
+        "hours_since_post": hours_since_post,
+        "is_final_snapshot": is_final_snapshot,
         "measured_at": measured_at,
     }
 

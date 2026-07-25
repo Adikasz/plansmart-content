@@ -3,6 +3,7 @@
 Uses the checked-in config/*.yml and prompts/*.yml as read-only fixtures.
 No network, no external services.
 """
+
 from __future__ import annotations
 
 from src.core.config.loaders import (

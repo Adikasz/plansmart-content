@@ -7,6 +7,7 @@ Covers:
 - FeedItem defaults + score typing.
 - FeedItem.to_row shape / mapping.
 """
+
 from __future__ import annotations
 
 import hashlib

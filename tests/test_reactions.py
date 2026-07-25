@@ -4,17 +4,9 @@ Se Anthropic, se Supabase, se Telegram, se hálózat — csak a pure builderek:
 osztályozó-normalizálás, generátor prompt-építés (Calendly-szivárgás komment vs DM),
 storage row-alak (fake Supabase), és a Telegram formázók/keyboard.
 """
+
 from __future__ import annotations
 
-from src.integrations.bots.reactions_bot import (
-    CLASSIFICATION_LABEL,
-    ReactionCB,
-    _has_active_flow,
-    _kb,
-    _parse_voice,
-    format_final,
-    format_suggestion,
-)
 from src.ai.outreach.reaction_classifier import (
     CLASSIFICATIONS,
     SKIP_CLASSIFICATIONS,
@@ -29,6 +21,15 @@ from src.ai.outreach.reaction_generator import (
     build_user_prompt,
 )
 from src.core.storage import reactions as store
+from src.integrations.bots.reactions_bot import (
+    CLASSIFICATION_LABEL,
+    ReactionCB,
+    _has_active_flow,
+    _kb,
+    _parse_voice,
+    format_final,
+    format_suggestion,
+)
 
 CALENDLY = "https://calendly.com/plansmart/intro"
 
@@ -48,7 +49,9 @@ def test_coerce_unknown_classification_defaults_to_engagement():
 
 
 def test_coerce_keeps_valid_values():
-    out = _coerce({"classification": "lead_signal", "language": "en", "reason": "asks about pricing"})
+    out = _coerce(
+        {"classification": "lead_signal", "language": "en", "reason": "asks about pricing"}
+    )
     assert out["classification"] == "lead_signal"
     assert out["language"] == "en"
     assert "pricing" in out["reason"]
@@ -72,27 +75,41 @@ def test_classifier_user_prompt_contains_incoming_and_channel():
 # ── generator: prompt-építés (a Calendly-szivárgás a kulcs) ────────────
 def test_comment_prompt_never_leaks_calendly():
     p = build_user_prompt(
-        "comment", "question_or_engagement", "How do you handle rate limits in n8n?",
-        context_text="", is_first_dm=False, calendly_url=CALENDLY, workshop_line="n8n workshop",
+        "comment",
+        "question_or_engagement",
+        "How do you handle rate limits in n8n?",
+        context_text="",
+        is_first_dm=False,
+        calendly_url=CALENDLY,
+        workshop_line="n8n workshop",
     )
-    assert CALENDLY not in p                 # publikus kommentben SOSEM megy link
+    assert CALENDLY not in p  # publikus kommentben SOSEM megy link
     assert "1-3 sentences" in p
 
 
 def test_first_dm_lead_prompt_includes_calendly_and_workshop():
     p = build_user_prompt(
-        "dm", "lead_signal", "We're a 30-person logistics firm, do you work with our size?",
-        context_text="", is_first_dm=True, calendly_url=CALENDLY, workshop_line="AI alapok workshop",
+        "dm",
+        "lead_signal",
+        "We're a 30-person logistics firm, do you work with our size?",
+        context_text="",
+        is_first_dm=True,
+        calendly_url=CALENDLY,
+        workshop_line="AI alapok workshop",
     )
-    assert CALENDLY in p                      # first-message lead → foglalási link
-    assert "AI alapok workshop" in p          # workshop-említés
+    assert CALENDLY in p  # first-message lead → foglalási link
+    assert "AI alapok workshop" in p  # workshop-említés
 
 
 def test_non_first_dm_does_not_push_workshop_or_calendly():
     p = build_user_prompt(
-        "dm", "question_or_engagement", "thanks, and what about error handling?",
-        context_text="earlier we discussed n8n", is_first_dm=False,
-        calendly_url=CALENDLY, workshop_line="AI alapok workshop",
+        "dm",
+        "question_or_engagement",
+        "thanks, and what about error handling?",
+        context_text="earlier we discussed n8n",
+        is_first_dm=False,
+        calendly_url=CALENDLY,
+        workshop_line="AI alapok workshop",
     )
     assert CALENDLY not in p
     assert "do NOT push a workshop" in p
@@ -100,8 +117,13 @@ def test_non_first_dm_does_not_push_workshop_or_calendly():
 
 def test_first_dm_lead_without_calendly_configured_degrades_gracefully():
     p = build_user_prompt(
-        "dm", "lead_signal", "do you work with our size?",
-        context_text="", is_first_dm=True, calendly_url="", workshop_line=None,
+        "dm",
+        "lead_signal",
+        "do you work with our size?",
+        context_text="",
+        is_first_dm=True,
+        calendly_url="",
+        workshop_line=None,
     )
     # Nincs konfigurált link → nem hazudik linket, felajánlja a follow-upot.
     assert "no link is configured" in p
@@ -110,7 +132,7 @@ def test_first_dm_lead_without_calendly_configured_degrades_gracefully():
 def test_system_prompt_has_banned_words_and_language_switch():
     hu = _system("david", "hu")
     en = _system("adam", "en")
-    assert "game changer" in hu and "forradalom" in hu   # a tiltólista bent van
+    assert "game changer" in hu and "forradalom" in hu  # a tiltólista bent van
     assert "HUNGARIAN" in hu
     assert "ENGLISH" in en
 
@@ -127,16 +149,22 @@ def test_workshop_line_resolves_for_each_voice():
 # ── storage (fake Supabase, client= injektálva) ───────────────────────
 def _sample_reaction(**over) -> dict:
     base = {
-        "voice": "david", "type": "comment", "incoming_text": "How about rate limits?",
-        "classification": "question_or_engagement", "language": "en",
-        "our_reply_draft": "You can cap concurrency in the node settings.", "status": "drafted",
+        "voice": "david",
+        "type": "comment",
+        "incoming_text": "How about rate limits?",
+        "classification": "question_or_engagement",
+        "language": "en",
+        "our_reply_draft": "You can cap concurrency in the node settings.",
+        "status": "drafted",
     }
     base.update(over)
     return base
 
 
 def test_insert_reaction_returns_given_id(fake_supabase):
-    rid = store.insert_reaction({**_sample_reaction(), "id": "react12345678"}, client=fake_supabase())
+    rid = store.insert_reaction(
+        {**_sample_reaction(), "id": "react12345678"}, client=fake_supabase()
+    )
     assert rid == "react12345678"
 
 
@@ -181,14 +209,14 @@ def test_parse_voice_valid_invalid_missing():
 def test_format_suggestion_escapes_html_and_labels_classification():
     text = format_suggestion("lead_signal", "hu", "Kipróbálnád? <b>nem</b> markup")
     assert "🎯 Lead jelzés" in text
-    assert "&lt;b&gt;nem&lt;/b&gt;" in text   # a nyers markup escape-elve
+    assert "&lt;b&gt;nem&lt;/b&gt;" in text  # a nyers markup escape-elve
     assert "<b>nem</b>" not in text
 
 
 def test_format_final_wraps_in_code_for_copy():
     text = format_final("Kész válasz & vége", "✅ Kész:")
     assert "<code>" in text and "</code>" in text
-    assert "&amp;" in text                     # & escape-elve a <code>-on belül
+    assert "&amp;" in text  # & escape-elve a <code>-on belül
 
 
 def test_classification_label_covers_all_classifications():

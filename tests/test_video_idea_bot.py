@@ -1,4 +1,5 @@
 """Zero-network tests for src.integrations.bots.video_idea_bot (formatting + candidate-picking logic)."""
+
 from __future__ import annotations
 
 import pytest
@@ -27,8 +28,12 @@ def test_format_includes_all_sections():
 
 
 def test_format_escapes_html():
-    idea = {"hook": "<script>alert(1)</script>", "talking_points": [], "closing_thought": "",
-             "suggested_caption": ""}
+    idea = {
+        "hook": "<script>alert(1)</script>",
+        "talking_points": [],
+        "closing_thought": "",
+        "suggested_caption": "",
+    }
     text = vb.format_video_idea_message(idea, "title")
     assert "<script>" not in text
     assert "&lt;script&gt;" in text
@@ -36,8 +41,12 @@ def test_format_escapes_html():
 
 def test_format_shows_fabrication_warning_when_flagged():
     idea = {
-        "hook": "h", "talking_points": [], "closing_thought": "", "suggested_caption": "",
-        "fabrication_risk": True, "fabrication_reason": "invented a client story",
+        "hook": "h",
+        "talking_points": [],
+        "closing_thought": "",
+        "suggested_caption": "",
+        "fabrication_risk": True,
+        "fabrication_reason": "invented a client story",
     }
     text = vb.format_video_idea_message(idea, "title")
     assert "Fabrikáció-kockázat" in text
@@ -45,8 +54,13 @@ def test_format_shows_fabrication_warning_when_flagged():
 
 
 def test_format_no_fabrication_line_when_not_flagged():
-    idea = {"hook": "h", "talking_points": [], "closing_thought": "", "suggested_caption": "",
-             "fabrication_risk": False}
+    idea = {
+        "hook": "h",
+        "talking_points": [],
+        "closing_thought": "",
+        "suggested_caption": "",
+        "fabrication_risk": False,
+    }
     text = vb.format_video_idea_message(idea, "title")
     assert "Fabrikáció-kockázat" not in text
 
@@ -95,7 +109,9 @@ async def test_pick_and_generate_forced_feed_id_not_found(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_pick_and_generate_forced_feed_id_skip_surfaces_reason(monkeypatch):
-    monkeypatch.setattr(vb.feed_store, "get_by_id", lambda item_id, client=None: {"id": "f1", "title": "t"})
+    monkeypatch.setattr(
+        vb.feed_store, "get_by_id", lambda item_id, client=None: {"id": "f1", "title": "t"}
+    )
 
     async def fake_generate(row, voice):
         return {"skip": True, "reason": "too technical"}
@@ -108,7 +124,9 @@ async def test_pick_and_generate_forced_feed_id_skip_surfaces_reason(monkeypatch
 
 @pytest.mark.asyncio
 async def test_pick_and_generate_forced_feed_id_success(monkeypatch):
-    monkeypatch.setattr(vb.feed_store, "get_by_id", lambda item_id, client=None: {"id": "f1", "title": "t"})
+    monkeypatch.setattr(
+        vb.feed_store, "get_by_id", lambda item_id, client=None: {"id": "f1", "title": "t"}
+    )
 
     async def fake_generate(row, voice):
         return {"hook": "h", "talking_points": []}
@@ -127,7 +145,9 @@ async def test_pick_and_generate_auto_pick_filters_by_voice_fit(monkeypatch):
         {"id": "f2", "title": "fits", "voice_fit": {"adam": True}},
     ]
     monkeypatch.setattr(vb.feed_store, "get_video_idea_candidates", lambda **kw: candidates)
-    monkeypatch.setattr(vb.video_store, "has_video_idea_for_feed_item", lambda fid, client=None: False)
+    monkeypatch.setattr(
+        vb.video_store, "has_video_idea_for_feed_item", lambda fid, client=None: False
+    )
 
     seen_ids = []
 
@@ -148,8 +168,9 @@ async def test_pick_and_generate_auto_pick_skips_already_used_feed_items(monkeyp
         {"id": "f2", "title": "fresh", "voice_fit": {"adam": True}},
     ]
     monkeypatch.setattr(vb.feed_store, "get_video_idea_candidates", lambda **kw: candidates)
-    monkeypatch.setattr(vb.video_store, "has_video_idea_for_feed_item",
-                        lambda fid, client=None: fid == "f1")
+    monkeypatch.setattr(
+        vb.video_store, "has_video_idea_for_feed_item", lambda fid, client=None: fid == "f1"
+    )
 
     async def fake_generate(row, voice):
         return {"hook": "h"}
@@ -186,7 +207,8 @@ async def test_create_video_cmd_handles_duplicate_race_gracefully(monkeypatch):
     monkeypatch.setattr(vb.video_store, "table_ready", lambda client=None: True)
     monkeypatch.setattr(vb, "get_client", lambda use_service_key=False: object())
     monkeypatch.setattr(
-        vb, "_pick_and_generate",
+        vb,
+        "_pick_and_generate",
         lambda voice, client, forced_feed_id: _async_result(
             ({"hook": "h", "talking_points": ["a"]}, {"id": "f1", "title": "t"}, None)
         ),
@@ -201,7 +223,9 @@ async def test_create_video_cmd_handles_duplicate_race_gracefully(monkeypatch):
     await vb.create_video_cmd(message, _FakeCommand("adam"), bot=object())
 
     assert any("már készült" in a for a in message.answers)
-    assert not any(a.startswith("❌") for a in message.answers)  # nem generikus hibaként jelenik meg
+    assert not any(
+        a.startswith("❌") for a in message.answers
+    )  # nem generikus hibaként jelenik meg
 
 
 async def _async_result(value):

@@ -3,6 +3,7 @@
 Csak pure logikát tesztelünk: compose_text / build_ugc_payload / _fake_share_urn.
 Se hálózat, se Supabase, se httpx — semmit sem mockolunk, mert nincs rá szükség.
 """
+
 from __future__ import annotations
 
 import re

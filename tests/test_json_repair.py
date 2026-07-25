@@ -4,6 +4,7 @@ Covers repair_and_parse (alias _repair_and_parse), _strip_fences/strip_fences,
 _escape_inner_quotes/escape_inner_quotes, and the base_generator re-export identity.
 Pure logic, no network / no external clients.
 """
+
 from __future__ import annotations
 
 import json
@@ -18,6 +19,7 @@ from src.utils.json_repair import (
 )
 
 # ── repair_and_parse: happy path & common model glitches ──────────────
+
 
 def test_plain_valid_json_object():
     assert repair_and_parse('{"a": 1}') == {"a": 1}
@@ -60,6 +62,7 @@ def test_prose_with_multiline_and_leading_commentary():
 
 # ── repair_and_parse: inner unescaped quotes (the hard case) ──────────
 
+
 def test_inner_unescaped_quotes_recovered():
     # Strict json.loads fails because the value contains bare double-quotes,
     # but the escape-inner-quotes repair step recovers it.
@@ -88,20 +91,21 @@ def test_inner_unescaped_quotes_with_other_keys():
 
 # ── repair_and_parse: failure / None cases ────────────────────────────
 
+
 def test_top_level_array_returns_none():
-    assert repair_and_parse('[1, 2]') is None
+    assert repair_and_parse("[1, 2]") is None
 
 
 def test_empty_string_returns_none():
-    assert repair_and_parse('') is None
+    assert repair_and_parse("") is None
 
 
 def test_whitespace_only_returns_none():
-    assert repair_and_parse('   \n\t  ') is None
+    assert repair_and_parse("   \n\t  ") is None
 
 
 def test_unparseable_garbage_returns_none():
-    assert repair_and_parse('this is not json at all') is None
+    assert repair_and_parse("this is not json at all") is None
 
 
 def test_none_input_returns_none():
@@ -110,6 +114,7 @@ def test_none_input_returns_none():
 
 
 # ── _strip_fences / strip_fences ──────────────────────────────────────
+
 
 def test_strip_fences_removes_json_fence():
     assert strip_fences('```json\n{"a": 1}\n```') == '{"a": 1}'
@@ -128,6 +133,7 @@ def test_strip_fences_alias_identity():
 
 
 # ── _escape_inner_quotes / escape_inner_quotes ────────────────────────
+
 
 def test_escape_inner_quotes_makes_parseable():
     src = '{"q": "say "hi" now"}'
@@ -157,11 +163,13 @@ def test_escape_inner_quotes_alias_identity():
 
 # ── public/private alias identity within json_repair ──────────────────
 
+
 def test_repair_and_parse_alias_identity():
     assert repair_and_parse is _repair_and_parse
 
 
 # ── cross-module re-export identity (base_generator) ──────────────────
+
 
 def test_base_generator_reexport_is_same_object():
     from src.ai.generators.base_generator import _repair_and_parse as bg_repair

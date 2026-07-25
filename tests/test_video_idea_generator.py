@@ -1,4 +1,5 @@
 """Zero-network tests for src.ai.generators.video_idea_generator (pure logic + mocked Claude/eval)."""
+
 from __future__ import annotations
 
 import pytest
@@ -11,8 +12,11 @@ def test_build_payload_includes_core_fields():
     import json
 
     feed_item = {
-        "title": "Anthropic ships agent skills", "content": "Some long body text here.",
-        "source_name": "Anthropic Blog", "url": "https://example.com/a", "topics": ["agents", "claude"],
+        "title": "Anthropic ships agent skills",
+        "content": "Some long body text here.",
+        "source_name": "Anthropic Blog",
+        "url": "https://example.com/a",
+        "topics": ["agents", "claude"],
     }
     payload = json.loads(gen._build_payload(feed_item))
     assert payload["title"] == "Anthropic ships agent skills"
@@ -39,8 +43,10 @@ def test_build_payload_truncates_long_content():
 # ── _fabrication_check_text ─────────────────────────────────────────────
 def test_fabrication_check_text_includes_all_four_fields():
     data = {
-        "hook": "Hook line.", "talking_points": ["point one", "point two"],
-        "closing_thought": "Closing.", "suggested_caption": "Caption #tag",
+        "hook": "Hook line.",
+        "talking_points": ["point one", "point two"],
+        "closing_thought": "Closing.",
+        "suggested_caption": "Caption #tag",
     }
     text = gen._fabrication_check_text(data)
     assert "Hook line." in text
@@ -107,7 +113,13 @@ async def test_generate_video_idea_skip_passthrough(monkeypatch):
     async def fake_create(*_a, **_k):
         return _FakeMsg('{"skip": true, "reason": "too dry"}')
 
-    monkeypatch.setattr(gen, "_client", lambda: type("C", (), {"messages": type("M", (), {"create": staticmethod(fake_create)})()})())
+    monkeypatch.setattr(
+        gen,
+        "_client",
+        lambda: type(
+            "C", (), {"messages": type("M", (), {"create": staticmethod(fake_create)})()}
+        )(),
+    )
 
     result = await gen.generate_video_idea({"title": "x"}, voice="adam")
     assert result == {"skip": True, "reason": "too dry"}
@@ -124,7 +136,13 @@ async def test_generate_video_idea_happy_path_no_fabrication(monkeypatch):
     async def fake_create(*_a, **_k):
         return _FakeMsg(idea_json)
 
-    monkeypatch.setattr(gen, "_client", lambda: type("C", (), {"messages": type("M", (), {"create": staticmethod(fake_create)})()})())
+    monkeypatch.setattr(
+        gen,
+        "_client",
+        lambda: type(
+            "C", (), {"messages": type("M", (), {"create": staticmethod(fake_create)})()}
+        )(),
+    )
 
     class FakeEvaluator:
         async def evaluate_post(self, *_a, **_k):
@@ -154,7 +172,13 @@ async def test_generate_video_idea_retries_once_on_fabrication(monkeypatch):
         calls["n"] += 1
         return _FakeMsg(idea_json if calls["n"] == 1 else fixed_json)
 
-    monkeypatch.setattr(gen, "_client", lambda: type("C", (), {"messages": type("M", (), {"create": staticmethod(fake_create)})()})())
+    monkeypatch.setattr(
+        gen,
+        "_client",
+        lambda: type(
+            "C", (), {"messages": type("M", (), {"create": staticmethod(fake_create)})()}
+        )(),
+    )
 
     eval_calls = {"n": 0}
 
@@ -183,7 +207,13 @@ async def test_generate_video_idea_reports_unfixed_fabrication_honestly(monkeypa
     async def fake_create(*_a, **_k):
         return _FakeMsg(idea_json)
 
-    monkeypatch.setattr(gen, "_client", lambda: type("C", (), {"messages": type("M", (), {"create": staticmethod(fake_create)})()})())
+    monkeypatch.setattr(
+        gen,
+        "_client",
+        lambda: type(
+            "C", (), {"messages": type("M", (), {"create": staticmethod(fake_create)})()}
+        )(),
+    )
 
     class FakeEvaluator:
         async def evaluate_post(self, *_a, **_k):
@@ -203,7 +233,13 @@ async def test_generate_video_idea_returns_none_on_unparseable_json(monkeypatch)
     async def fake_create(*_a, **_k):
         return _FakeMsg("not json at all")
 
-    monkeypatch.setattr(gen, "_client", lambda: type("C", (), {"messages": type("M", (), {"create": staticmethod(fake_create)})()})())
+    monkeypatch.setattr(
+        gen,
+        "_client",
+        lambda: type(
+            "C", (), {"messages": type("M", (), {"create": staticmethod(fake_create)})()}
+        )(),
+    )
 
     result = await gen.generate_video_idea({"title": "x"}, voice="adam")
     assert result is None
@@ -250,18 +286,32 @@ async def test_generate_video_idea_returns_none_when_shape_invalid(monkeypatch):
     async def fake_create(*_a, **_k):
         return _FakeMsg('{"talking_points": ["a", "b"]}')
 
-    monkeypatch.setattr(gen, "_client", lambda: type("C", (), {"messages": type("M", (), {"create": staticmethod(fake_create)})()})())
+    monkeypatch.setattr(
+        gen,
+        "_client",
+        lambda: type(
+            "C", (), {"messages": type("M", (), {"create": staticmethod(fake_create)})()}
+        )(),
+    )
 
     result = await gen.generate_video_idea({"title": "x"}, voice="adam")
     assert result is None
 
 
 @pytest.mark.asyncio
-async def test_generate_video_idea_returns_none_when_talking_points_not_list_of_strings(monkeypatch):
+async def test_generate_video_idea_returns_none_when_talking_points_not_list_of_strings(
+    monkeypatch,
+):
     async def fake_create(*_a, **_k):
         return _FakeMsg('{"hook": "h", "talking_points": [{"weird": "shape"}]}')
 
-    monkeypatch.setattr(gen, "_client", lambda: type("C", (), {"messages": type("M", (), {"create": staticmethod(fake_create)})()})())
+    monkeypatch.setattr(
+        gen,
+        "_client",
+        lambda: type(
+            "C", (), {"messages": type("M", (), {"create": staticmethod(fake_create)})()}
+        )(),
+    )
 
     result = await gen.generate_video_idea({"title": "x"}, voice="adam")
     assert result is None
@@ -285,7 +335,13 @@ async def test_fabrication_retry_includes_previous_draft_in_prompt(monkeypatch):
         captured_user_contents.append(kwargs["messages"][0]["content"])
         return _FakeMsg(idea_json if len(captured_user_contents) == 1 else fixed_json)
 
-    monkeypatch.setattr(gen, "_client", lambda: type("C", (), {"messages": type("M", (), {"create": staticmethod(fake_create)})()})())
+    monkeypatch.setattr(
+        gen,
+        "_client",
+        lambda: type(
+            "C", (), {"messages": type("M", (), {"create": staticmethod(fake_create)})()}
+        )(),
+    )
 
     eval_calls = {"n": 0}
 

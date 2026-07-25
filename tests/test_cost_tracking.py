@@ -1,4 +1,5 @@
 """Zero-network tests for src.core.storage.cost_tracking."""
+
 from __future__ import annotations
 
 from src.core.storage import cost_tracking

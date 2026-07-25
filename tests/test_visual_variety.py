@@ -8,6 +8,7 @@ Covers the deterministic no-immediate-repeat rotation:
 
 Mirrors the module's own _demo() pattern for the store fakes.
 """
+
 from __future__ import annotations
 
 import pytest

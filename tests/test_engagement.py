@@ -4,6 +4,7 @@ posts.get_post is monkeypatched so these exercise the actual date-math / auto-fi
 log() without touching Supabase. The fake_supabase fixture stands in for the insert call --
 its return value isn't asserted on (log()'s return dict is computed independently beforehand).
 """
+
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone

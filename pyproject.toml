@@ -11,6 +11,10 @@ requires-python = ">=3.12"
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+# scripts/ = kézi, ÉLES smoke-toolok (valódi API-t + pénzt hívnak, nem CI-teszt); szándékos
+# mintákkal (sys.path-boot import ELŐTT → E402). A CI-gate a shippelő kódra (src) + a
+# tesztekre (tests) vonatkozik, a live scripteket nem lintoljuk/formázzuk automatikusan.
+extend-exclude = ["scripts"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "B"]

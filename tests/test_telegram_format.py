@@ -3,6 +3,7 @@
 Csak a pure formázó/keyboard buildereket teszteljük — se get_bot(), se hálózat.
 A modul importja biztonságos: minden kliens lustán épül, a conftest env-et állít.
 """
+
 from __future__ import annotations
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup

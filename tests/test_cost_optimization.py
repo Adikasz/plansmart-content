@@ -2,6 +2,7 @@
 prompt-caching helper, cache-tudatos árazás, és az extract_visual_text cserélhető szolgáltatója.
 SEMMILYEN hálózat / valódi Anthropic / OpenRouter hívás — minden mock.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -57,12 +58,7 @@ def test_estimate_cost_cache_read_is_0_1x_input():
 def test_estimate_cost_combined_components_sum():
     # 100 input full + 7000 write + 500 read + 50 output
     got = ct.estimate_cost_usd("claude-sonnet-4-6", 100, 50, 7000, 500)
-    expected = (
-        100 / 1e6 * 3.0
-        + 7000 / 1e6 * 3.0 * 1.25
-        + 500 / 1e6 * 3.0 * 0.10
-        + 50 / 1e6 * 15.0
-    )
+    expected = 100 / 1e6 * 3.0 + 7000 / 1e6 * 3.0 * 1.25 + 500 / 1e6 * 3.0 * 0.10 + 50 / 1e6 * 15.0
     assert got == pytest.approx(round(expected, 6))
 
 
@@ -190,8 +186,11 @@ async def test_anthropic_provider_calls_haiku_and_records(monkeypatch):
     fake = _FakeAsyncClient('{"main_text":"HELLO"}', usage=_Usage(10, 5))
     monkeypatch.setattr(vtp, "_anthropic_client", lambda: fake)
     recorded = []
-    monkeypatch.setattr(vtp, "record_claude_usage",
-                        lambda msg, model, **kw: recorded.append((model, kw.get("kind"))))
+    monkeypatch.setattr(
+        vtp,
+        "record_claude_usage",
+        lambda msg, model, **kw: recorded.append((model, kw.get("kind"))),
+    )
 
     prov = vtp.AnthropicProvider()
     out = await prov.complete("SYS", "USER", max_tokens=300)
@@ -266,8 +265,9 @@ async def test_openrouter_provider_builds_payload_and_parses(monkeypatch):
 async def test_extract_visual_text_default_path_unchanged(monkeypatch):
     from src.integrations.visuals import visual_generator as vg
 
-    fake = _FakeAsyncClient('{"main_text":"AMD $10B","sub_text":"supply chain","stat":"$10B"}',
-                            usage=_Usage(50, 20))
+    fake = _FakeAsyncClient(
+        '{"main_text":"AMD $10B","sub_text":"supply chain","stat":"$10B"}', usage=_Usage(50, 20)
+    )
     monkeypatch.setattr(vg, "_client", lambda: fake)
     monkeypatch.setattr(vg, "record_claude_usage", lambda *a, **k: None)
 
@@ -291,7 +291,9 @@ async def test_extract_visual_text_routes_through_explicit_provider(monkeypatch)
             return '{"main_text":"FROM PROVIDER","sub_text":"x","stat":null}'
 
     # ha a default utat hívná (nem a providert), ez a klienshiba kibukna:
-    monkeypatch.setattr(vg, "_client", lambda: (_ for _ in ()).throw(AssertionError("nem a providert hívta")))
+    monkeypatch.setattr(
+        vg, "_client", lambda: (_ for _ in ()).throw(AssertionError("nem a providert hívta"))
+    )
 
     out = await vg.extract_visual_text("some post text", provider=_Prov())
     assert out["main_text"] == "FROM PROVIDER"
