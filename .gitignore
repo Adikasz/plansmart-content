@@ -16,11 +16,13 @@ env/
 *.pem
 *.key
 
-# Adatbázis
+# Adatbázis + Railway-ephemeral fallback state (a Supabase az igazság forrása; ezek a
+# lokális JSON-ok CSAK best-effort fallbackek, redeploykor törlődnek — sose commitoljuk őket)
 data/*.db
 data/*.db-journal
 data/*.sqlite
 data/portrait_state.json
+data/visual_variety_state.json
 
 # Portré-kivágat cache (rembg, startupkor előmelegítve — lásd src/visuals/portrait.py)
 assets/brand/cutouts/
