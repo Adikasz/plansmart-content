@@ -4,7 +4,16 @@ from __future__ import annotations
 
 import pytest
 
+from src.core.strategy import cadence
 from src.core.workers import video_idea_worker as worker
+
+
+@pytest.fixture(autouse=True)
+def _no_digest_voices(monkeypatch):
+    """Fazis 23 ota Adam digest-hang, ezert a run_video_idea_check kapuja alapbol azonnal
+    visszater. Az ITTENI tesztek a kapun BELULI logikat ellenorzik, ezert a kizarast
+    kikapcsoljuk; magat a kaput a tests/test_adam_digest_worker.py fedi le."""
+    monkeypatch.setattr(cadence, "digest_voices", lambda: set())
 
 
 # ── _adam_fit ─────────────────────────────────────────────────────────────
