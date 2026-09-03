@@ -87,6 +87,16 @@ class Settings(BaseModel):
     text_ship_threshold: float = 9.0
     text_auto_improve: bool = False
 
+    # ── Konszolidált digest kadencia (Fázis 23) ──────────────────────────
+    # Azok a hangok, amiknek MINDEN ütemezett értesítése EGY digest üzenetbe fut össze
+    # (reggeli poszt + breaking reakció + videó-ötlet helyett). Lásd core/strategy/cadence.py.
+    digest_voices: list[str] = Field(default_factory=lambda: ["adam"])
+    adam_digest_enabled: bool = True
+    adam_digest_time: str = "07:50"  # a reggeli 07:30 UTÁN, hogy ne fussanak egyszerre
+    # Minimális óraköz két digest között. 47 (nem 48): a 07:50→07:50 távolság pontosan 48.0h,
+    # amit egy pár másodperces scheduler-jitter alá vihetne — 47 biztosan minden 2. reggel enged.
+    adam_digest_min_hours: int = Field(default=47, ge=1)
+
     # ── Breaking / szűrés ────────────────────────────────────────────────
     breaking_news_enabled: bool = True
     max_breaking_per_day: int = Field(default=3, ge=0)
@@ -146,6 +156,12 @@ class Settings(BaseModel):
             dry_run=_as_bool(e.get("DRY_RUN"), False),
             text_ship_threshold=_as_float(e.get("TEXT_SHIP_THRESHOLD"), 9.0),
             text_auto_improve=_as_bool(e.get("TEXT_AUTO_IMPROVE"), False),
+            digest_voices=[
+                v.strip().lower() for v in e.get("DIGEST_VOICES", "adam").split(",") if v.strip()
+            ],
+            adam_digest_enabled=_as_bool(e.get("ADAM_DIGEST_ENABLED"), True),
+            adam_digest_time=e.get("ADAM_DIGEST_TIME", "07:50") or "07:50",
+            adam_digest_min_hours=max(1, _as_int(e.get("ADAM_DIGEST_MIN_HOURS"), 47)),
             breaking_news_enabled=_as_bool(e.get("BREAKING_NEWS_ENABLED"), True),
             max_breaking_per_day=_as_int(e.get("MAX_BREAKING_PER_DAY"), 3),
             filter_batch_limit=_as_int(e.get("FILTER_BATCH_LIMIT"), 50),

@@ -28,6 +28,7 @@ from src.core.config.settings import get_settings
 from src.core.storage import feed_items as feed_store
 from src.core.storage import posts as posts_store
 from src.core.storage.db import get_client, has_service_key
+from src.core.strategy import cadence
 from src.core.workers.generator_worker import GENERATORS, _optimize_post
 from src.integrations.bots import telegram_bot as tb
 from src.utils.logging import setup_logging
@@ -122,6 +123,16 @@ async def run_breaking_check(
     if not BREAKING_NEWS_ENABLED:
         logger.info("[breaking] kikapcsolva (BREAKING_NEWS_ENABLED=false).")
         return {"enabled": False, "sent": 0, "candidates": 0}
+
+    # Fázis 23: ha a breaking hangja digest-hang (alapból: adam), NEM tüzelünk külön —
+    # a jelöltjei az adam_digest_worker poolján át, 2 naponta EGY üzenetben mennek ki.
+    # Ez a kapu a main.py ütemezésen TÚLI védelem (kézi hívás / jövőbeli trigger ellen is).
+    if cadence.is_digest_voice(BREAKING_VOICE):
+        logger.info(
+            "[breaking] %s digest-hang — a breaking reakciói az adam_digest_worker-be futnak.",
+            BREAKING_VOICE,
+        )
+        return {"enabled": False, "sent": 0, "candidates": 0, "skipped_reason": "digest_voice"}
 
     client = get_client(use_service_key=has_service_key())
     now = datetime.now(timezone.utc)

@@ -1,6 +1,7 @@
 """Reggeli poszt worker — naponta 07:30 (Europe/Budapest), hétvégén is.
 
-Fiókonként (david, adam, plansmart) a content_strategy ajánlott típusából generál egy
+Fiókonként (lásd morning_accounts(): david, plansmart — Ádám Fázis 23 óta a
+adam_digest_worker hatásköre) a content_strategy ajánlott típusából generál egy
 posztot, LinkedIn-optimalizál, magyar szöveges vizuált készít, és a POSTS csatornára küldi
 jóváhagyásra "☀️ Reggeli poszt — {magyar dátum}" fejléccel.
 
@@ -29,7 +30,7 @@ from src.core.config.settings import get_settings
 from src.core.storage import feed_items as feed_store
 from src.core.storage import posts as posts_store
 from src.core.storage.db import get_client, has_service_key
-from src.core.strategy import content_strategy
+from src.core.strategy import cadence, content_strategy
 from src.core.workers.generator_worker import GENERATORS, VOICE_PROMPTS, _optimize_post
 from src.integrations.bots import telegram_bot as tb
 from src.utils.logging import setup_logging
@@ -42,8 +43,21 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 load_dotenv(override=False)
 
-MORNING_ACCOUNTS = ["david", "adam", "plansmart"]
+ALL_MORNING_ACCOUNTS = ["david", "adam", "plansmart"]
 EDUCATIONAL_REUSE_DAYS = 30
+MORNING_NEWS_MIN_SCORE = 6  # a napi top hír küszöbe (a digest worker is ezt használja)
+
+
+def morning_accounts() -> list[str]:
+    """A reggeli ciklusban ténylegesen futó fiókok.
+
+    Fázis 23: a digest-hangok (alapból: adam) KIMARADNAK — értesítéseiket az
+    adam_digest_worker konszolidálja 2 naponta EGY üzenetbe. Hívási időben számoljuk
+    (nem import-időben), hogy a DIGEST_VOICES config/teszt-felülírás azonnal hasson.
+    """
+    return [a for a in ALL_MORNING_ACCOUNTS if not cadence.is_digest_voice(a)]
+
+
 TZ_NAME = get_settings().timezone
 
 HU_MONTHS = [
@@ -165,12 +179,14 @@ async def run_morning_posts(
     dry_run: bool = False, send: bool = True, accounts: list[str] | None = None
 ) -> dict[str, Any]:
     """Egy reggeli ciklus: fiókonként 1 poszt → optimalizál → vizuál → Telegram (POSTS)."""
-    accounts = accounts or MORNING_ACCOUNTS
+    accounts = accounts if accounts is not None else morning_accounts()
     client = get_client(use_service_key=has_service_key())
     week_start = _week_start_iso()
     since_24h = _hours_ago_iso(24)
 
-    news_rows = feed_store.get_recent_top(since_24h, min_score=6, client=client)
+    news_rows = feed_store.get_recent_top(
+        since_24h, min_score=MORNING_NEWS_MIN_SCORE, client=client
+    )
     top_item = feed_store.row_to_item(news_rows[0]) if news_rows else None
     header = f"☀️ Reggeli poszt — {hungarian_date()}\n\n"
 

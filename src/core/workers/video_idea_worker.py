@@ -30,6 +30,7 @@ from src.ai.generators.video_idea_generator import generate_video_idea
 from src.core.storage import feed_items as feed_store
 from src.core.storage import video_ideas as video_store
 from src.core.storage.db import get_client, has_service_key
+from src.core.strategy import cadence
 from src.integrations.bots import video_idea_bot as vb
 from src.utils.logging import setup_logging
 
@@ -55,6 +56,23 @@ async def run_video_idea_check(
     dry_run=True: generál (valódi Claude-hívás), de NEM ír DB-t, NEM küld Telegramra.
     item: explicit feed_items sor (teszthez); ha None, a DB-ből keresi a jelölteket.
     """
+    # Fázis 23: a videó-ötlet a digest-hangoknál (alapból: adam) NEM önálló heti job többé —
+    # a jelöltjei az adam_digest_worker poolját erősítik. A /create_video kézi parancs
+    # ettől függetlenül működik (az a video_idea_bot._pick_and_generate-en megy, nem ezen).
+    if cadence.is_digest_voice(VIDEO_IDEA_VOICE):
+        logger.info(
+            "[video-idea] %s digest-hang — a heti videó-ötlet az adam_digest_worker-be futott be.",
+            VIDEO_IDEA_VOICE,
+        )
+        return {
+            "candidates": 0,
+            "qualified": 0,
+            "tried": 0,
+            "produced": None,
+            "dry_run": dry_run,
+            "skipped_reason": "digest_voice",
+        }
+
     client = get_client(use_service_key=has_service_key())
 
     if item is not None:

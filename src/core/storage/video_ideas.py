@@ -95,6 +95,26 @@ def has_video_idea_for_feed_item(feed_item_id: str, client: Client | None = None
     return bool(resp.data)
 
 
+def latest_created_at(voice: str, client: Client | None = None) -> str | None:
+    """A hang legutóbbi videó-ötletének created_at-je (ISO), vagy None.
+
+    A digest worker két dologra használja: (a) a videó-ötlet heti kadenciájának megtartására
+    a digesten BELÜL (cooldown), (b) az utolsó digest-kiküldés levezetésére, ha a digest
+    éppen videó-ötlettel nyert (annak nincs posts sora, amibe a digest-jelölő kerülhetne).
+    """
+    resp = (
+        _c(client)
+        .table(TABLE)
+        .select("created_at")
+        .eq("voice", voice)
+        .order("created_at", desc=True)
+        .limit(1)
+        .execute()
+    )
+    rows = resp.data or []
+    return cast("str | None", rows[0].get("created_at")) if rows else None
+
+
 def update_status(idea_id: str, status: str, client: Client | None = None, **fields: Any) -> None:
     """Frissíti a video_ideas.status-t (és opcionális mezőket: approved_at, filmed_at, ...)."""
     patch: dict[str, Any] = {"status": status}

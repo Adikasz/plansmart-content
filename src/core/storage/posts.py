@@ -285,6 +285,29 @@ def breaking_count_since(since_iso: str, client: Client | None = None) -> int:
     return len(resp.data or [])
 
 
+def recent_sent_for_voice(
+    voice: str, limit: int = 60, client: Client | None = None
+) -> list[dict[str, Any]]:
+    """Az adott hang utoljára KIKÜLDÖTT posztjai (sent_at szerint csökkenő), metadata-val.
+
+    A digest worker ebből vezeti le, mikor ment ki az utolsó digest (metadata.digest=True) —
+    így nem kell külön állapot-tábla (migráció) és a Railway ephemeral FS sem játszik.
+    A metadata-szűrés Pythonban történik: ebben a kódbázisban SEHOL nincs JSONB-oszlop-szintű
+    postgrest szűrés (lásd feed_items.get_video_idea_candidates ugyanerre az elvre).
+    """
+    resp = (
+        _c(client)
+        .table("posts")
+        .select("id,voice,sent_at,is_breaking,metadata")
+        .eq("voice", voice)
+        .not_.is_("sent_at", "null")
+        .order("sent_at", desc=True)
+        .limit(limit)
+        .execute()
+    )
+    return cast("list[dict[str, Any]]", resp.data or [])
+
+
 def mark_sent(post_id: str, sent_at: str | None = None, client: Client | None = None) -> None:
     """A poszt sent_at mezőjének beállítása (Telegram kiküldés után)."""
     _c(client).table("posts").update({"sent_at": sent_at or _now()}).eq("id", post_id).execute()
